@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>FUTURE CLUB - تقديم طلب تمويل جديد</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&amp;family=Hanken+Grotesk:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#ffb4ab",
+                    "on-secondary-fixed": "#3f0018",
+                    "inverse-surface": "#e2e2e8",
+                    "primary-container": "#00f5d4",
+                    "on-tertiary-fixed-variant": "#004d63",
+                    "inverse-on-surface": "#2f3035",
+                    "on-tertiary": "#003545",
+                    "on-primary": "#00382f",
+                    "outline": "#83948f",
+                    "tertiary-fixed-dim": "#6cd3fc",
+                    "tertiary": "#edf8ff",
+                    "on-secondary-container": "#ffa1b7",
+                    "on-tertiary-container": "#006784",
+                    "error-container": "#93000a",
+                    "on-secondary": "#66002b",
+                    "primary-fixed": "#26fedc",
+                    "on-primary-fixed-variant": "#005144",
+                    "surface-container-highest": "#333539",
+                    "on-primary-fixed": "#00201a",
+                    "background": "#111317",
+                    "surface-bright": "#37393e",
+                    "secondary": "#ffb1c2",
+                    "on-error": "#690005",
+                    "surface-tint": "#00dfc1",
+                    "primary-fixed-dim": "#00dfc1",
+                    "tertiary-fixed": "#bce9ff",
+                    "surface-variant": "#333539",
+                    "on-tertiary-fixed": "#001f2a",
+                    "tertiary-container": "#a6e3ff",
+                    "on-primary-container": "#006c5c",
+                    "surface-dim": "#111317",
+                    "surface-container-lowest": "#0c0e12",
+                    "secondary-container": "#980044",
+                    "surface-container-high": "#282a2e",
+                    "surface-container": "#1e2024",
+                    "on-error-container": "#ffdad6",
+                    "on-surface-variant": "#b9cac4",
+                    "on-background": "#e2e2e8",
+                    "surface": "#111317",
+                    "surface-container-low": "#1a1c20",
+                    "primary": "#d7fff3",
+                    "on-secondary-fixed-variant": "#8f0040",
+                    "on-surface": "#e2e2e8",
+                    "outline-variant": "#3a4a46",
+                    "secondary-fixed": "#ffd9e0",
+                    "secondary-fixed-dim": "#ffb1c2",
+                    "inverse-primary": "#006b5b"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "section-margin": "48px",
+                    "container-padding-mobile": "16px",
+                    "card-gap": "24px",
+                    "unit": "8px",
+                    "container-padding-desktop": "40px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Sora"],
+                    "mono-data": ["Hanken Grotesk"],
+                    "label-md": ["Hanken Grotesk"],
+                    "body-lg": ["Hanken Grotesk"],
+                    "headline-lg-mobile": ["Sora"],
+                    "display-lg": ["Sora"],
+                    "headline-md": ["Sora"],
+                    "body-md": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "mono-data": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background: radial-gradient(circle at top right, rgba(0, 245, 212, 0.05), transparent), 
+                        radial-gradient(circle at bottom left, rgba(255, 177, 194, 0.05), transparent),
+                        #050505;
+            color: #e2e2e8;
+            font-family: 'Hanken Grotesk', sans-serif;
+            overflow-x: hidden;
+            min-height: max(884px, 100dvh);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .glass-input {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .primary-glow {
+            box-shadow: 0 0 20px rgba(0, 245, 212, 0.3);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background">
+<!-- Top AppBar -->
+<header class="fixed top-0 w-full z-50 bg-background/40 backdrop-blur-2xl border-b border-white/5 flex justify-between items-center px-container-padding-mobile md:px-container-padding-desktop h-16">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary text-2xl">account_balance_wallet</span>
+<h1 class="font-headline-md text-headline-md font-bold tracking-tighter text-primary">FUTURE CLUB</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden md:flex items-center gap-6 ml-8">
+<a class="text-primary font-label-md text-label-md" href="#">المحفظة</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">التمويل</a>
+<a class="text-on-surface-variant hover:text-primary transition-colors font-label-md text-label-md" href="#">الذكاء المالي</a>
+</div>
+<div class="w-10 h-10 rounded-full border border-primary/30 p-0.5 overflow-hidden">
+<img alt="Staff Profile" class="w-full h-full object-cover rounded-full" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVRqPtbL7N1vH8Ct6r-woDjgNnO27e9vu8wCTtjYSP2J-m-CgYZmDqebYMdc9dR-IGz1cdg0cuunL6KQD9J4xWU3dgqra8X4Qr2s9mYt-F1s50t445RVDgxD3PXQ2t66G7LbR62JiRci5Mc6E5mpXx0wGYqKBXcm0fIb4tFXbd4P1iN6dgvWnZXrXr9m0xnS_bLH58o-RpItkkFgcO58p0dTLrVszuvY3UZIfImT12yvo-Df3SK2kkJzMvkKSXRJ-zmoFuwZMkeAUL"/>
+</div>
+</div>
+</header>
+<main class="pt-24 pb-32 px-container-padding-mobile md:px-container-padding-desktop max-w-7xl mx-auto">
+<!-- Header Section -->
+<div class="mb-10 text-right">
+<h2 class="font-headline-lg text-headline-lg mb-2">تقديم طلب تمويل جديد</h2>
+<p class="text-on-surface-variant font-body-md text-body-md">أدخل بيانات العميل وتفاصيل التمويل لبدء المراجعة الأولية.</p>
+</div>
+<!-- Stepper -->
+<div class="mb-12 relative">
+<div class="flex justify-between items-center max-w-4xl mx-auto relative z-10">
+<!-- Step 1: Active -->
+<div class="flex flex-col items-center gap-3">
+<div class="w-12 h-12 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold shadow-[0_0_15px_rgba(0,245,212,0.4)]">
+<span class="material-symbols-outlined">person</span>
+</div>
+<span class="text-primary font-label-md text-label-md">بيانات العميل</span>
+</div>
+<!-- Line -->
+<div class="flex-1 h-[2px] bg-white/10 mx-4 -mt-8"></div>
+<!-- Step 2 -->
+<div class="flex flex-col items-center gap-3">
+<div class="w-12 h-12 rounded-full glass-panel text-on-surface-variant flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-on-surface-variant font-label-md text-label-md">تفاصيل التمويل</span>
+</div>
+<!-- Line -->
+<div class="flex-1 h-[2px] bg-white/10 mx-4 -mt-8"></div>
+<!-- Step 3 -->
+<div class="flex flex-col items-center gap-3">
+<div class="w-12 h-12 rounded-full glass-panel text-on-surface-variant flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined">description</span>
+</div>
+<span class="text-on-surface-variant font-label-md text-label-md">المستندات</span>
+</div>
+<!-- Line -->
+<div class="flex-1 h-[2px] bg-white/10 mx-4 -mt-8"></div>
+<!-- Step 4 -->
+<div class="flex flex-col items-center gap-3">
+<div class="w-12 h-12 rounded-full glass-panel text-on-surface-variant flex items-center justify-center border border-white/5">
+<span class="material-symbols-outlined">task_alt</span>
+</div>
+<span class="text-on-surface-variant font-label-md text-label-md">المراجعة</span>
+</div>
+</div>
+</div>
+<!-- Main Form Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-card-gap">
+<!-- Left Side: Basic Info -->
+<div class="md:col-span-8 space-y-card-gap">
+<div class="glass-panel rounded-xl p-8">
+<h3 class="font-headline-md text-headline-md mb-8 flex items-center gap-3 text-primary">
+<span class="material-symbols-outlined">edit_note</span>
+                    معلومات التمويل
+                </h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+<!-- Client Selection -->
+<div class="space-y-2">
+<label class="block text-on-surface-variant font-label-md text-label-md">اختيار العميل</label>
+<div class="relative group">
+<select class="w-full glass-input border-0 border-b border-white/10 focus:border-primary focus:ring-0 text-on-surface font-body-md text-body-md py-3 pr-2 pl-10 appearance-none rounded-t-lg transition-all group-hover:bg-white/5">
+<option>اختر العميل المستهدف...</option>
+<option>جسيكا بروز - شركة التقنية</option>
+<option>أحمد العلي - الفهد للتجارة</option>
+<option>سارة المنصور - الاستشارات الدولية</option>
+</select>
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant">expand_more</span>
+</div>
+</div>
+<!-- Funding Purpose -->
+<div class="space-y-2">
+<label class="block text-on-surface-variant font-label-md text-label-md">غرض التمويل</label>
+<div class="flex gap-3">
+<button class="flex-1 py-3 px-4 rounded-xl border border-primary bg-primary/10 text-primary font-label-md text-label-md flex items-center justify-center gap-2 backdrop-blur-md">
+<span class="material-symbols-outlined text-sm">person</span>
+                                شخصي
+                            </button>
+<button class="flex-1 py-3 px-4 rounded-xl border border-white/10 glass-input text-on-surface-variant font-label-md text-label-md flex items-center justify-center gap-2 hover:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-sm">home_work</span>
+                                عقاري
+                            </button>
+<button class="flex-1 py-3 px-4 rounded-xl border border-white/10 glass-input text-on-surface-variant font-label-md text-label-md flex items-center justify-center gap-2 hover:border-primary/50 transition-all">
+<span class="material-symbols-outlined text-sm">business_center</span>
+                                أعمال
+                            </button>
+</div>
+</div>
+<!-- Amount -->
+<div class="space-y-2">
+<label class="block text-on-surface-variant font-label-md text-label-md">قيمة التمويل (SAR)</label>
+<div class="relative">
+<input class="w-full glass-input border-0 border-b border-white/10 focus:border-primary focus:ring-0 text-on-surface font-headline-md text-headline-md py-4 pr-4 transition-all rounded-t-lg" placeholder="0.00" type="number"/>
+<span class="absolute left-4 top-1/2 -translate-y-1/2 text-primary font-bold">ريال</span>
+</div>
+</div>
+<!-- Duration -->
+<div class="space-y-2">
+<label class="block text-on-surface-variant font-label-md text-label-md">مدة التمويل (بالأشهر)</label>
+<div class="relative flex items-center gap-4 h-[72px]">
+<input class="flex-1 accent-primary bg-white/10 h-1 rounded-full appearance-none" max="60" min="6" step="6" type="range"/>
+<span class="min-w-[60px] text-center font-mono-data text-mono-data glass-panel text-primary py-2 px-3 rounded-lg">24 شهر</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Document Upload Area -->
+<div class="glass-panel rounded-xl p-8">
+<h3 class="font-headline-md text-headline-md mb-6 flex items-center gap-3 text-primary">
+<span class="material-symbols-outlined">cloud_upload</span>
+                    المرفقات والمستندات
+                </h3>
+<div class="border-2 border-dashed border-white/10 rounded-2xl p-12 flex flex-col items-center justify-center text-center group hover:border-primary/40 transition-all cursor-pointer glass-input">
+<div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary text-3xl">upload_file</span>
+</div>
+<p class="font-headline-md text-headline-md mb-2">اسحب الملفات هنا أو اضغط للتحميل</p>
+<p class="text-on-surface-variant font-body-md text-body-md">يدعم PDF, PNG, JPG (الحد الأقصى 20 ميجابايت)</p>
+</div>
+<!-- File Previews -->
+<div class="mt-6 space-y-3">
+<div class="flex items-center justify-between p-4 glass-input rounded-xl">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-error">picture_as_pdf</span>
+<div>
+<p class="font-label-md text-label-md">الهوية_الوطنية.pdf</p>
+<p class="text-xs text-on-surface-variant uppercase">1.2 MB</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:text-error transition-colors">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Side: Summary Card -->
+<div class="md:col-span-4">
+<div class="glass-panel rounded-xl p-6 sticky top-24">
+<h3 class="font-headline-md text-headline-md mb-6">ملخص الطلب</h3>
+<div class="space-y-6">
+<div class="flex justify-between items-center py-3 border-b border-white/5">
+<span class="text-on-surface-variant">معدل الربح السنوي</span>
+<span class="text-primary font-mono-data font-bold">3.25%</span>
+</div>
+<div class="flex justify-between items-center py-3 border-b border-white/5">
+<span class="text-on-surface-variant">إجمالي الربح</span>
+<span class="text-on-surface font-mono-data">4,250 SAR</span>
+</div>
+<div class="flex justify-between items-center py-3 border-b border-white/5">
+<span class="text-on-surface-variant">القسط الشهري المتوقع</span>
+<span class="text-headline-md text-headline-md text-primary font-bold">1,820 SAR</span>
+</div>
+</div>
+<div class="mt-10 p-4 glass-input rounded-xl border border-primary/20 flex gap-4">
+<span class="material-symbols-outlined text-primary">info</span>
+<p class="text-xs text-on-surface-variant leading-relaxed">تخضع هذه الحسابات للموافقة النهائية بعد مراجعة كافة المستندات والتحقق من الملاءة المالية.</p>
+</div>
+<div class="mt-10 flex flex-col gap-4">
+<button class="w-full py-4 bg-primary-container text-on-primary-container rounded-xl font-bold font-headline-md text-headline-md primary-glow flex items-center justify-center gap-3 transition-transform active:scale-95">
+                        الخطوة التالية
+                        <span class="material-symbols-outlined">arrow_back</span>
+</button>
+<button class="w-full py-4 glass-input text-on-surface rounded-xl font-label-md text-label-md hover:bg-white/10 transition-all">
+                        حفظ كمسودة
+                    </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Mobile -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 rounded-t-xl bg-black/40 backdrop-blur-2xl border-t border-white/5 flex justify-around items-center h-20 pb-safe px-2">
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-label-md text-label-md">المحفظة</span>
+</a>
+<a class="flex flex-col items-center justify-center text-primary-fixed-dim bg-primary/10 rounded-xl px-4 py-1" href="#">
+<span class="material-symbols-outlined">add_chart</span>
+<span class="font-label-md text-label-md">التمويل</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="font-label-md text-label-md">الذكاء</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="font-label-md text-label-md">الإعدادات</span>
+</a>
+</nav>
+<script>
+    // Simple range display update
+    const range = document.querySelector('input[type="range"]');
+    const rangeDisplay = range.nextElementSibling;
+    range.addEventListener('input', (e) => {
+        rangeDisplay.textContent = `${e.target.value} شهر`;
+    });
+
+    // Click interaction for radio-style buttons
+    document.querySelectorAll('button[class*="flex-1 py-3"]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            // Reset siblings
+            this.parentElement.querySelectorAll('button').forEach(b => {
+                b.classList.remove('border-primary', 'bg-primary/10', 'text-primary', 'backdrop-blur-md');
+                b.classList.add('border-white/10', 'glass-input', 'text-on-surface-variant');
+            });
+            // Highlight active
+            this.classList.add('border-primary', 'bg-primary/10', 'text-primary', 'backdrop-blur-md');
+            this.classList.remove('border-white/10', 'glass-input', 'text-on-surface-variant');
+        });
+    });
+</script>
+</body></html>

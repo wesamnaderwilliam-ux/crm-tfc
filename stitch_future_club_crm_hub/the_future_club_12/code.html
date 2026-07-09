@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Future Club - CRM Architect</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&amp;family=Hanken+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-container": "#980044",
+                        "primary-fixed-dim": "#00dfc1",
+                        "on-error": "#690005",
+                        "on-primary-fixed": "#00201a",
+                        "surface": "#111317",
+                        "primary-fixed": "#26fedc",
+                        "error": "#ffb4ab",
+                        "inverse-on-surface": "#2f3035",
+                        "on-primary-container": "#006c5c",
+                        "surface-container-high": "#282a2e",
+                        "error-container": "#93000a",
+                        "surface-container": "#1e2024",
+                        "secondary-fixed-dim": "#ffb1c2",
+                        "on-secondary-fixed-variant": "#8f0040",
+                        "inverse-primary": "#006b5b",
+                        "outline": "#83948f",
+                        "on-secondary": "#66002b",
+                        "surface-bright": "#37393e",
+                        "on-tertiary": "#003545",
+                        "primary": "#d7fff3",
+                        "surface-tint": "#00dfc1",
+                        "on-background": "#e2e2e8",
+                        "tertiary-container": "#a6e3ff",
+                        "surface-dim": "#111317",
+                        "on-error-container": "#ffdad6",
+                        "surface-variant": "#333539",
+                        "on-tertiary-fixed": "#001f2a",
+                        "tertiary": "#edf8ff",
+                        "secondary-fixed": "#ffd9e0",
+                        "on-tertiary-container": "#006784",
+                        "on-secondary-container": "#ffa1b7",
+                        "on-surface": "#e2e2e8",
+                        "on-primary-fixed-variant": "#005144",
+                        "surface-container-low": "#1a1c20",
+                        "on-primary": "#00382f",
+                        "on-secondary-fixed": "#3f0018",
+                        "background": "#050505",
+                        "secondary": "#ffb1c2",
+                        "surface-container-highest": "#333539",
+                        "primary-container": "#00f5d4",
+                        "tertiary-fixed-dim": "#6cd3fc",
+                        "surface-container-lowest": "#0c0e12",
+                        "on-tertiary-fixed-variant": "#004d63",
+                        "tertiary-fixed": "#bce9ff",
+                        "outline-variant": "#3a4a46",
+                        "on-surface-variant": "#b9cac4",
+                        "inverse-surface": "#e2e2e8"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-margin": "48px",
+                        "gutter": "24px",
+                        "container-padding-desktop": "40px",
+                        "unit": "8px",
+                        "container-padding-mobile": "16px",
+                        "card-gap": "24px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Hanken Grotesk"],
+                        "headline-md": ["Sora"],
+                        "headline-lg": ["Sora"],
+                        "body-lg": ["Hanken Grotesk"],
+                        "mono-data": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Sora"],
+                        "display-lg": ["Sora"],
+                        "body-md": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "mono-data": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #050505;
+            color: #e2e2e8;
+            font-family: 'Hanken Grotesk', sans-serif;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(20, 22, 26, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .neon-glow {
+            box-shadow: 0 0 15px rgba(0, 245, 212, 0.4);
+        }
+        .neon-border-hover:hover {
+            border-color: #26fedc;
+            box-shadow: inset 0 0 10px rgba(38, 254, 220, 0.1);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="flex min-h-screen">
+<!-- SideNavBar (Predicted Component) -->
+<aside class="fixed right-0 h-full w-64 bg-surface/60 backdrop-blur-xl border-l border-outline-variant/20 flex flex-col py-8 px-4 z-50 shadow-[10px_0_30px_rgba(0,0,0,0.5)]">
+<div class="mb-12 px-2">
+<h1 class="font-display-lg text-display-lg tracking-tighter text-primary-fixed drop-shadow-[0_0_10px_rgba(0,223,193,0.5)] scale-75 origin-right">THE FUTURE CLUB</h1>
+<p class="font-label-md text-label-md text-on-surface-variant opacity-70">Elite Wealth Management</p>
+</div>
+<nav class="flex-1 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface transition-colors hover:bg-white/5 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-primary-fixed bg-primary/10 border-l-2 border-primary-fixed font-bold rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-md text-label-md">Client Portfolios</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface transition-colors hover:bg-white/5 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-md text-label-md">Loan Pipelines</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface transition-colors hover:bg-white/5 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="insights">insights</span>
+<span class="font-label-md text-label-md">Wealth Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface transition-colors hover:bg-white/5 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+<span class="font-label-md text-label-md">Security Vault</span>
+</a>
+</nav>
+<button class="mt-8 mb-8 w-full py-3 bg-primary-container text-on-primary font-headline-md text-[14px] rounded-xl font-bold flex items-center justify-center gap-2 neon-glow hover:scale-105 transition-transform">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+            New Entry
+        </button>
+<div class="pt-8 border-t border-outline-variant/20 space-y-2">
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface transition-colors hover:bg-white/5 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-md text-label-md">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-on-surface-variant hover:text-on-surface transition-colors hover:bg-white/5 rounded-xl" href="#">
+<span class="material-symbols-outlined" data-icon="help_center">help_center</span>
+<span class="font-label-md text-label-md">Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="flex-1 mr-64 flex flex-col min-h-screen">
+<!-- TopAppBar (Predicted Component) -->
+<header class="sticky top-0 z-40 flex justify-between items-center px-gutter py-4 w-full bg-surface-container-lowest/40 backdrop-blur-2xl border-b border-outline-variant/10">
+<div class="flex items-center gap-6 flex-1">
+<div class="relative w-full max-w-md">
+<span class="absolute right-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low/50 border-none rounded-full py-2 pr-10 pl-4 text-on-surface focus:ring-1 focus:ring-primary-fixed/50 font-label-md text-label-md" placeholder="ابحث عن بنك، عميل، أو صفقة..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex gap-4">
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary-fixed transition-colors" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary-fixed transition-colors" data-icon="history">history</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary-fixed transition-colors" data-icon="account_balance_wallet">account_balance_wallet</button>
+</div>
+<div class="flex items-center gap-3 pr-6 border-r border-outline-variant/20">
+<div class="text-left">
+<p class="font-headline-md text-[14px] text-on-surface leading-none">جيسيكا بروز</p>
+<p class="font-label-md text-[10px] text-primary-fixed">استشاري تنفيذي</p>
+</div>
+<img alt="Executive Consultant Profile" class="w-10 h-10 rounded-full border border-primary-fixed/30 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA22uoIRE6JhNDSyrhFSjdopoeuTAKvizAi_WT0QxpREvRUhXzvGbqZbhPFkNyaL4zhO8gFXgjmWHiEvI7_4mFQ8dA0BBCKQD6i3s1jC32SAIMwq2qvXdkHaJhPgTJBufCcDGPKvKCIeWzCJGlBFN3PulR8S6d_xA8gIjxFlQX75MCLUbYeg-IvVrYSwVL_oKy0z1oz7f5RXcWUIOmT-LopbrUFjucrj1MBbfaNwz2IgIrZEEHpx0kTWAyD0dBLxMk5KDq6t1FcYIv2"/>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<div class="p-container-padding-desktop flex-1 overflow-y-auto">
+<!-- Header Section -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h2 class="font-display-lg text-headline-lg text-primary-fixed mb-2">إدارة البيانات المصرفية</h2>
+<p class="font-body-lg text-on-surface-variant">تحليل وتتبع تكامل المؤسسات المالية الكبرى</p>
+</div>
+<button class="px-8 py-4 bg-primary-container text-on-primary font-headline-md text-headline-md rounded-xl font-bold flex items-center gap-3 neon-glow hover:brightness-110 transition-all active:scale-95 shadow-[0_0_20px_rgba(0,245,212,0.3)]">
+<span class="material-symbols-outlined" data-icon="add_business">add_business</span>
+                    إضافة بنك جديد
+                </button>
+</div>
+<!-- Dashboard Stats Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-card-gap mb-8">
+<div class="glass-panel p-6 rounded-2xl flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary-fixed text-3xl" data-icon="account_balance">account_balance</span>
+<span class="text-primary-fixed font-mono-data text-label-md">+4%</span>
+</div>
+<span class="font-label-md text-on-surface-variant">البنوك النشطة</span>
+<span class="font-headline-lg text-headline-lg text-on-surface">128</span>
+</div>
+<div class="glass-panel p-6 rounded-2xl flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-tertiary-fixed-dim text-3xl" data-icon="sync">sync</span>
+<span class="text-tertiary-fixed-dim font-mono-data text-label-md">99.8%</span>
+</div>
+<span class="font-label-md text-on-surface-variant">صحة التكامل</span>
+<span class="font-headline-lg text-headline-lg text-on-surface">نشط</span>
+</div>
+<div class="glass-panel p-6 rounded-2xl flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-secondary text-3xl" data-icon="database">database</span>
+<span class="text-secondary font-mono-data text-label-md">2.4 TB</span>
+</div>
+<span class="font-label-md text-on-surface-variant">البيانات المعالجة</span>
+<span class="font-headline-lg text-headline-lg text-on-surface">1.2M</span>
+</div>
+<div class="glass-panel p-6 rounded-2xl flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary-fixed-dim text-3xl" data-icon="shield">shield</span>
+<span class="text-primary-fixed-dim font-mono-data text-label-md">Tier 1</span>
+</div>
+<span class="font-label-md text-on-surface-variant">مستوى الأمان</span>
+<span class="font-headline-lg text-headline-lg text-on-surface">عالي</span>
+</div>
+</div>
+<!-- Banks Table Container -->
+<div class="glass-panel rounded-3xl overflow-hidden border border-outline-variant/10">
+<div class="p-6 border-b border-outline-variant/10 flex justify-between items-center bg-surface-container-low/30">
+<h3 class="font-headline-md text-headline-md text-on-surface">سجل المؤسسات المالية</h3>
+<div class="flex gap-4">
+<button class="p-2 glass-panel rounded-lg hover:bg-white/5 transition-all text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="filter_list">filter_list</span>
+</button>
+<button class="p-2 glass-panel rounded-lg hover:bg-white/5 transition-all text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="sort">sort</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-right border-collapse">
+<thead>
+<tr class="bg-surface-container/20">
+<th class="p-5 font-label-md text-on-surface-variant border-b border-outline-variant/5">اسم البنك</th>
+<th class="p-5 font-label-md text-on-surface-variant border-b border-outline-variant/5">حالة التكامل</th>
+<th class="p-5 font-label-md text-on-surface-variant border-b border-outline-variant/5">البرامج النشطة</th>
+<th class="p-5 font-label-md text-on-surface-variant border-b border-outline-variant/5">حجم التداول</th>
+<th class="p-5 font-label-md text-on-surface-variant border-b border-outline-variant/5">الإجراءات</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-outline-variant/5">
+<tr class="hover:bg-white/5 transition-colors group cursor-pointer">
+<td class="p-5">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary-fixed border border-primary-fixed/20">
+<span class="material-symbols-outlined" data-icon="account_balance">account_balance</span>
+</div>
+<div>
+<p class="font-headline-md text-[16px] text-on-surface">بنك الراجحي الدولي</p>
+<p class="font-label-md text-[12px] text-on-surface-variant">المملكة العربية السعودية</p>
+</div>
+</div>
+</td>
+<td class="p-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary-fixed animate-pulse shadow-[0_0_8px_#00f5d4]"></div>
+<span class="font-mono-data text-on-surface">متصل بالكامل</span>
+</div>
+</td>
+<td class="p-5">
+<div class="flex -space-x-2 space-x-reverse">
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container flex items-center justify-center text-[10px] font-bold text-primary-fixed">A</div>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container flex items-center justify-center text-[10px] font-bold text-secondary">W</div>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container flex items-center justify-center text-[10px] font-bold text-tertiary-fixed-dim">S</div>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-outline-variant flex items-center justify-center text-[10px] font-bold text-white">+2</div>
+</div>
+</td>
+<td class="p-5">
+<span class="font-mono-data text-on-surface">$1.24B</span>
+</td>
+<td class="p-5">
+<div class="flex gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-primary/20 rounded-lg text-primary-fixed transition-colors">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="p-2 hover:bg-secondary/20 rounded-lg text-secondary transition-colors">
+<span class="material-symbols-outlined" data-icon="edit_square">edit_square</span>
+</button>
+<button class="p-2 hover:bg-error/20 rounded-lg text-error transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors group cursor-pointer">
+<td class="p-5">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-tertiary/10 flex items-center justify-center text-tertiary-fixed-dim border border-tertiary-fixed-dim/20">
+<span class="material-symbols-outlined" data-icon="account_balance">account_balance</span>
+</div>
+<div>
+<p class="font-headline-md text-[16px] text-on-surface">بنك الرياض للمال</p>
+<p class="font-label-md text-[12px] text-on-surface-variant">المنطقة الرقمية</p>
+</div>
+</div>
+</td>
+<td class="p-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-tertiary-fixed-dim shadow-[0_0_8px_#6cd3fc]"></div>
+<span class="font-mono-data text-on-surface">مزامنة جارية</span>
+</div>
+</td>
+<td class="p-5">
+<div class="flex -space-x-2 space-x-reverse">
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container flex items-center justify-center text-[10px] font-bold text-primary-fixed">A</div>
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-outline-variant flex items-center justify-center text-[10px] font-bold text-white">+1</div>
+</div>
+</td>
+<td class="p-5">
+<span class="font-mono-data text-on-surface">$842M</span>
+</td>
+<td class="p-5">
+<div class="flex gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-primary/20 rounded-lg text-primary-fixed transition-colors">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="p-2 hover:bg-secondary/20 rounded-lg text-secondary transition-colors">
+<span class="material-symbols-outlined" data-icon="edit_square">edit_square</span>
+</button>
+<button class="p-2 hover:bg-error/20 rounded-lg text-error transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors group cursor-pointer">
+<td class="p-5">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary border border-secondary/20">
+<span class="material-symbols-outlined" data-icon="account_balance">account_balance</span>
+</div>
+<div>
+<p class="font-headline-md text-[16px] text-on-surface">بنك نيو جين المحدود</p>
+<p class="font-label-md text-[12px] text-on-surface-variant">مركز دبي المالي العالمي</p>
+</div>
+</div>
+</td>
+<td class="p-5">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-secondary shadow-[0_0_8px_#ffb1c2]"></div>
+<span class="font-mono-data text-on-surface">إجراء مطلوب</span>
+</div>
+</td>
+<td class="p-5">
+<div class="flex -space-x-2 space-x-reverse">
+<div class="w-8 h-8 rounded-full border-2 border-surface bg-surface-container flex items-center justify-center text-[10px] font-bold text-secondary">W</div>
+</div>
+</td>
+<td class="p-5">
+<span class="font-mono-data text-on-surface">$412M</span>
+</td>
+<td class="p-5">
+<div class="flex gap-2 opacity-40 group-hover:opacity-100 transition-opacity">
+<button class="p-2 hover:bg-primary/20 rounded-lg text-primary-fixed transition-colors">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+<button class="p-2 hover:bg-secondary/20 rounded-lg text-secondary transition-colors">
+<span class="material-symbols-outlined" data-icon="edit_square">edit_square</span>
+</button>
+<button class="p-2 hover:bg-error/20 rounded-lg text-error transition-colors">
+<span class="material-symbols-outlined" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 bg-surface-container-low/20 border-t border-outline-variant/10 flex items-center justify-between px-6">
+<span class="font-label-md text-on-surface-variant">عرض 3 من 128 مؤسسة</span>
+<div class="flex gap-2">
+<button class="p-2 glass-panel rounded-lg hover:bg-white/5 disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined" data-icon="chevron_right">chevron_right</span>
+</button>
+<button class="px-3 py-1 bg-primary/10 text-primary-fixed rounded-lg font-mono-data">1</button>
+<button class="px-3 py-1 hover:bg-white/5 text-on-surface-variant rounded-lg font-mono-data">2</button>
+<button class="px-3 py-1 hover:bg-white/5 text-on-surface-variant rounded-lg font-mono-data">3</button>
+<button class="p-2 glass-panel rounded-lg hover:bg-white/5">
+<span class="material-symbols-outlined" data-icon="chevron_left">chevron_left</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Visualization Section -->
+<div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-card-gap">
+<div class="glass-panel p-6 rounded-3xl h-64 relative overflow-hidden group">
+<div class="relative z-10">
+<h4 class="font-headline-md text-[18px] text-on-surface mb-4">خارطة التوسع العالمي</h4>
+<div class="flex items-center gap-4 text-primary-fixed">
+<span class="material-symbols-outlined" data-icon="public">public</span>
+<span class="font-body-lg">14 دولة قيد التكامل النشط</span>
+</div>
+</div>
+<div class="absolute inset-0 opacity-20 pointer-events-none group-hover:opacity-30 transition-opacity">
+<img class="w-full h-full object-cover" data-alt="A futuristic holographic world map projected in a dark room with neon cyan digital connection lines between major global financial hubs. The map glows with data points and floating numerical arrays against a deep black background, conveying a sense of high-tech global surveillance and wealth management." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDaKmW6dcfgAtDuYgH3nw5R6FEylFNyTkxDgLSc4ZTSqd9P9IEUG69J5IsI_BaTPvO2XmdET0o4j-zVphCgKonzuaAppYvcgTYvWfD41j-2WfrbrUP6I-R2fclS8wYG1JZSw7_oAJtPJGKJo1waT5d2crWSbISLP3R5u2MS6Io35_hxyR6t_JLVnkPSVljcDTWHVz68t22WVNA0z86sn-ENb0WUJD1m1gcK5Sndgcnh_AonOAIHdP2FNMpxlNgIUWf7SPQvXcsexAHN"/>
+</div>
+<div class="absolute bottom-6 right-6 z-10">
+<button class="px-4 py-2 glass-panel rounded-xl text-primary-fixed font-label-md flex items-center gap-2 hover:bg-primary-fixed/20 transition-all">
+                            فتح الخريطة الكاملة
+                            <span class="material-symbols-outlined" data-icon="open_in_new">open_in_new</span>
+</button>
+</div>
+</div>
+<div class="glass-panel p-6 rounded-3xl h-64 flex flex-col justify-between border-r-4 border-secondary/50">
+<div>
+<div class="flex justify-between items-start mb-4">
+<h4 class="font-headline-md text-[18px] text-on-surface">إشعار الأمان الذكي</h4>
+<span class="p-2 bg-secondary/10 text-secondary rounded-full material-symbols-outlined" data-icon="bolt" style="font-variation-settings: 'FILL' 1;">bolt</span>
+</div>
+<p class="font-body-md text-on-surface-variant leading-relaxed">اكتشف نظام الذكاء الاصطناعي محاولة وصول غير اعتيادية من "بنك نيو جين المحدود". تم تعليق المزامنة تلقائياً لضمان سلامة الأصول.</p>
+</div>
+<div class="flex gap-4">
+<button class="flex-1 py-3 bg-secondary-container text-white rounded-xl font-bold hover:brightness-110 transition-all">مراجعة التنبيه</button>
+<button class="flex-1 py-3 border border-outline-variant/30 text-on-surface rounded-xl font-bold hover:bg-white/5 transition-all">تجاهل</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interactions for glass cards
+        document.querySelectorAll('.glass-panel').forEach(panel => {
+            panel.addEventListener('mousemove', (e) => {
+                const rect = panel.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                panel.style.setProperty('--mouse-x', `${x}px`);
+                panel.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
+        // Search highlight interaction
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('scale-105');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('scale-105');
+        });
+    </script>
+</body></html>

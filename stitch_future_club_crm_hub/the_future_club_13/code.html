@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>تفاصيل الموظفين | Nexus Wealth</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&amp;family=Hanken+Grotesk:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#333539",
+                        "secondary-fixed-dim": "#ffb1c2",
+                        "on-tertiary-container": "#006784",
+                        "on-tertiary-fixed-variant": "#004d63",
+                        "tertiary-fixed-dim": "#6cd3fc",
+                        "inverse-on-surface": "#2f3035",
+                        "surface-container-lowest": "#0c0e12",
+                        "error": "#ffb4ab",
+                        "primary-fixed": "#26fedc",
+                        "on-primary-fixed-variant": "#005144",
+                        "tertiary-container": "#a6e3ff",
+                        "outline": "#83948f",
+                        "tertiary-fixed": "#bce9ff",
+                        "outline-variant": "#3a4a46",
+                        "on-secondary-container": "#ffa1b7",
+                        "secondary-fixed": "#ffd9e0",
+                        "secondary-container": "#980044",
+                        "surface-variant": "#333539",
+                        "primary-container": "#00f5d4",
+                        "on-secondary-fixed": "#3f0018",
+                        "on-background": "#e2e2e8",
+                        "surface-container-high": "#282a2e",
+                        "surface-bright": "#37393e",
+                        "inverse-surface": "#e2e2e8",
+                        "on-tertiary": "#003545",
+                        "on-primary-fixed": "#00201a",
+                        "on-primary": "#00382f",
+                        "on-secondary": "#66002b",
+                        "surface-container-low": "#1a1c20",
+                        "primary-fixed-dim": "#00dfc1",
+                        "tertiary": "#edf8ff",
+                        "secondary": "#ffb1c2",
+                        "on-secondary-fixed-variant": "#8f0040",
+                        "surface-container": "#1e2024",
+                        "on-surface": "#e2e2e8",
+                        "primary": "#d7fff3",
+                        "on-surface-variant": "#b9cac4",
+                        "surface-tint": "#00dfc1",
+                        "on-error": "#690005",
+                        "surface-dim": "#111317",
+                        "error-container": "#93000a",
+                        "background": "#111317",
+                        "on-tertiary-fixed": "#001f2a",
+                        "inverse-primary": "#006b5b",
+                        "on-error-container": "#ffdad6",
+                        "surface": "#111317",
+                        "on-primary-container": "#006c5c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-margin": "48px",
+                        "card-gap": "24px",
+                        "container-padding-desktop": "40px",
+                        "gutter": "24px",
+                        "container-padding-mobile": "16px",
+                        "unit": "8px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Sora"],
+                        "body-md": ["Hanken Grotesk"],
+                        "mono-data": ["Hanken Grotesk"],
+                        "headline-lg": ["Sora"],
+                        "headline-md": ["Sora"],
+                        "label-md": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Sora"],
+                        "body-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "mono-data": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background: radial-gradient(circle at 50% 0%, #1a1c20 0%, #0c0e12 100%);
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(20, 22, 26, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(38, 254, 220, 0.15);
+        }
+        .status-pulse {
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; transform: scale(1); filter: blur(0px); }
+            50% { opacity: 0.6; transform: scale(1.2); filter: blur(2px); }
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="text-on-background overflow-x-hidden">
+<!-- Background Atmospheric Glow -->
+<div class="fixed top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-fixed/5 rounded-full blur-[120px] pointer-events-none"></div>
+<div class="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary-container/10 rounded-full blur-[120px] pointer-events-none"></div>
+<!-- SideNavBar (Shared Component) -->
+<nav class="hidden md:flex flex-col h-screen fixed right-0 top-0 w-60 bg-surface-container-lowest/80 backdrop-blur-2xl border-l border-outline-variant/20 shadow-2xl shadow-black/50 py-8 z-50">
+<div class="px-6 mb-12">
+<h1 class="font-display-lg text-headline-md text-primary-fixed tracking-tighter">WealthEngine</h1>
+<p class="font-label-md text-label-md text-on-surface-variant/70 mt-1">Pre-Cognitive Lead</p>
+</div>
+<div class="flex-1 space-y-2 px-2">
+<a class="flex items-center gap-4 text-on-surface-variant/70 px-4 py-3 hover:text-primary-fixed hover:bg-surface-variant/30 transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-[-4px] duration-200">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<!-- Active Tab: Employees -->
+<a class="flex items-center gap-4 text-primary-fixed bg-primary-container/20 border-l-2 border-primary-fixed px-4 py-3 group" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-label-md text-label-md">Employees</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant/70 px-4 py-3 hover:text-primary-fixed hover:bg-surface-variant/30 transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-[-4px] duration-200">account_balance_wallet</span>
+<span class="font-label-md text-label-md">Portfolios</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant/70 px-4 py-3 hover:text-primary-fixed hover:bg-surface-variant/30 transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-[-4px] duration-200">insights</span>
+<span class="font-label-md text-label-md">Analytics</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant/70 px-4 py-3 hover:text-primary-fixed hover:bg-surface-variant/30 transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-[-4px] duration-200">swap_horiz</span>
+<span class="font-label-md text-label-md">Transactions</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant/70 px-4 py-3 hover:text-primary-fixed hover:bg-surface-variant/30 transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-[-4px] duration-200">verified_user</span>
+<span class="font-label-md text-label-md">Compliance</span>
+</a>
+</div>
+<div class="px-2 mt-auto space-y-2 border-t border-outline-variant/20 pt-6">
+<a class="flex items-center gap-4 text-on-surface-variant/70 px-4 py-3 hover:text-primary-fixed hover:bg-surface-variant/30 transition-all" href="#">
+<span class="material-symbols-outlined">shield</span>
+<span class="font-label-md text-label-md">Security</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant/70 px-4 py-3 hover:text-primary-fixed hover:bg-surface-variant/30 transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Log Out</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="md:mr-60 min-h-screen">
+<!-- TopAppBar (Shared Component) -->
+<header class="w-full sticky top-0 z-40 bg-surface/60 backdrop-blur-xl border-b border-outline-variant/30 shadow-lg shadow-primary/5 px-container-padding-desktop h-20 flex items-center justify-between">
+<div class="flex items-center gap-8">
+<span class="font-display-lg text-headline-md tracking-tighter text-primary-fixed">Nexus Wealth</span>
+<!-- Desktop Search Bar -->
+<div class="hidden lg:flex items-center bg-surface-container-low rounded-full px-4 py-2 border border-outline-variant/30 w-96 group focus-within:border-primary-fixed transition-all">
+<span class="material-symbols-outlined text-on-surface-variant/70 group-focus-within:text-primary-fixed">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-on-surface-variant/50 w-full font-body-md text-body-md text-right" placeholder="بحث عن موظف أو قسم..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-primary/10 transition-colors cursor-pointer active:scale-95 text-on-surface-variant">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-primary/10 transition-colors cursor-pointer active:scale-95 text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="h-10 w-10 rounded-full border border-primary-fixed/30 p-0.5 overflow-hidden cursor-pointer">
+<img alt="Executive User Profile" class="w-full h-full object-cover rounded-full" data-alt="A portrait of a highly successful financial executive in a high-tech obsidian office. He is dressed in a bespoke charcoal suit, looking into the distance with confidence. The lighting is dramatic, with cold cyan rim lighting highlighting his silhouette against a blurred backdrop of holographic financial charts. The overall aesthetic is futuristic, elite, and technically precise." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJOijMQAAwvHGTNHLNs0udCS0u4PbiG-lXhn5IhMiszeeoG-WGXJ346JI_sV6mIfRfNtBt4r1IebBHzOYZ4xP7nJhA51K1xMboJ80aEDfA2R_eTRf2SREjRhjbKghdj09jEnaJUJZ2pAtjlzxA_TyKn4sxdEcUTp87G483XLbc5VJgWS3EDHTXA17JgsidIFBQSka4VOxcMvJJxgcEUgp_B0AEgFHVv72SCoEuaKH1C8mw_1iTmReisqraB_glOhy0PrehsGb4CheS"/>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="p-container-padding-desktop">
+<!-- Page Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+<div>
+<nav class="flex gap-2 text-on-surface-variant/50 font-label-md text-label-md mb-2">
+<span>إدارة الفريق</span>
+<span>/</span>
+<span class="text-primary-fixed">تفاصيل الموظفين</span>
+</nav>
+<h2 class="font-display-lg text-display-lg text-primary-fixed">تفاصيل الموظفين</h2>
+</div>
+<div class="flex items-center gap-4">
+<button class="glass-panel px-6 py-3 rounded-xl flex items-center gap-2 hover:bg-surface-variant/50 transition-all cursor-pointer">
+<span class="material-symbols-outlined text-primary-fixed">filter_list</span>
+<span class="font-label-md text-label-md">تصفية متقدمة</span>
+</button>
+<button class="bg-primary-fixed text-on-primary-fixed px-8 py-3 rounded-xl font-headline-md text-body-md hover:shadow-[0_0_20px_rgba(38,254,220,0.4)] transition-all flex items-center gap-2 active:scale-95">
+<span class="material-symbols-outlined">person_add</span>
+<span>إضافة موظف</span>
+</button>
+</div>
+</div>
+<!-- Mobile Search (Hidden on Desktop) -->
+<div class="lg:hidden mb-8">
+<div class="flex items-center bg-surface-container-low rounded-xl px-4 py-4 border border-outline-variant/30 w-full">
+<span class="material-symbols-outlined text-primary-fixed ml-3">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-on-surface-variant/50 w-full text-right" placeholder="بحث عن موظف..." type="text"/>
+</div>
+</div>
+<!-- Employee Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-gutter">
+<!-- Employee Card 1 -->
+<div class="glass-panel rounded-3xl p-6 hover:translate-y-[-4px] transition-all duration-300 group neon-glow">
+<div class="flex items-start justify-between mb-6">
+<div class="relative">
+<div class="w-20 h-20 rounded-full border-2 border-primary-fixed/20 p-1">
+<img alt="Employee Sarah Al-Khalidi" class="w-full h-full object-cover rounded-full filter grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Close-up professional headshot of a female financial consultant with an air of authority and expertise. She is positioned in a modern workspace with subtle glass reflections and soft teal bokeh lights in the background. The style is sleek and professional, using a high-contrast dark palette with luminous cyan accents to match the futuristic glassmorphism theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxFygLYmnPTZIrwcX1KuDWUdI14-qlnXe8Kmb1hG-6ZkSngOKqX9t9mYsuQSuKrWkQGlR_NhFQ8_7BoEX1uvssAcjL_-Z6hFOnJqjPqIJfdoBH8Iokq701YwDLQjZg5qRKBm7y21Ex6VNmymTTpadHJve-BCYXPPuys0jPno3HCp8Xf8ahv9ypNM9T7rcF-QCYc_Ky9pZ-kZi5gR27IHhMawsJnG2QlKPxntPeCzDDDieoOqqmYl51aw_eo83eWIMfX6BIi7Cj3nEv"/>
+</div>
+<div class="absolute bottom-1 right-1 w-5 h-5 bg-surface-dim rounded-full flex items-center justify-center">
+<div class="w-3 h-3 bg-primary-fixed rounded-full status-pulse"></div>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="bg-primary-container/10 text-primary-fixed px-3 py-1 rounded-full font-label-md text-label-md">نشط حالياً</span>
+</div>
+</div>
+<div class="mb-8">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">سارة الخالدي</h3>
+<p class="font-body-md text-body-md text-on-surface-variant/70">مستشار مالي أول</p>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-8">
+<div class="bg-surface-container-low/40 p-3 rounded-2xl border border-outline-variant/10">
+<p class="font-label-md text-[12px] text-on-surface-variant/50 mb-1">المحافظ المدارة</p>
+<p class="font-mono-data text-mono-data text-primary-fixed">142 مليون $</p>
+</div>
+<div class="bg-surface-container-low/40 p-3 rounded-2xl border border-outline-variant/10">
+<p class="font-label-md text-[12px] text-on-surface-variant/50 mb-1">تقييم الأداء</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-[16px]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-mono-data text-mono-data text-on-surface">4.9</span>
+</div>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 bg-surface-container-highest hover:bg-primary-fixed hover:text-on-primary-fixed text-on-surface-variant transition-all py-3 rounded-xl font-label-md text-label-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">person</span>
+                            الملف الشخصي
+                        </button>
+<button class="w-12 h-12 flex items-center justify-center border border-primary-fixed/30 rounded-xl text-primary-fixed hover:bg-primary-fixed/10 transition-all">
+<span class="material-symbols-outlined">mail</span>
+</button>
+</div>
+</div>
+<!-- Employee Card 2 -->
+<div class="glass-panel rounded-3xl p-6 hover:translate-y-[-4px] transition-all duration-300 group">
+<div class="flex items-start justify-between mb-6">
+<div class="relative">
+<div class="w-20 h-20 rounded-full border-2 border-primary-fixed/20 p-1">
+<img alt="Employee Mohammed Al-Otaibi" class="w-full h-full object-cover rounded-full filter grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Professional studio portrait of a male executive director in a tech-forward financial firm. He has a focused and visionary expression, set against a dark background with subtle holographic line art of a global network. The lighting is sophisticated, featuring cool mint highlights and deep shadows to convey a sense of elite precision and modern banking leadership." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDjq2T0UemdKDkPrU6-DHr9iqoBej-2iLWxFAG7YJAxq8WCjF6B3E5zXYXQTPjMXSPl0yVChOBjgVQ9DvQywi3XnpybYPz_WGfhjZjIcCEKcBrRs3gvrmZpmdpzFhyQOBMy7f3En3iHcuGU7k3FuAiaolevgBygojWGMUOzK_07uECA9X7XTUIvV5V55gMAzAhZ6xGIZTBG2vEablknViJzVl5fCPu0wlBpBGJoJcY7BbqF8UfZWkflIpxQv5P9QETK-nHUlPvnoAJy"/>
+</div>
+<div class="absolute bottom-1 right-1 w-5 h-5 bg-surface-dim rounded-full flex items-center justify-center">
+<div class="w-3 h-3 bg-secondary-fixed-dim rounded-full"></div>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="bg-secondary-container/20 text-secondary-fixed-dim px-3 py-1 rounded-full font-label-md text-label-md">في إجازة</span>
+</div>
+</div>
+<div class="mb-8">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">محمد العتيبي</h3>
+<p class="font-body-md text-body-md text-on-surface-variant/70">مدير علاقات العملاء</p>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-8">
+<div class="bg-surface-container-low/40 p-3 rounded-2xl border border-outline-variant/10">
+<p class="font-label-md text-[12px] text-on-surface-variant/50 mb-1">عدد العملاء</p>
+<p class="font-mono-data text-mono-data text-primary-fixed">86 عميل</p>
+</div>
+<div class="bg-surface-container-low/40 p-3 rounded-2xl border border-outline-variant/10">
+<p class="font-label-md text-[12px] text-on-surface-variant/50 mb-1">مستوى الرضا</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-[16px]" style="font-variation-settings: 'FILL' 1;">favorite</span>
+<span class="font-mono-data text-mono-data text-on-surface">98%</span>
+</div>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 bg-surface-container-highest hover:bg-primary-fixed hover:text-on-primary-fixed text-on-surface-variant transition-all py-3 rounded-xl font-label-md text-label-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">person</span>
+                            الملف الشخصي
+                        </button>
+<button class="w-12 h-12 flex items-center justify-center border border-primary-fixed/30 rounded-xl text-primary-fixed hover:bg-primary-fixed/10 transition-all">
+<span class="material-symbols-outlined">mail</span>
+</button>
+</div>
+</div>
+<!-- Employee Card 3 -->
+<div class="glass-panel rounded-3xl p-6 hover:translate-y-[-4px] transition-all duration-300 group">
+<div class="flex items-start justify-between mb-6">
+<div class="relative">
+<div class="w-20 h-20 rounded-full border-2 border-primary-fixed/20 p-1">
+<img alt="Employee Nora Mansour" class="w-full h-full object-cover rounded-full filter grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Modern portrait of a female operations manager in a high-tech financial hub. She is wearing stylish executive attire, looking directly into the camera with a friendly yet professional demeanor. The environment is a blurred luxury lounge with translucent glass partitions and ambient neon cyan lighting. The image captures a perfect balance of tech-forward agility and institutional stability." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcPEJ7yGGKtmrA6IWrRmsGUm3gIMj3qB8E95EI4pEBSbWK1ZuTVcTvLvOouKhqkN8tk1butGz0Vbw3VgWZcr0XdGMNhTKQMAvNBK6mKc0HXY8IV9xOvgDfZ5Ji6qOhOz3SBSvoC6tY3ihm9LY5RYeVjcbX5WEDwR4ojl2zXvEIfF7q9EugxcGlzgXjzUdFpyT-Mrw6vuLUO7WlqD9axVBFjvsKfu5ct7Jh08Hfux8DPVU_DJ1grAui8ZU8QzmvtxYAoce38iV_NiHI"/>
+</div>
+<div class="absolute bottom-1 right-1 w-5 h-5 bg-surface-dim rounded-full flex items-center justify-center">
+<div class="w-3 h-3 bg-primary-fixed rounded-full status-pulse"></div>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="bg-primary-container/10 text-primary-fixed px-3 py-1 rounded-full font-label-md text-label-md">نشط حالياً</span>
+</div>
+</div>
+<div class="mb-8">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">نورة منصور</h3>
+<p class="font-body-md text-body-md text-on-surface-variant/70">محلل بيانات مالية</p>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-8">
+<div class="bg-surface-container-low/40 p-3 rounded-2xl border border-outline-variant/10">
+<p class="font-label-md text-[12px] text-on-surface-variant/50 mb-1">التقارير المنجزة</p>
+<p class="font-mono-data text-mono-data text-primary-fixed">1,240 تقرير</p>
+</div>
+<div class="bg-surface-container-low/40 p-3 rounded-2xl border border-outline-variant/10">
+<p class="font-label-md text-[12px] text-on-surface-variant/50 mb-1">دقة التحليل</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary-fixed text-[16px]">verified</span>
+<span class="font-mono-data text-mono-data text-on-surface">99.2%</span>
+</div>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 bg-surface-container-highest hover:bg-primary-fixed hover:text-on-primary-fixed text-on-surface-variant transition-all py-3 rounded-xl font-label-md text-label-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">person</span>
+                            الملف الشخصي
+                        </button>
+<button class="w-12 h-12 flex items-center justify-center border border-primary-fixed/30 rounded-xl text-primary-fixed hover:bg-primary-fixed/10 transition-all">
+<span class="material-symbols-outlined">mail</span>
+</button>
+</div>
+</div>
+<!-- Employee Card 4 -->
+<div class="glass-panel rounded-3xl p-6 hover:translate-y-[-4px] transition-all duration-300 group">
+<div class="flex items-start justify-between mb-6">
+<div class="relative">
+<div class="w-20 h-20 rounded-full border-2 border-primary-fixed/20 p-1">
+<img alt="Employee Faisal Rashid" class="w-full h-full object-cover rounded-full filter grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Close-up of a middle-aged male compliance officer with a serious, trustworthy expression. He is standing in a brightly lit corridor of a modern glass office. Reflective surfaces create multiple layers of depth. The color palette is dominated by deep blues and charcoals with sharp, vibrant cyan accents. The mood is secure, authoritative, and sophisticated." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1dNeeepe0F3LHnQnRfO-JePIO3U1HoRC7c5GJOns6utXhNVlH_F5CX3P_eHcFUZDz4eBnFd69NkZ9vurR0mA0_cPKWQbr7COr0IkyUgOzhqwPieFW_HJoKGS43ZNWn3-fmXlU4BOaFeFLX8MP_ZFfNUvqUmw69k2clU9SgTkRTIaoP5gtW2cVmGRTp9tE0OM001uus1j3Zw6dg_gZ26h2Ay0NA1YrAEZnxCTQnyEM6nKr5rF8T1ROdr8E1kK8Bw2Tvxact3MPlvoN"/>
+</div>
+<div class="absolute bottom-1 right-1 w-5 h-5 bg-surface-dim rounded-full flex items-center justify-center">
+<div class="w-3 h-3 bg-primary-fixed rounded-full status-pulse"></div>
+</div>
+</div>
+<div class="flex flex-col items-end">
+<span class="bg-primary-container/10 text-primary-fixed px-3 py-1 rounded-full font-label-md text-label-md">نشط حالياً</span>
+</div>
+</div>
+<div class="mb-8">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-1">فيصل راشد</h3>
+<p class="font-body-md text-body-md text-on-surface-variant/70">مدير الامتثال والرقابة</p>
+</div>
+<div class="grid grid-cols-2 gap-4 mb-8">
+<div class="bg-surface-container-low/40 p-3 rounded-2xl border border-outline-variant/10">
+<p class="font-label-md text-[12px] text-on-surface-variant/50 mb-1">تدقيقات مكتملة</p>
+<p class="font-mono-data text-mono-data text-primary-fixed">315 ملف</p>
+</div>
+<div class="bg-surface-container-low/40 p-3 rounded-2xl border border-outline-variant/10">
+<p class="font-label-md text-[12px] text-on-surface-variant/50 mb-1">المخاطر المكتشفة</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-secondary-fixed-dim text-[16px]">warning</span>
+<span class="font-mono-data text-mono-data text-on-surface">0</span>
+</div>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 bg-surface-container-highest hover:bg-primary-fixed hover:text-on-primary-fixed text-on-surface-variant transition-all py-3 rounded-xl font-label-md text-label-md flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]">person</span>
+                            الملف الشخصي
+                        </button>
+<button class="w-12 h-12 flex items-center justify-center border border-primary-fixed/30 rounded-xl text-primary-fixed hover:bg-primary-fixed/10 transition-all">
+<span class="material-symbols-outlined">mail</span>
+</button>
+</div>
+</div>
+<!-- Empty "Add New" Card Slot -->
+<div class="border-2 border-dashed border-outline-variant/30 rounded-3xl p-6 flex flex-col items-center justify-center hover:border-primary-fixed/50 hover:bg-primary-fixed/5 transition-all cursor-pointer group">
+<div class="w-16 h-16 rounded-full bg-surface-container-high flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary-fixed text-[32px]">add</span>
+</div>
+<p class="font-headline-md text-body-lg text-on-surface-variant/70">إضافة موظف جديد</p>
+<p class="font-body-md text-label-md text-on-surface-variant/40 mt-1">توسيع نطاق الفريق الاستشاري</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Atmosphere Elements -->
+<div class="fixed w-64 h-64 bg-primary-fixed/10 rounded-full blur-[100px] pointer-events-none z-0 transition-all duration-300" id="glow-follow"></div>
+<script>
+        // Micro-interaction: Mouse follow glow
+        const glow = document.getElementById('glow-follow');
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            glow.style.transform = `translate(${x - 128}px, ${y - 128}px)`;
+        });
+
+        // Search highlight effect
+        const searchInput = document.querySelector('input');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('neon-glow');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('neon-glow');
+        });
+    </script>
+</body></html>

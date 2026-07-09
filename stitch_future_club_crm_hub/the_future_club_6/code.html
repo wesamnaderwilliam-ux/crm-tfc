@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Future Club - Final Application Review</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@100..800&amp;family=Hanken+Grotesk:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background: radial-gradient(circle at 50% 50%, rgba(17, 19, 23, 1) 0%, rgba(5, 5, 5, 1) 100%);
+            color: #e2e2e8;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(30, 32, 36, 0.4);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .glass-panel-hover:hover {
+            border-color: rgba(0, 245, 212, 0.4);
+            background: rgba(30, 32, 36, 0.55);
+        }
+        .neon-glow {
+            box-shadow: 0 0 20px rgba(0, 245, 212, 0.15);
+        }
+        .neon-text-glow {
+            text-shadow: 0 0 8px rgba(0, 245, 212, 0.5);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .step-active {
+            box-shadow: 0 0 15px rgba(0, 245, 212, 0.4);
+        }
+        /* Glassmorphism utility for list items and inner boxes */
+        .glass-card-inner {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#3a4a46",
+                        "surface-dim": "#111317",
+                        "surface": "#111317",
+                        "error": "#ffb4ab",
+                        "surface-container": "#1e2024",
+                        "tertiary": "#edf8ff",
+                        "primary-container": "#00f5d4",
+                        "on-surface-variant": "#b9cac4",
+                        "tertiary-fixed": "#bce9ff",
+                        "on-background": "#e2e2e8",
+                        "inverse-surface": "#e2e2e8",
+                        "surface-container-lowest": "#0c0e12",
+                        "surface-variant": "#333539",
+                        "on-surface": "#e2e2e8",
+                        "primary-fixed-dim": "#00dfc1",
+                        "on-tertiary-container": "#006784",
+                        "surface-container-low": "#1a1c20",
+                        "on-error": "#690005",
+                        "on-secondary": "#66002b",
+                        "on-primary-fixed-variant": "#005144",
+                        "on-tertiary": "#003545",
+                        "secondary-container": "#980044",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-container": "#006c5c",
+                        "primary-fixed": "#26fedc",
+                        "on-primary": "#00382f",
+                        "tertiary-fixed-dim": "#6cd3fc",
+                        "surface-bright": "#37393e",
+                        "secondary": "#ffb1c2",
+                        "on-secondary-container": "#ffa1b7",
+                        "background": "#111317",
+                        "on-tertiary-fixed-variant": "#004d63",
+                        "outline": "#83948f",
+                        "on-tertiary-fixed": "#001f2a",
+                        "inverse-on-surface": "#2f3035",
+                        "surface-container-highest": "#333539",
+                        "secondary-fixed": "#ffd9e0",
+                        "inverse-primary": "#006b5b",
+                        "surface-tint": "#00dfc1",
+                        "error-container": "#93000a",
+                        "primary": "#d7fff3",
+                        "on-primary-fixed": "#00201a",
+                        "on-secondary-fixed": "#3f0018",
+                        "surface-container-high": "#282a2e",
+                        "tertiary-container": "#a6e3ff",
+                        "secondary-fixed-dim": "#ffb1c2",
+                        "on-secondary-fixed-variant": "#8f0040"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-margin": "48px",
+                        "container-padding-desktop": "40px",
+                        "unit": "8px",
+                        "gutter": "24px",
+                        "card-gap": "24px",
+                        "container-padding-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Sora"],
+                        "body-md": ["Hanken Grotesk"],
+                        "mono-data": ["Hanken Grotesk"],
+                        "headline-lg-mobile": ["Sora"],
+                        "display-lg": ["Sora"],
+                        "label-md": ["Hanken Grotesk"],
+                        "headline-md": ["Sora"],
+                        "body-lg": ["Hanken Grotesk"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "mono-data": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="font-body-md text-on-surface selection:bg-primary-container selection:text-on-primary-container">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-black/30 backdrop-blur-2xl border-b border-white/5 shadow-[0_0_20px_rgba(0,245,212,0.1)] flex justify-between items-center px-container-padding-mobile md:px-container-padding-desktop h-16">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary-fixed-dim" style="font-variation-settings: 'FILL' 1;">account_balance_wallet</span>
+<h1 class="font-headline-md text-headline-md font-bold tracking-tighter text-primary">FUTURE CLUB</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center bg-white/5 hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+</button>
+<img alt="User Profile" class="w-10 h-10 rounded-full border-2 border-primary-fixed-dim/20" data-alt="A professional high-end headshot of a corporate bank executive with a friendly yet authoritative expression. The background is a soft-focus modern office with subtle blue and cyan lighting to match a high-tech financial dashboard aesthetic. The lighting is sophisticated, emphasizing detail and professionalism in a luxury banking context." src="https://lh3.googleusercontent.com/aida-public/AB6AXuARXMgaWkhd7FgLub756jvoNlIGH2a2Mvo4QxKVuhu3ZHUakMe5PvdV8VbzKz-tNXUHjzy0R45_g3eVrRuExMxy6o1S7ahAPtoSgMECbGmAkHkkLofogyyhA_rVsFJZmQ06rFJ0VzxVFUR7D6ZzQhyMPl-Lw4Vn2fDJL29zW0do7Uq8OZOE1ko4I4SVBsINBa7CkHnC_gV__9RRvkoZLMphJsUFz5RqL8N3C9755CBfutPprxcUXIM9ZdbcQBIJp740yBzyalvXbmQU"/>
+</div>
+</header>
+<main class="pt-24 pb-32 px-container-padding-mobile md:px-container-padding-desktop max-w-7xl mx-auto">
+<!-- Stepper Component -->
+<div class="mb-12 overflow-x-auto pb-4">
+<div class="flex items-center justify-between min-w-[600px] relative">
+<!-- Connector Line -->
+<div class="absolute top-1/2 left-0 w-full h-[2px] bg-white/5 -translate-y-1/2 z-0"></div>
+<div class="absolute top-1/2 left-0 h-[2px] bg-primary-fixed-dim/60 -translate-y-1/2 z-0" style="width: 100%;"></div>
+<!-- Step 1 -->
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-primary-fixed-dim text-on-primary flex items-center justify-center font-bold shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[20px]">check</span>
+</div>
+<span class="font-label-md text-label-md text-primary-fixed-dim">المعلومات الأساسية</span>
+</div>
+<!-- Step 2 -->
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-primary-fixed-dim text-on-primary flex items-center justify-center font-bold shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[20px]">check</span>
+</div>
+<span class="font-label-md text-label-md text-primary-fixed-dim">تحميل المستندات</span>
+</div>
+<!-- Step 3 -->
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-primary-fixed-dim text-on-primary flex items-center justify-center font-bold shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-[20px]">check</span>
+</div>
+<span class="font-label-md text-label-md text-primary-fixed-dim">اختيار البنك</span>
+</div>
+<!-- Step 4 (Active) -->
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-12 h-12 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center font-bold step-active border-4 border-background/50 backdrop-blur-md">
+                        4
+                    </div>
+<span class="font-label-md text-label-md text-primary font-bold">المراجعة النهائية</span>
+</div>
+</div>
+</div>
+<!-- Main Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+<!-- Column: Summary & Details (Left 8) -->
+<div class="lg:col-span-8 space-y-card-gap">
+<!-- Customer Summary Card -->
+<section class="glass-panel rounded-xl p-6 flex flex-col md:flex-row items-center gap-6">
+<img alt="Ahmed Al-Qahtani" class="w-24 h-24 rounded-2xl object-cover border border-primary/20 shadow-lg" data-alt="A dignified middle-aged Saudi businessman with a confident and kind expression, wearing traditional attire. The portrait is taken in a professional studio setting with soft, cinematic lighting that highlights facial details and creates a sense of reliability and wealth. The background is a dark, sophisticated gradient that blends with a high-end financial UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7gCLtSTtco6wQloE4g560X_qu7zEzcHMCdpk66S0qZPbLRR4DSA60JwylrerofSnPPCk8rthV__QBJQcHq1-FVaGzMeG2rXI6bpazz-toUIlG0u-7OIytV8O7_mU_EN0miHrZc7S-yGXltUjucHlkeuQUv1uG6dM7rAgphVd7mqDyiPCeGLtjay0ZU7ScQKwOO8diEf8GluSH2FUKXTpO-aW3t-Y9cU8mFc-2m6kNmWdvSihbqhupQtF4QUUB_kZPQZLDuRliucRx"/>
+<div class="text-center md:text-right flex-grow">
+<h2 class="font-headline-md text-headline-md text-primary mb-1">أحمد القحطاني</h2>
+<p class="font-body-md text-on-surface-variant mb-3">هوية رقم: 1098****23</p>
+<div class="flex flex-wrap justify-center md:justify-start gap-3">
+<span class="px-3 py-1 rounded-full glass-card-inner text-primary-fixed-dim text-sm font-label-md">عميل مميز (VVIP)</span>
+<span class="px-3 py-1 rounded-full glass-card-inner text-on-surface-variant text-sm font-label-md">موظف قطاع خاص</span>
+</div>
+</div>
+<div class="glass-card-inner rounded-lg p-4 text-center min-w-[140px]">
+<p class="text-xs text-on-surface-variant mb-1 font-label-md">التصنيف الائتماني</p>
+<p class="text-3xl font-headline-md text-primary-fixed-dim font-bold neon-text-glow">842</p>
+</div>
+</section>
+<!-- Financing Details Table/Grid -->
+<section class="glass-panel rounded-xl p-8">
+<div class="flex justify-between items-center mb-8">
+<h3 class="font-headline-md text-headline-md text-on-surface flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-fixed-dim">payments</span>
+                            تفاصيل طلب التمويل
+                        </h3>
+<button class="text-primary-fixed-dim font-label-md hover:underline flex items-center gap-1 transition-all">
+                            تعديل <span class="material-symbols-outlined text-sm">edit</span>
+</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-y-8 gap-x-12">
+<div class="space-y-1">
+<p class="text-on-surface-variant text-sm font-label-md">الغرض من التمويل</p>
+<p class="font-headline-md text-headline-md text-primary">تمويل شخصي</p>
+</div>
+<div class="space-y-1">
+<p class="text-on-surface-variant text-sm font-label-md">مبلغ التمويل الإجمالي</p>
+<p class="font-headline-md text-headline-md text-primary font-mono-data">1,250,000 SAR</p>
+</div>
+<div class="space-y-1">
+<p class="text-on-surface-variant text-sm font-label-md">مدة التمويل</p>
+<p class="font-headline-md text-headline-md text-primary">24 شهر</p>
+</div>
+<div class="space-y-1">
+<p class="text-on-surface-variant text-sm font-label-md">معدل الربح السنوي (APR)</p>
+<p class="font-headline-md text-headline-md text-primary font-mono-data">3.25%</p>
+</div>
+<div class="space-y-1">
+<p class="text-on-surface-variant text-sm font-label-md">القسط الشهري التقريبي</p>
+<p class="font-headline-md text-headline-md text-primary font-mono-data">53,776 SAR</p>
+</div>
+<div class="space-y-1">
+<p class="text-on-surface-variant text-sm font-label-md">البنك المختار</p>
+<div class="flex items-center gap-3 mt-1">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center p-1 shadow-inner">
+<img alt="Al Rajhi Logo" class="w-full object-contain" data-alt="The logo of Al Rajhi Bank, featuring its distinctive minimalist corporate branding in deep blue and white, presented on a clean, professional background suitable for a high-end financial application's bank selection module." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCP72mSx4Ko-Ge3f5Cp6zZxAZmEng7ZP-m7uam4YgSxKMjBLxXo0sTEwN84Ob2u35-u8_Zfag0wI8gUXedLKxCERScq7uNcAU4KK1ZJ8ZEgVDX6ZJFNbn-JnUM3UW1tpxvU0hVXooZTeYBqTB3UGJhPuWrThLwSo3KBsc_hLezLRKd2RN_vJ6aIlf8x_D8vjyf7fBKZNbc1zE2u7QJxJVOFyGbwIdHTXWVWzsqHblqu3KwISUJaGSvCVfYOdK0979f7jq70pyeTE3xp"/>
+</div>
+<p class="font-headline-md text-headline-md text-primary">مصرف الراجحي</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Documents List -->
+<section class="glass-panel rounded-xl p-8">
+<h3 class="font-headline-md text-headline-md text-on-surface mb-6 flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-fixed-dim">verified_user</span>
+                        المستندات المرفقة
+                    </h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-4 rounded-lg glass-card-inner glass-panel-hover transition-all">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary-fixed-dim">badge</span>
+<span class="font-body-md">نسخة من الهوية الوطنية</span>
+</div>
+<div class="flex items-center gap-2 text-primary-fixed-dim">
+<span class="text-sm font-label-md">تم التحقق</span>
+<span class="material-symbols-outlined fill-1" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 rounded-lg glass-card-inner glass-panel-hover transition-all">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary-fixed-dim">work</span>
+<span class="font-body-md">شهادة تعريف بالراتب</span>
+</div>
+<div class="flex items-center gap-2 text-primary-fixed-dim">
+<span class="text-sm font-label-md">تم التحقق</span>
+<span class="material-symbols-outlined fill-1" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-4 rounded-lg glass-card-inner glass-panel-hover transition-all">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary-fixed-dim">account_balance</span>
+<span class="font-body-md">كشف حساب بنكي (3 أشهر)</span>
+</div>
+<div class="flex items-center gap-2 text-primary-fixed-dim">
+<span class="text-sm font-label-md">تم التحقق</span>
+<span class="material-symbols-outlined fill-1" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Column: Sidebar Analysis & Actions (Right 4) -->
+<div class="lg:col-span-4 space-y-card-gap">
+<!-- AI Assessment Card -->
+<section class="glass-panel rounded-xl p-6 relative overflow-hidden">
+<!-- Glow decoration -->
+<div class="absolute -top-10 -left-10 w-32 h-32 bg-primary-container/20 rounded-full blur-3xl"></div>
+<div class="relative z-10">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary-fixed-dim animate-pulse">psychology</span>
+<h3 class="font-headline-md text-headline-md text-on-surface">تقييم الذكاء الاصطناعي</h3>
+</div>
+<div class="flex items-end gap-2 mb-4">
+<span class="text-5xl font-display-lg text-primary-fixed-dim neon-text-glow">92%</span>
+<span class="text-on-surface-variant font-label-md pb-2">نسبة الموافقة المتوقعة</span>
+</div>
+<div class="p-4 rounded-lg glass-card-inner space-y-3">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-primary-fixed-dim text-sm">insights</span>
+<p class="text-sm leading-relaxed text-on-surface-variant">
+                                    بناءً على السجل الائتماني والتدفقات النقدية، يتمتع العميل بملف مالي مستقر جداً. نسبة العبء المالي الحالية تسمح بتغطية الأقساط الجديدة بكل أريحية.
+                                </p>
+</div>
+</div>
+</div>
+</section>
+<!-- Final Declarations -->
+<section class="glass-panel rounded-xl p-6">
+<h3 class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider mb-6">الإقرارات والتعهدات</h3>
+<div class="space-y-4">
+<label class="flex items-start gap-3 cursor-pointer group">
+<input checked="" class="mt-1 rounded border-white/10 bg-white/5 text-primary-fixed-dim focus:ring-primary-fixed-dim" type="checkbox"/>
+<span class="text-sm text-on-surface-variant group-hover:text-on-surface transition-colors">
+                                أقر بصحة جميع البيانات المدخلة والمستندات المرفقة في هذا الطلب.
+                            </span>
+</label>
+<label class="flex items-start gap-3 cursor-pointer group">
+<input checked="" class="mt-1 rounded border-white/10 bg-white/5 text-primary-fixed-dim focus:ring-primary-fixed-dim" type="checkbox"/>
+<span class="text-sm text-on-surface-variant group-hover:text-on-surface transition-colors">
+                                أوافق على <a class="text-primary-fixed-dim underline" href="#">الشروط والأحكام</a> الخاصة بنادي المستقبل (The Future Club).
+                            </span>
+</label>
+</div>
+</section>
+<!-- Action Buttons -->
+<div class="space-y-4">
+<button class="w-full h-16 bg-primary-container text-on-primary-container rounded-xl font-headline-md text-headline-md flex items-center justify-center gap-3 neon-glow hover:scale-[1.02] active:scale-95 transition-all duration-300 backdrop-blur-md" id="mainAction">
+                        تأكيد وإرسال للبنك
+                        <span class="material-symbols-outlined font-bold">arrow_back</span>
+</button>
+<button class="w-full h-14 glass-card-inner text-on-surface rounded-xl font-label-md text-label-md flex items-center justify-center gap-2 hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-[20px]">edit_note</span>
+                        العودة لتعديل البيانات
+                    </button>
+</div>
+<!-- Assistance Note -->
+<div class="text-center p-4">
+<p class="text-xs text-on-surface-variant">تحتاج لمساعدة؟ <a class="text-primary-fixed-dim" href="#">تحدث مع مدير حسابك</a></p>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Mobile Nav -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 bg-black/40 backdrop-blur-3xl border-t border-white/5 flex justify-around items-center h-20 pb-safe px-2">
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] mt-1">المحفظة</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary-fixed-dim bg-primary/10 rounded-xl px-4 py-1 backdrop-blur-md">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_chart</span>
+<span class="text-[10px] mt-1">التمويل</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-[10px] mt-1">التحليلات</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] mt-1">الإعدادات</span>
+</div>
+</nav>
+<script>
+    const btn = document.getElementById('mainAction');
+    btn.addEventListener('click', () => {
+        btn.innerHTML = `
+            <svg class="animate-spin h-6 w-6 text-on-primary-container" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            جاري الإرسال...
+        `;
+        btn.classList.add('opacity-80', 'cursor-not-allowed');
+        
+        setTimeout(() => {
+            alert('تم إرسال طلبك بنجاح لمصرف الراجحي. سيتم الرد خلال 24 ساعة.');
+            window.location.reload();
+        }, 2000);
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        const glow = document.querySelector('.bg-primary-container\\/20');
+        if (glow) {
+            const moveX = (e.clientX - window.innerWidth / 2) * 0.015;
+            const moveY = (e.clientY - window.innerHeight / 2) * 0.015;
+            glow.style.transform = `translate(${moveX}px, ${moveY}px)`;
+        }
+    });
+</script>
+</body></html>

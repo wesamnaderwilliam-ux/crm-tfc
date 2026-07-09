@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Nexus Wealth | Employee Directory</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&amp;family=Hanken+Grotesk:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "secondary-container": "#980044",
+                    "secondary": "#ffb1c2",
+                    "on-tertiary": "#003545",
+                    "surface-variant": "#333539",
+                    "secondary-fixed": "#ffd9e0",
+                    "on-surface-variant": "#b9cac4",
+                    "surface-container-high": "#282a2e",
+                    "tertiary": "#edf8ff",
+                    "on-secondary": "#66002b",
+                    "inverse-primary": "#006b5b",
+                    "on-background": "#e2e2e8",
+                    "surface-container-lowest": "#0c0e12",
+                    "surface-container-highest": "#333539",
+                    "primary": "#d7fff3",
+                    "surface-container": "#1e2024",
+                    "surface-tint": "#00dfc1",
+                    "on-primary-fixed": "#00201a",
+                    "error-container": "#93000a",
+                    "surface-dim": "#111317",
+                    "on-secondary-fixed": "#3f0018",
+                    "background": "#111317",
+                    "on-primary-container": "#006c5c",
+                    "surface-container-low": "#1a1c20",
+                    "tertiary-container": "#a6e3ff",
+                    "inverse-on-surface": "#2f3035",
+                    "primary-container": "#00f5d4",
+                    "on-secondary-fixed-variant": "#8f0040",
+                    "tertiary-fixed-dim": "#6cd3fc",
+                    "outline-variant": "#3a4a46",
+                    "on-tertiary-fixed-variant": "#004d63",
+                    "primary-fixed": "#26fedc",
+                    "on-error-container": "#ffdad6",
+                    "on-error": "#690005",
+                    "tertiary-fixed": "#bce9ff",
+                    "on-tertiary-container": "#006784",
+                    "on-primary": "#00382f",
+                    "error": "#ffb4ab",
+                    "secondary-fixed-dim": "#ffb1c2",
+                    "surface-bright": "#37393e",
+                    "inverse-surface": "#e2e2e8",
+                    "surface": "#111317",
+                    "on-tertiary-fixed": "#001f2a",
+                    "primary-fixed-dim": "#00dfc1",
+                    "outline": "#83948f",
+                    "on-surface": "#e2e2e8",
+                    "on-secondary-container": "#ffa1b7",
+                    "on-primary-fixed-variant": "#005144"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "gutter": "24px",
+                    "container-padding-mobile": "16px",
+                    "unit": "8px",
+                    "card-gap": "24px",
+                    "section-margin": "48px",
+                    "container-padding-desktop": "40px"
+            },
+            "fontFamily": {
+                    "mono-data": ["Hanken Grotesk"],
+                    "headline-md": ["Sora"],
+                    "body-md": ["Hanken Grotesk"],
+                    "headline-lg-mobile": ["Sora"],
+                    "display-lg": ["Sora"],
+                    "label-md": ["Hanken Grotesk"],
+                    "headline-lg": ["Sora"],
+                    "body-lg": ["Hanken Grotesk"]
+            },
+            "fontSize": {
+                    "mono-data": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #050505;
+            color: #e2e2e8;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(20, 22, 26, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .glass-panel:hover {
+            background: rgba(30, 32, 38, 0.75);
+            border-color: rgba(0, 245, 212, 0.3);
+            box-shadow: 0 0 30px rgba(0, 245, 212, 0.05);
+            transform: translateY(-4px);
+        }
+
+        .neon-glow {
+            box-shadow: 0 0 15px rgba(0, 245, 212, 0.4);
+        }
+
+        .mesh-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(at 0% 0%, rgba(0, 223, 193, 0.08) 0, transparent 40%),
+                radial-gradient(at 100% 100%, rgba(152, 0, 68, 0.05) 0, transparent 40%),
+                radial-gradient(at 50% 50%, rgba(0, 0, 0, 1) 0, #050505 100%);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 245, 212, 0.2);
+            border-radius: 10px;
+        }
+
+        .status-pulse {
+            position: relative;
+        }
+        .status-pulse::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 50%;
+            background: inherit;
+            animation: pulse 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+        }
+        @keyframes pulse {
+            75%, 100% {
+                transform: scale(2.5);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body class="font-body-md text-on-surface">
+<div class="mesh-gradient"></div>
+<!-- SideNavBar (Shared Component) -->
+<nav class="h-screen fixed left-0 top-0 w-60 bg-surface-container-lowest/80 backdrop-blur-2xl border-r border-outline-variant/20 shadow-2xl shadow-black/50 flex flex-col h-full py-8 z-[60]">
+<div class="px-6 mb-12">
+<h1 class="font-display-lg text-headline-md text-primary-fixed tracking-tighter">WealthEngine</h1>
+<p class="font-label-md text-label-md text-on-surface-variant/60 uppercase tracking-widest mt-1">Pre-Cognitive Lead</p>
+</div>
+<div class="flex-1 px-2 space-y-1 custom-scrollbar overflow-y-auto">
+<a class="flex items-center gap-4 text-on-surface-variant/70 px-4 py-3 hover:text-primary-fixed hover:bg-surface-variant/30 transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">dashboard</span>
+<span class="font-label-md text-label-md">Dashboard</span>
+</a>
+<!-- Active State -->
+<a class="flex items-center gap-4 text-primary-fixed bg-primary-container/20 border-r-2 border-primary-fixed px-4 py-3 rounded-l-lg group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-label-md text-label-md">Employees</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant/70 px-4 py-3 hover:text-primary-fixed hover:bg-surface-variant/30 transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">account_balance_wallet</span>
+<span class="font-label-md text-label-md">Portfolios</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant/70 px-4 py-3 hover:text-primary-fixed hover:bg-surface-variant/30 transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">insights</span>
+<span class="font-label-md text-label-md">Analytics</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant/70 px-4 py-3 hover:text-primary-fixed hover:bg-surface-variant/30 transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">swap_horiz</span>
+<span class="font-label-md text-label-md">Transactions</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant/70 px-4 py-3 hover:text-primary-fixed hover:bg-surface-variant/30 transition-all rounded-lg group" href="#">
+<span class="material-symbols-outlined group-hover:translate-x-1 duration-200">verified_user</span>
+<span class="font-label-md text-label-md">Compliance</span>
+</a>
+</div>
+<div class="px-6 mt-auto space-y-4">
+<button class="w-full bg-primary-container text-on-primary py-3 rounded-xl font-label-md text-label-md hover:shadow-lg hover:shadow-primary/20 transition-all cursor-pointer active:scale-95">
+                New Portfolio
+            </button>
+<div class="pt-6 border-t border-outline-variant/10 space-y-1">
+<a class="flex items-center gap-4 text-on-surface-variant/70 px-4 py-2 hover:text-primary-fixed transition-all" href="#">
+<span class="material-symbols-outlined">shield</span>
+<span class="font-label-md text-label-md">Security</span>
+</a>
+<a class="flex items-center gap-4 text-on-surface-variant/70 px-4 py-2 hover:text-primary-fixed transition-all" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span class="font-label-md text-label-md">Log Out</span>
+</a>
+</div>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="ml-60 min-h-screen">
+<!-- TopAppBar (Shared Component) -->
+<header class="w-full sticky top-0 z-50 bg-surface/60 backdrop-blur-xl border-b border-outline-variant/30 shadow-lg shadow-primary/5 flex items-center justify-between px-container-padding-desktop h-20">
+<div class="flex items-center gap-8 flex-1">
+<div class="relative w-96 group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/50 group-focus-within:text-primary-fixed transition-colors">search</span>
+<input class="w-full bg-surface-container-low/50 border-none rounded-full py-2.5 pl-12 pr-4 font-body-md text-body-md text-on-surface placeholder:text-on-surface-variant/40 focus:ring-1 focus:ring-primary-fixed/30 transition-all" placeholder="Search wealth ecosystem..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-full hover:bg-primary/10 transition-colors text-on-surface-variant cursor-pointer active:scale-95">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 rounded-full hover:bg-primary/10 transition-colors text-on-surface-variant cursor-pointer active:scale-95">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="p-2 rounded-full hover:bg-primary/10 transition-colors text-on-surface-variant cursor-pointer active:scale-95">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+<div class="h-8 w-[1px] bg-outline-variant/30"></div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden xl:block">
+<p class="font-label-md text-label-md text-on-surface">S. Al-Otaibi</p>
+<p class="text-[10px] text-primary-fixed uppercase tracking-widest font-bold">Executive Administrator</p>
+</div>
+<img alt="Executive User Profile" class="w-10 h-10 rounded-full border-2 border-primary-fixed/30 object-cover" data-alt="A professional studio portrait of a confident middle-eastern executive woman with a warm, authoritative expression. She is wearing sophisticated dark business attire against a subtly blurred, high-tech corporate background with cool cyan lighting accents. The lighting is soft and cinematic, highlighting her features with a premium, high-fidelity aesthetic that fits a visionary financial consultancy atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCJA707FPZf0fcsVDwghwI82DoarYma63-0Zfps642uESpUH9CB9G2vPGr6flB2pdJwqN2Z5kI_0dB2QpabvjoPKrNSo21X0PgdWHB7bSqphpntvgMfKEgTkj6BkV00ZVP4bW0xtWhqhmGna2I_39edgZ234sY8j_zzaEjpi0FyoIhZ87LKsx324MbWGxpZQyZRcru0txDLfplBGg8fZua_SJF2jB4B8oTV5gMKe35tvXMVjuTwihdI-rMyJSDvv7JB7n--F1aYM3gI"/>
+</div>
+</div>
+</header>
+<div class="p-container-padding-desktop">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-white mb-2">Employee Directory <span class="text-primary-fixed font-headline-md ml-2 opacity-50 font-light">دليل الموظفين</span></h2>
+<p class="text-on-surface-variant font-body-md max-w-xl">Manage and connect with your elite team of financial experts and compliance officers within the Nexus ecosystem.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2.5 rounded-xl glass-panel text-on-surface-variant hover:text-primary-fixed font-label-md transition-all">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                        Role
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2.5 rounded-xl glass-panel text-on-surface-variant hover:text-primary-fixed font-label-md transition-all">
+<span class="material-symbols-outlined text-sm">category</span>
+                        Department
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2.5 rounded-xl glass-panel text-on-surface-variant hover:text-primary-fixed font-label-md transition-all">
+<span class="material-symbols-outlined text-sm">bolt</span>
+                        Status
+                    </button>
+</div>
+</div>
+<!-- Employee Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-gutter">
+<!-- Employee Card 1 -->
+<div class="glass-panel p-6 rounded-2xl flex flex-col items-center text-center relative overflow-hidden group">
+<div class="absolute top-4 right-4 flex items-center gap-1.5 bg-surface-container/50 px-2 py-1 rounded-full border border-primary-fixed/10">
+<div class="w-2 h-2 rounded-full bg-primary-fixed status-pulse"></div>
+<span class="text-[10px] font-bold text-primary-fixed uppercase tracking-tighter">Active</span>
+</div>
+<div class="relative mb-4 p-1 rounded-full border border-primary-fixed/20 group-hover:border-primary-fixed/60 transition-colors">
+<img alt="Ahmed Mansour" class="w-24 h-24 rounded-full object-cover" data-alt="Close up portrait of a professional middle-eastern man with a neatly trimmed beard and sharp, intelligent eyes. He is wearing a tailored grey suit in a sleek, minimalist environment with soft cyan neon light reflections. The shot is high-end corporate photography, focusing on a mood of precision and trustworthiness, perfectly aligned with a futuristic financial theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_tyBqHzjDixGMxVrZ8yGO0QY7s2-qii8oXJNeOVjdFJkU5hOjuEZTb1MdhJYrq_GdKeZTtySfdPj-mUlopRtQO4QNH7I-mglae6GoZMyEmKQ_8MpxrFc7Q0Csg4OqoFBIJzC61tCXqJv53ukWsvs9fIGLpgnTpaJ8tu_Jx9TR_uGDW012HZqIqwchSFsgS9CoLPhhejq77pndORnSbzfecHvzmnG0nBWb7uJIv7k9dO-2y-cdG9m0VzmzWIq_1GZBk9TmJvnJIx_e"/>
+</div>
+<h3 class="font-headline-md text-headline-md text-white mb-1">Ahmed Mansour</h3>
+<p class="text-primary-fixed font-label-md text-label-md mb-6">Senior Financial Consultant</p>
+<div class="grid grid-cols-2 gap-3 w-full mt-auto">
+<button class="bg-surface-container-high hover:bg-surface-variant py-2.5 rounded-xl text-on-surface text-label-md font-label-md transition-colors cursor-pointer active:scale-95">
+                            View Profile
+                        </button>
+<button class="bg-primary-container text-on-primary py-2.5 rounded-xl text-label-md font-label-md hover:shadow-lg hover:shadow-primary/30 transition-all cursor-pointer active:scale-95">
+                            Message
+                        </button>
+</div>
+</div>
+<!-- Employee Card 2 -->
+<div class="glass-panel p-6 rounded-2xl flex flex-col items-center text-center relative overflow-hidden group">
+<div class="absolute top-4 right-4 flex items-center gap-1.5 bg-surface-container/50 px-2 py-1 rounded-full border border-secondary/10">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="text-[10px] font-bold text-secondary uppercase tracking-tighter">In Meeting</span>
+</div>
+<div class="relative mb-4 p-1 rounded-full border border-primary-fixed/20 group-hover:border-primary-fixed/60 transition-colors">
+<img alt="Laila Hassan" class="w-24 h-24 rounded-full object-cover" data-alt="A portrait of a sharp, focused woman in her 30s with professional styling. She is positioned in a cutting-edge office space featuring geometric glass partitions and subtle teal ambient lighting. The visual style is crisp and modern, emphasizing high-fidelity detail and a look of expertise and calm confidence in a fast-paced technology-driven financial world." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIdlm1h59uXLP_6tOldXo_TV5mWANo5yF76Ek0p6VhFxeOsKWmwVcV2C8ftfKTeVugEdpAwPtf4awh44QbmD39TP4yDbkUslElGOrOr1v4J8u4LVptvkT77Jsv2fz2KWDMxwg3rDAQs5FbVY-5F_MCuzHqXEEW1SkalvJcpxafn2daUg2HRoZ7VsNvVjeqaFxiG1fBPnBVJf0xNYLZj9R_MRcvJR_WXh2csCL3AD488SET8NJ026iCyUiJc05xxwLG3geU5yfUrBwK"/>
+</div>
+<h3 class="font-headline-md text-headline-md text-white mb-1">Laila Hassan</h3>
+<p class="text-primary-fixed font-label-md text-label-md mb-6">Compliance Officer</p>
+<div class="grid grid-cols-2 gap-3 w-full mt-auto">
+<button class="bg-surface-container-high hover:bg-surface-variant py-2.5 rounded-xl text-on-surface text-label-md font-label-md transition-colors cursor-pointer active:scale-95">
+                            View Profile
+                        </button>
+<button class="bg-primary-container text-on-primary py-2.5 rounded-xl text-label-md font-label-md hover:shadow-lg hover:shadow-primary/30 transition-all cursor-pointer active:scale-95">
+                            Message
+                        </button>
+</div>
+</div>
+<!-- Employee Card 3 -->
+<div class="glass-panel p-6 rounded-2xl flex flex-col items-center text-center relative overflow-hidden group">
+<div class="absolute top-4 right-4 flex items-center gap-1.5 bg-surface-container/50 px-2 py-1 rounded-full border border-primary-fixed/10">
+<div class="w-2 h-2 rounded-full bg-primary-fixed status-pulse"></div>
+<span class="text-[10px] font-bold text-primary-fixed uppercase tracking-tighter">Active</span>
+</div>
+<div class="relative mb-4 p-1 rounded-full border border-primary-fixed/20 group-hover:border-primary-fixed/60 transition-colors">
+<img alt="Zaid Al-Harbi" class="w-24 h-24 rounded-full object-cover" data-alt="A professional studio portrait of a young male financial analyst with a keen, energetic expression. He is wearing a dark, textured polo shirt. The background is a sophisticated dark gradient with floating holographic interface elements barely visible in the blur. The lighting is focused and dynamic, using cool tones to create a high-tech sanctuary mood for elite wealth management." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1lHNey-tOCdbadRrdyGmDE9mGlTZq0l-4g3GVlhOn8HgfpeNBeuE3FCrLsLYOL7GO-YbYWyTWlE0ytZIdqdbLF_ZAzEZkO5W-5gJCKF5petKUzlZZfnMTJUkrT5X9vlLVfE8kGpmUjJkU0OhsmQ5nFCBYwLUFbHSBS55PAt-UZygoIHxPiB0C8BD-bzldl77rUSgdgR7FJy0Mr1awNQj7WEzKFDn5xikBnA8OrUXuzGSSaSjux3B37kBpA8KOjhtjJ5bjMYMEKuGv"/>
+</div>
+<h3 class="font-headline-md text-headline-md text-white mb-1">Zaid Al-Harbi</h3>
+<p class="text-primary-fixed font-label-md text-label-md mb-6">Wealth Manager</p>
+<div class="grid grid-cols-2 gap-3 w-full mt-auto">
+<button class="bg-surface-container-high hover:bg-surface-variant py-2.5 rounded-xl text-on-surface text-label-md font-label-md transition-colors cursor-pointer active:scale-95">
+                            View Profile
+                        </button>
+<button class="bg-primary-container text-on-primary py-2.5 rounded-xl text-label-md font-label-md hover:shadow-lg hover:shadow-primary/30 transition-all cursor-pointer active:scale-95">
+                            Message
+                        </button>
+</div>
+</div>
+<!-- Employee Card 4 -->
+<div class="glass-panel p-6 rounded-2xl flex flex-col items-center text-center relative overflow-hidden group opacity-80">
+<div class="absolute top-4 right-4 flex items-center gap-1.5 bg-surface-container/50 px-2 py-1 rounded-full border border-white/10">
+<div class="w-2 h-2 rounded-full bg-on-surface-variant/40"></div>
+<span class="text-[10px] font-bold text-on-surface-variant/70 uppercase tracking-tighter">Away</span>
+</div>
+<div class="relative mb-4 p-1 rounded-full border border-primary-fixed/20 group-hover:border-primary-fixed/60 transition-colors">
+<img alt="Fatima Khalid" class="w-24 h-24 rounded-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" data-alt="Cinematic close-up portrait of a professional woman with a serious yet approachable gaze. She is set against an obsidian depth background with subtle streaks of magenta and cyan light. Her attire is a high-collared minimalist blazer. The overall aesthetic is elite and technically precise, evoking the sense of a private, high-tech sanctuary for global financial consultancy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD3XGVd7gGWKKsFhNKTIaT2JDAkUtpbqkcMHADULek3agbeGP3VbnIShUbGxLKBsG4eD4dMT-w8XW2D2owcZmGZauy2Mwd0HGd9O6bI02DlbX5Dvr8J-L-UGqYDc3kd_A_C1p46PjGcB0JWuEK_QeymLa1r_wCaTPiKosJKhEthrFNVwlkNnMEVjxDA12geiB-Cg-QY06YtF1Q5eO-yBSYjJE953B1CrADZ87OW8QyedMjSeZk1yzU8KN0Imqfo5wb5iYg84faVBZGs"/>
+</div>
+<h3 class="font-headline-md text-headline-md text-white mb-1">Fatima Khalid</h3>
+<p class="text-primary-fixed font-label-md text-label-md mb-6">Investment Strategist</p>
+<div class="grid grid-cols-2 gap-3 w-full mt-auto">
+<button class="bg-surface-container-high hover:bg-surface-variant py-2.5 rounded-xl text-on-surface text-label-md font-label-md transition-colors cursor-pointer active:scale-95">
+                            View Profile
+                        </button>
+<button class="bg-primary-container text-on-primary py-2.5 rounded-xl text-label-md font-label-md hover:shadow-lg hover:shadow-primary/30 transition-all cursor-pointer active:scale-95">
+                            Message
+                        </button>
+</div>
+</div>
+<!-- Additional Rows of Cards to fill the grid -->
+<!-- Employee Card 5 -->
+<div class="glass-panel p-6 rounded-2xl flex flex-col items-center text-center relative overflow-hidden group">
+<div class="absolute top-4 right-4 flex items-center gap-1.5 bg-surface-container/50 px-2 py-1 rounded-full border border-primary-fixed/10">
+<div class="w-2 h-2 rounded-full bg-primary-fixed status-pulse"></div>
+<span class="text-[10px] font-bold text-primary-fixed uppercase tracking-tighter">Active</span>
+</div>
+<div class="relative mb-4 p-1 rounded-full border border-primary-fixed/20 group-hover:border-primary-fixed/60 transition-colors">
+<img alt="Omar Saeed" class="w-24 h-24 rounded-full object-cover" data-alt="Headshot of a modern executive in a sleek dark environment. Minimalist lighting accents his features with cool cyan glows. The background suggests a futuristic dashboard interface blurred out. The mood is visionary and technically precise, portraying an elite wealth manager in a cutting-edge digital ecosystem." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDx7bN5iuVugBg5SHXGi66_CkhYgrQRlCVsl5xU5V0riI4ngvjydWHGqazyDnD00vQJbTEaPtbakmUyiAZA-mPMzjH7Vq8csmIXrDx6P3r03MLGXiMbvxHrXR6JBMXclLgaBS1kaDg-tt3uKqxSx6mAfCe5r2jIzUVxPJK-Y-8B67ncGh6UyCR97RIkLRbDwyMDuKGfJQ57vhDIz2tKsnc0Vd_PTeL7qdDCGXG4Pm7n0yD1Romt6arMhvsSGBvv_ykzgJmRl5f8vicO"/>
+</div>
+<h3 class="font-headline-md text-headline-md text-white mb-1">Omar Saeed</h3>
+<p class="text-primary-fixed font-label-md text-label-md mb-6">Portfolio Analyst</p>
+<div class="grid grid-cols-2 gap-3 w-full mt-auto">
+<button class="bg-surface-container-high hover:bg-surface-variant py-2.5 rounded-xl text-on-surface text-label-md font-label-md transition-colors cursor-pointer active:scale-95">View Profile</button>
+<button class="bg-primary-container text-on-primary py-2.5 rounded-xl text-label-md font-label-md hover:shadow-lg hover:shadow-primary/30 transition-all cursor-pointer active:scale-95">Message</button>
+</div>
+</div>
+<!-- Employee Card 6 -->
+<div class="glass-panel p-6 rounded-2xl flex flex-col items-center text-center relative overflow-hidden group">
+<div class="absolute top-4 right-4 flex items-center gap-1.5 bg-surface-container/50 px-2 py-1 rounded-full border border-primary-fixed/10">
+<div class="w-2 h-2 rounded-full bg-primary-fixed status-pulse"></div>
+<span class="text-[10px] font-bold text-primary-fixed uppercase tracking-tighter">Active</span>
+</div>
+<div class="relative mb-4 p-1 rounded-full border border-primary-fixed/20 group-hover:border-primary-fixed/60 transition-colors">
+<img alt="Sarah Al-Otaibi" class="w-24 h-24 rounded-full object-cover" data-alt="A portrait of a highly professional financial expert with a sharp gaze, set in a futuristic banking lounge. Deep obsidian background with glass panels reflecting neon data streams. Lighting is cinematic and exclusive, highlighting the subject's expert demeanor in a 'Future Club' atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDpOl7BWHfRqMwKlqvUg5mxsJSyHjacjYvMcVchXYx8g7mt1-fIh_RYzdjQ4tpnOemZrBmE9Kg7v123ieihE7PqrYTw_4NXXJLTS4Qd5yfAzSJVEH2sRIx2iIWyvz_VLEkam9UMda-LAuUE0Q7bZe0utygCTpsX1LDlJFR2xM2MHTCuHYINh40RjD5GDze1thLAtkh6bD9d6Ep-7smJcxT5VM5Gip2NU-e1Rxccydufv69Q7GiWoYabRzDG3qAxuMD3miFguGa9t28q"/>
+</div>
+<h3 class="font-headline-md text-headline-md text-white mb-1">Sarah Al-Otaibi</h3>
+<p class="text-primary-fixed font-label-md text-label-md mb-6">Senior Wealth Strategist</p>
+<div class="grid grid-cols-2 gap-3 w-full mt-auto">
+<button class="bg-surface-container-high hover:bg-surface-variant py-2.5 rounded-xl text-on-surface text-label-md font-label-md transition-colors cursor-pointer active:scale-95">View Profile</button>
+<button class="bg-primary-container text-on-primary py-2.5 rounded-xl text-label-md font-label-md hover:shadow-lg hover:shadow-primary/30 transition-all cursor-pointer active:scale-95">Message</button>
+</div>
+</div>
+<!-- Employee Card 7 -->
+<div class="glass-panel p-6 rounded-2xl flex flex-col items-center text-center relative overflow-hidden group">
+<div class="absolute top-4 right-4 flex items-center gap-1.5 bg-surface-container/50 px-2 py-1 rounded-full border border-primary-fixed/10">
+<div class="w-2 h-2 rounded-full bg-primary-fixed status-pulse"></div>
+<span class="text-[10px] font-bold text-primary-fixed uppercase tracking-tighter">Active</span>
+</div>
+<div class="relative mb-4 p-1 rounded-full border border-primary-fixed/20 group-hover:border-primary-fixed/60 transition-colors">
+<img alt="Khalid Ibrahim" class="w-24 h-24 rounded-full object-cover" data-alt="Stunning professional portrait of a tech-forward finance lead. He is wearing a modern charcoal suit. Background shows a dark, high-fidelity gallery space with vibrant cyan highlights. High contrast and premium look. Mood is elite, precise, and visionary." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBr8WRMBPWAGaAgnh1cG1BF7oVeb8GnbgUKuAiPQ73p21jonspG-XvezpJX9YIaPp9PmXSPPvDcjZajbGulYte4n0HkxpSZniSKKxSyYS9Y6_zk5PZrYcofZlRHqt1M-a_8V7KfCU3UBXd7Pa7NwOygeE9Oldkq6C_zh6OzABpFpy-J4H5I3UpGbge4lfVXkJnlWINQySGUoqE29tMB8fO2t2ohJUHQ-jSDoU8qwWvBxzEwy0Z2ayu5BQjTaVuC3HyqeCW5SFUcoHsK"/>
+</div>
+<h3 class="font-headline-md text-headline-md text-white mb-1">Khalid Ibrahim</h3>
+<p class="text-primary-fixed font-label-md text-label-md mb-6">Lead Crypto Advisor</p>
+<div class="grid grid-cols-2 gap-3 w-full mt-auto">
+<button class="bg-surface-container-high hover:bg-surface-variant py-2.5 rounded-xl text-on-surface text-label-md font-label-md transition-colors cursor-pointer active:scale-95">View Profile</button>
+<button class="bg-primary-container text-on-primary py-2.5 rounded-xl text-label-md font-label-md hover:shadow-lg hover:shadow-primary/30 transition-all cursor-pointer active:scale-95">Message</button>
+</div>
+</div>
+<!-- Add Button / CTA Card -->
+<div class="border-2 border-dashed border-primary-fixed/20 rounded-2xl flex flex-col items-center justify-center p-6 hover:bg-primary-fixed/5 hover:border-primary-fixed/40 transition-all cursor-pointer group">
+<div class="w-16 h-16 rounded-full bg-primary-container/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary-fixed text-3xl">person_add</span>
+</div>
+<p class="text-white font-headline-md text-headline-md">Onboard Employee</p>
+<p class="text-on-surface-variant text-label-md mt-1">Add new member to ecosystem</p>
+</div>
+</div>
+<!-- Footer Meta Data -->
+<div class="mt-12 pt-8 border-t border-outline-variant/10 flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex items-center gap-8">
+<div>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Total Directory</p>
+<p class="font-mono-data text-mono-data text-white">124 Global Experts</p>
+</div>
+<div class="h-8 w-[1px] bg-outline-variant/20"></div>
+<div>
+<p class="text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Activity Index</p>
+<p class="font-mono-data text-mono-data text-primary-fixed">92% Operational</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-lg glass-panel hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<span class="px-4 py-2 font-mono-data text-mono-data bg-surface-container-high rounded-lg text-white">01 / 12</span>
+<button class="p-2 rounded-lg glass-panel hover:text-primary-fixed transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<script>
+        // Micro-interactions for glass panels
+        document.querySelectorAll('.glass-panel').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+                
+                // Dynamic border glow effect
+                const xPct = (x / rect.width) * 100;
+                const yPct = (y / rect.height) * 100;
+                card.style.background = `radial-gradient(circle at ${xPct}% ${yPct}%, rgba(0, 245, 212, 0.1) 0%, rgba(20, 22, 26, 0.6) 50%)`;
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.background = 'rgba(20, 22, 26, 0.6)';
+            });
+        });
+    </script>
+</body></html>

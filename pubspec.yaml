@@ -1,0 +1,36 @@
+name: tfc_financial_crm
+description: >-
+  A premium, futuristic glassmorphic CRM for The Future Club financial
+  consultancy.
+publish_to: none
+version: 1.0.0+1
+environment:
+  sdk: ">=3.2.0 <4.0.0"
+dependencies:
+  flutter_skill: ^0.2.6
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  flutter_dotenv: ^5.1.0
+  supabase_flutter: ^2.5.4
+  flutter_riverpod: ^2.4.0
+  logger: ^2.7.0
+  google_fonts: ^8.1.0
+  collection: ^1.19.1
+  intl: ^0.20.2
+  shared_preferences: ^2.5.5
+  file_picker: ^11.0.2
+  url_launcher: ^6.2.5
+  http: ^1.2.0
+  flutter_markdown: ^0.7.3
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+  build_runner: any
+flutter:
+  uses-material-design: true
+  assets:
+    - .env
+

@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Future Club CRM - Customer Data</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&amp;family=Hanken+Grotesk:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "on-error-container": "#ffdad6",
+                "surface-container-low": "#1a1c20",
+                "on-primary-container": "#006c5c",
+                "on-secondary-fixed": "#3f0018",
+                "on-tertiary-fixed-variant": "#004d63",
+                "error": "#ffb4ab",
+                "surface-container": "#1e2024",
+                "primary-container": "#00f5d4",
+                "primary-fixed-dim": "#00dfc1",
+                "surface-dim": "#111317",
+                "on-background": "#e2e2e8",
+                "surface-tint": "#00dfc1",
+                "on-tertiary-container": "#006784",
+                "outline-variant": "#3a4a46",
+                "surface-container-high": "#282a2e",
+                "inverse-surface": "#e2e2e8",
+                "inverse-on-surface": "#2f3035",
+                "surface-bright": "#37393e",
+                "surface-container-highest": "#333539",
+                "surface-container-lowest": "#0c0e12",
+                "secondary-container": "#980044",
+                "on-tertiary-fixed": "#001f2a",
+                "primary-fixed": "#26fedc",
+                "on-primary": "#00382f",
+                "on-error": "#690005",
+                "surface-variant": "#333539",
+                "on-secondary-fixed-variant": "#8f0040",
+                "background": "#111317",
+                "secondary-fixed-dim": "#ffb1c2",
+                "on-secondary-container": "#ffa1b7",
+                "on-tertiary": "#003545",
+                "on-primary-fixed-variant": "#005144",
+                "outline": "#83948f",
+                "tertiary-container": "#a6e3ff",
+                "inverse-primary": "#006b5b",
+                "tertiary-fixed-dim": "#6cd3fc",
+                "error-container": "#93000a",
+                "on-surface": "#e2e2e8",
+                "primary": "#d7fff3",
+                "secondary-fixed": "#ffd9e0",
+                "on-surface-variant": "#b9cac4",
+                "tertiary-fixed": "#bce9ff",
+                "secondary": "#ffb1c2",
+                "on-secondary": "#66002b",
+                "tertiary": "#edf8ff",
+                "surface": "#111317",
+                "on-primary-fixed": "#00201a"
+            },
+            "fontFamily": {
+                "mono-data": ["Hanken Grotesk"],
+                "display-lg": ["Sora"],
+                "headline-md": ["Sora"],
+                "headline-lg": ["Sora"],
+                "body-md": ["Hanken Grotesk"],
+                "body-lg": ["Hanken Grotesk"],
+                "label-md": ["Hanken Grotesk"]
+            },
+            "animation": {
+              "shimmer": "shimmer 3s infinite linear",
+              "pulse-glow": "pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+              "slide-up": "slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both"
+            },
+            "keyframes": {
+              "shimmer": {
+                "0%": { "background-position": "200% 0" },
+                "100%": { "background-position": "-200% 0" }
+              },
+              "pulse-glow": {
+                "0%, 100%": { "opacity": "1", "box-shadow": "0 0 10px rgba(0, 245, 212, 0.2)" },
+                "50%": { "opacity": "0.85", "box-shadow": "0 0 25px rgba(0, 245, 212, 0.6)" }
+              },
+              "slide-up": {
+                "0%": { "transform": "translateY(20px)", "opacity": "0" },
+                "100%": { "transform": "translateY(0)", "opacity": "1" }
+              }
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            background: radial-gradient(circle at center, #1a1c20 0%, #050505 100%);
+            color: #e2e2e8;
+            scroll-behavior: smooth;
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        .glass-panel::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(
+                90deg,
+                transparent,
+                rgba(0, 245, 212, 0.03),
+                transparent
+            );
+            background-size: 200% 100%;
+            animation: shimmer 12s infinite linear;
+            pointer-events: none;
+        }
+        .glow-cyan:hover {
+            box-shadow: 0 0 20px rgba(0, 245, 212, 0.3);
+            border-color: rgba(0, 245, 212, 0.4);
+        }
+        .glow-border:focus-within {
+            border-color: #00f5d4;
+            box-shadow: 0 0 15px rgba(0, 245, 212, 0.15);
+        }
+        .stepper-active {
+            color: #00f5d4;
+            text-shadow: 0 0 12px rgba(0, 245, 212, 0.6);
+            transition: all 0.4s ease;
+        }
+        input, select {
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            backdrop-filter: blur(8px);
+            border-radius: 8px !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        }
+        input:focus, select:focus {
+            border: 1px solid rgba(0, 245, 212, 0.5) !important;
+            outline: none !important;
+            background: rgba(0, 245, 212, 0.08) !important;
+            box-shadow: 0 0 15px rgba(0, 245, 212, 0.1) !important;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        
+        .stagger-reveal > * {
+            opacity: 0;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate-slide-up, .animate-shimmer, .animate-pulse-glow, .glass-panel::after {
+                animation: none !important;
+                transition: none !important;
+                opacity: 1 !important;
+                transform: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-32">
+<!-- Top Navigation Anchor -->
+<nav class="fixed top-0 w-full z-50 bg-black/40 backdrop-blur-2xl border-b border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.1)] flex justify-between items-center px-6 h-16 transition-all duration-500">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-primary text-2xl animate-pulse">account_balance_wallet</span>
+<span class="font-headline-md text-headline-md font-bold tracking-tighter text-primary">FUTURE CLUB</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center overflow-hidden hover:scale-110 hover:border-primary/50 transition-all cursor-pointer backdrop-blur-md">
+<img alt="Staff Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCiOFTRB-kjE7XZomf4GMxJ06RuopS2XsFNdM11kuGdFBxWFi3IEQuUW9pENQPlkdSsYmQ-skX3aJ3PnIAGqCuFhqcVVySArTCQxH0nPXpFO6TdnDJVVJQpNuQXQIHWEONPuyGu-iC_RmD6si053DYHEHaHBSjA-BDZPg5cs56GZjL43-h6_TOMjia3f_ekXiMnr-bOqvKG-LYnXr4ZteIc5MDPEU6UsvGjhHrO6g07IwkZVHV3jc4r42PFgEqUfv9ofeidRlrvanZm"/>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="max-w-6xl mx-auto mt-24 px-6 overflow-x-hidden">
+<!-- Header & Stepper -->
+<header class="mb-12 text-center animate-slide-up" style="animation-delay: 0.1s;">
+<h1 class="font-headline-lg text-headline-lg mb-8 text-primary">إنشاء ملف عميل جديد</h1>
+<div class="flex items-center justify-center gap-4 md:gap-12 relative">
+<!-- Step 1 -->
+<div class="flex flex-col items-center z-10 transition-all duration-500 transform hover:scale-105">
+<div class="w-10 h-10 rounded-full glass-panel flex items-center justify-center border border-primary/50 text-primary shadow-[0_0_20px_rgba(0,245,212,0.2)] animate-pulse-glow">
+<span class="font-headline-md">١</span>
+</div>
+<span class="font-label-md text-label-md mt-2 stepper-active">البيانات الشخصية</span>
+</div>
+<!-- Line -->
+<div class="h-[1px] w-12 md:w-24 bg-primary/30 -mt-6 transition-all duration-1000"></div>
+<!-- Step 2 -->
+<div class="flex flex-col items-center z-10 opacity-50 grayscale hover:grayscale-0 transition-all duration-300">
+<div class="w-10 h-10 rounded-full glass-panel flex items-center justify-center border border-white/20 text-on-surface">
+<span class="font-headline-md">٢</span>
+</div>
+<span class="font-label-md text-label-md mt-2">البيانات الائتمانية</span>
+</div>
+<!-- Line -->
+<div class="h-[1px] w-12 md:w-24 bg-white/10 -mt-6"></div>
+<!-- Step 3 -->
+<div class="flex flex-col items-center z-10 opacity-50 grayscale hover:grayscale-0 transition-all duration-300">
+<div class="w-10 h-10 rounded-full glass-panel flex items-center justify-center border border-white/20 text-on-surface">
+<span class="font-headline-md">٣</span>
+</div>
+<span class="font-label-md text-label-md mt-2">المستندات</span>
+</div>
+</div>
+</header>
+<form class="space-y-12">
+<!-- Section 1: Personal Data -->
+<section class="glass-panel p-8 rounded-2xl animate-slide-up stagger-reveal" style="animation-delay: 0.2s;">
+<div class="flex items-center gap-3 mb-8 border-r-4 border-primary pr-4">
+<span class="material-symbols-outlined text-primary">person</span>
+<h2 class="font-headline-md text-headline-md">البيانات الشخصية</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- Full Name -->
+<div class="flex flex-col gap-2 transition-all duration-300 hover:translate-x-[-4px]">
+<label class="font-label-md text-label-md text-on-surface-variant">الاسم الكامل (ثلاثي)</label>
+<input class="font-body-md px-4 py-3" placeholder="أدخل الاسم الثلاثي كما في البطاقة" type="text"/>
+</div>
+<!-- Mobile Number -->
+<div class="flex flex-col gap-2 transition-all duration-300 hover:translate-x-[-4px]">
+<label class="font-label-md text-label-md text-on-surface-variant">رقم الهاتف المحمول</label>
+<div class="flex gap-2">
+<input class="font-body-md px-4 py-3 flex-grow" placeholder="01XXXXXXXXX" type="tel"/>
+<button class="w-12 h-12 glass-panel flex items-center justify-center rounded-lg text-primary border-primary/20 hover:bg-primary/10 active:scale-90 transition-all duration-200" type="button">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+<!-- National ID -->
+<div class="flex flex-col gap-2 transition-all duration-300 hover:translate-x-[-4px]">
+<label class="font-label-md text-label-md text-on-surface-variant">الرقم القومي</label>
+<input class="font-body-md px-4 py-3" placeholder="١٤ رقم" type="number"/>
+</div>
+<!-- Date -->
+<div class="flex flex-col gap-2 transition-all duration-300 hover:translate-x-[-4px]">
+<label class="font-label-md text-label-md text-on-surface-variant">تاريخ الميلاد</label>
+<input class="font-body-md px-4 py-3 text-on-surface" type="date"/>
+</div>
+<!-- Employment Type -->
+<div class="flex flex-col gap-2 transition-all duration-300 hover:translate-x-[-4px]">
+<label class="font-label-md text-label-md text-on-surface-variant">نوع التوظيف</label>
+<select class="font-body-md px-4 py-3 text-on-surface">
+<option>قطاع خاص</option>
+<option>قطاع حكومي</option>
+<option>أعمال حرة</option>
+<option>بالمعاش</option>
+</select>
+</div>
+<!-- Company Name -->
+<div class="flex flex-col gap-2 transition-all duration-300 hover:translate-x-[-4px]">
+<label class="font-label-md text-label-md text-on-surface-variant">اسم الشركة</label>
+<input class="font-body-md px-4 py-3" placeholder="اسم جهة العمل الحالية" type="text"/>
+</div>
+<!-- Job Title -->
+<div class="flex flex-col gap-2 transition-all duration-300 hover:translate-x-[-4px]">
+<label class="font-label-md text-label-md text-on-surface-variant">المسمى الوظيفي</label>
+<input class="font-body-md px-4 py-3" placeholder="المسمى الوظيفي الحالي" type="text"/>
+</div>
+<!-- Social Insurance -->
+<div class="flex flex-col gap-2 justify-center transition-all duration-300 hover:translate-x-[-4px]">
+<label class="font-label-md text-label-md text-on-surface-variant mb-2">حالة التأمين الاجتماعي</label>
+<div class="flex items-center gap-4">
+<label class="flex items-center gap-2 cursor-pointer group">
+<input class="w-4 h-4 text-primary bg-transparent border-primary/50 focus:ring-primary transition-all" name="social" type="radio"/>
+<span class="font-body-md group-hover:text-primary transition-colors">مؤمن عليه</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer group">
+<input class="w-4 h-4 text-primary bg-transparent border-primary/50 focus:ring-primary transition-all" name="social" type="radio"/>
+<span class="font-body-md group-hover:text-primary transition-colors">غير مؤمن عليه</span>
+</label>
+</div>
+</div>
+<!-- Salary Method -->
+<div class="flex flex-col gap-2 transition-all duration-300 hover:translate-x-[-4px]">
+<label class="font-label-md text-label-md text-on-surface-variant">طريقة تحويل الراتب</label>
+<div class="flex gap-2">
+<select class="font-body-md px-4 py-3 text-on-surface flex-grow">
+<option>تحويل بنكي</option>
+<option>نقدي</option>
+</select>
+<button class="px-4 h-12 glass-panel flex items-center justify-center rounded-lg text-primary border-primary/20 hover:bg-primary/10 active:scale-90 transition-all duration-200 text-xs font-label-md" type="button">
+                            إضافة
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Section 2: Credit Data -->
+<section class="glass-panel p-8 rounded-2xl space-y-12 animate-slide-up" style="animation-delay: 0.3s;">
+<div class="flex items-center gap-3 mb-4 border-r-4 border-secondary pr-4">
+<span class="material-symbols-outlined text-secondary">payments</span>
+<h2 class="font-headline-md text-headline-md">البيانات الائتمانية</h2>
+</div>
+<!-- Loans -->
+<div class="space-y-6">
+<div class="flex justify-between items-center">
+<h3 class="font-headline-md text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">account_balance</span> القروض القائمة
+                    </h3>
+<button class="flex items-center gap-2 text-primary-fixed font-label-md hover:underline hover:scale-105 active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined">add_circle</span> إضافة قرض
+                    </button>
+</div>
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full border-collapse">
+<thead>
+<tr class="text-right border-b border-white/10 bg-white/5">
+<th class="p-4 font-label-md">اسم البنك</th>
+<th class="p-4 font-label-md">قيمة القسط</th>
+<th class="p-4 font-label-md">ملاحظات</th>
+<th class="p-4 font-label-md w-16"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-white/5 hover:bg-white/[0.05] transition-all duration-300 group">
+<td class="p-2"><input class="w-full px-4 py-2 bg-transparent border-none focus:ring-0" placeholder="البنك الأهلي" type="text"/></td>
+<td class="p-2"><input class="w-full px-4 py-2 bg-transparent border-none focus:ring-0" placeholder="٥٠٠٠" type="number"/></td>
+<td class="p-2"><input class="w-full px-4 py-2 bg-transparent border-none focus:ring-0" placeholder="تفاصيل إضافية..." type="text"/></td>
+<td class="p-2 text-center">
+<span class="material-symbols-outlined text-error cursor-pointer opacity-40 group-hover:opacity-100 hover:scale-125 transition-all duration-200">delete</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Cards Table -->
+<div class="space-y-6">
+<div class="flex justify-between items-center">
+<h3 class="font-headline-md text-on-surface-variant flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">credit_card</span> البطاقات الائتمانية والطلبات
+                    </h3>
+<button class="flex items-center gap-2 text-primary-fixed font-label-md hover:underline hover:scale-105 active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined">add_circle</span> إضافة صف
+                    </button>
+</div>
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full border-collapse min-w-[1000px]">
+<thead>
+<tr class="text-right border-b border-white/10 bg-white/5">
+<th class="p-4 font-label-md">اسم البنك</th>
+<th class="p-4 font-label-md">القيمة</th>
+<th class="p-4 font-label-md">حسبة 5%</th>
+<th class="p-4 font-label-md">النوع</th>
+<th class="p-4 font-label-md">المدة</th>
+<th class="p-4 font-label-md">القسط</th>
+<th class="p-4 font-label-md">القيمة الأعلى</th>
+<th class="p-4 font-label-md w-12"></th>
+</tr>
+</thead>
+<tbody>
+<tr class="border-b border-white/5 hover:bg-white/[0.05] transition-all duration-300 group">
+<td class="p-2">
+<select class="w-full px-4 py-2 bg-transparent border-none focus:ring-0 text-on-surface">
+<option value="banque-misr">بنك مصر</option>
+<option value="nbe">البنك الأهلي</option>
+<option value="cib">CIB</option>
+<option value="visa-app">فيزا ابلكيشن</option>
+</select>
+</td>
+<td class="p-2"><input class="w-full px-4 py-2 bg-transparent border-none focus:ring-0" placeholder="١٠٠٠٠٠" type="number"/></td>
+<td class="p-2"><div class="px-3 py-2 bg-white/5 border border-white/10 rounded font-mono-data text-primary text-center group-hover:shadow-[0_0_15px_rgba(0,245,212,0.1)] transition-all backdrop-blur-sm">٥٠٠٠</div></td>
+<td class="p-2">
+<select class="w-full px-4 py-2 bg-transparent border-none focus:ring-0">
+<option>بطاقة</option>
+<option>طلب</option>
+</select>
+</td>
+<td class="p-2"><input class="w-full px-4 py-2 bg-transparent border-none focus:ring-0" placeholder="١٢ شهر" type="text"/></td>
+<td class="p-2"><input class="w-full px-4 py-2 bg-transparent border-none focus:ring-0" placeholder="٤٥٠٠" type="number"/></td>
+<td class="p-2">
+<div class="px-3 py-2 bg-primary/10 rounded font-mono-data text-primary font-bold text-center border border-primary/20 group-hover:scale-105 transition-all backdrop-blur-md">
+                                        ٥٠٠٠
+                                    </div>
+</td>
+<td class="p-2">
+<span class="material-symbols-outlined text-error opacity-0 group-hover:opacity-100 transition-all duration-200 cursor-pointer hover:scale-125">delete</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<!-- Section 3: Other Data -->
+<section class="glass-panel p-8 rounded-2xl grid grid-cols-1 md:grid-cols-3 gap-8 animate-slide-up" style="animation-delay: 0.4s;">
+<div class="flex flex-col gap-2 transition-all duration-300 hover:translate-y-[-4px]">
+<label class="font-label-md text-label-md text-on-surface-variant">مبلغ التمويل المطلوب</label>
+<div class="relative group">
+<input class="w-full font-headline-md px-4 py-3 pl-12 text-primary font-bold transition-all focus:scale-[1.01]" placeholder="0.00" type="number"/>
+<span class="absolute left-4 top-1/2 -translate-y-1/2 font-label-md text-on-surface-variant group-focus-within:text-primary transition-colors">ج.م</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 transition-all duration-300 hover:translate-y-[-4px]">
+<label class="font-label-md text-label-md text-on-surface-variant">المحافظة</label>
+<select class="font-body-md px-4 py-3 text-on-surface">
+<option>القاهرة</option>
+<option>الجيزة</option>
+<option>الإسكندرية</option>
+<option>الدقهلية</option>
+</select>
+</div>
+<div class="flex flex-col gap-2 transition-all duration-300 hover:translate-y-[-4px]">
+<label class="font-label-md text-label-md text-on-surface-variant">اسم المندوب</label>
+<input class="font-body-md px-4 py-3" placeholder="اسم المندوب المسؤول" type="text"/>
+</div>
+</section>
+<!-- Section 4: Documents -->
+<section class="glass-panel p-8 rounded-2xl animate-slide-up" style="animation-delay: 0.5s;">
+<div class="flex items-center gap-3 mb-8 border-r-4 border-tertiary-fixed-dim pr-4">
+<span class="material-symbols-outlined text-tertiary-fixed-dim">upload_file</span>
+<h2 class="font-headline-md text-headline-md">رفع المستندات</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<!-- ID Front -->
+<div class="flex flex-col gap-4">
+<span class="font-label-md text-on-surface-variant text-center">وجه بطاقة الرقم القومي</span>
+<div class="relative group cursor-pointer aspect-[1.6/1] rounded-xl border-2 border-dashed border-white/10 overflow-hidden hover:border-primary/50 transition-all duration-500 backdrop-blur-md">
+<div class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/[0.02] group-hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-4xl text-white/20 group-hover:text-primary group-hover:scale-125 transition-transform duration-300">photo_camera</span>
+<span class="font-label-md text-white/40 group-hover:text-primary transition-colors">اضغط للرفع</span>
+</div>
+<img alt="Futuristic ID card placeholder" class="w-full h-full object-cover opacity-0 group-hover:opacity-20 transition-opacity duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDD_1LMq_ZGkPoWgkM5QRztplHZzruOwXAY_PUzR_FhH1kDW-CbWo7sHss4h4bRevE3G9RWibw9IYCMbnvffKt7AAogmLLKtd6Z_M3fYbxxet1Pov-jsnT37XvoXRTwfIcBU1dwuTECaciatsQOJoYCRRnww7dksmBI9M-twIA8KusjCQkhIGeap1H3ZBtnQ2fAugAbVbvI-nhecyzzrlVPTKbRETpxzatoNBsXZcvZM4VsH4RAaOqIkN_6YuhZzlPGDyFzlFcYNYyu"/>
+</div>
+</div>
+<!-- ID Back -->
+<div class="flex flex-col gap-4">
+<span class="font-label-md text-on-surface-variant text-center">ظهر بطاقة الرقم القومي</span>
+<div class="relative group cursor-pointer aspect-[1.6/1] rounded-xl border-2 border-dashed border-white/10 overflow-hidden hover:border-primary/50 transition-all duration-500 backdrop-blur-md">
+<div class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/[0.02] group-hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined text-4xl text-white/20 group-hover:text-primary group-hover:scale-125 transition-transform duration-300">photo_camera</span>
+<span class="font-label-md text-white/40 group-hover:text-primary transition-colors">اضغط للرفع</span>
+</div>
+</div>
+</div>
+<!-- Other Docs -->
+<div class="flex flex-col gap-4">
+<span class="font-label-md text-on-surface-variant text-center">مستندات أخرى (PDF/صور)</span>
+<div class="flex-grow rounded-xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center p-6 bg-white/[0.02] hover:bg-primary/5 hover:border-primary/50 transition-all duration-500 cursor-pointer group backdrop-blur-md">
+<span class="material-symbols-outlined text-3xl mb-2 text-white/30 group-hover:text-primary group-hover:scale-110 transition-all duration-300">add_to_photos</span>
+<p class="font-body-md text-xs text-center text-white/40 group-hover:text-primary/70 transition-colors">اسحب الملفات هنا أو اضغط للاختيار</p>
+</div>
+</div>
+</div>
+</section>
+</form>
+</main>
+<!-- Footer Actions -->
+<footer class="fixed bottom-0 w-full bg-black/40 backdrop-blur-2xl border-t border-white/10 h-24 px-6 flex items-center justify-center z-40 transition-transform duration-500 hover:translate-y-[-4px]">
+<div class="max-w-6xl w-full flex items-center justify-between gap-4">
+<div class="flex gap-4">
+<button class="px-8 py-3 rounded-xl font-headline-md text-headline-md bg-primary text-on-primary font-bold shadow-[0_8px_32px_rgba(0,245,212,0.3)] animate-pulse-glow active:scale-95 transition-all">
+                حفظ ومتابعة
+            </button>
+<button class="px-8 py-3 rounded-xl font-label-md text-label-md border border-white/20 text-on-surface bg-white/5 hover:bg-white/10 hover:border-white/40 active:scale-95 transition-all backdrop-blur-md">
+                حفظ كمسودة
+            </button>
+</div>
+<div class="hidden md:flex flex-col items-end">
+<span class="font-label-md text-xs text-on-surface-variant">إجمالي التمويل المطلوب</span>
+<span class="font-headline-md text-primary font-bold animate-shimmer" style="background: linear-gradient(90deg, #d7fff3 0%, #00f5d4 50%, #d7fff3 100%); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;">150,000 ج.م</span>
+</div>
+</div>
+</footer>
+<!-- Inline Script for dynamic calculations & effects -->
+<script>
+    // Staggered Entrance Animation for child elements
+    window.addEventListener('DOMContentLoaded', () => {
+        const reveals = document.querySelectorAll('.stagger-reveal > *');
+        reveals.forEach((el, index) => {
+            setTimeout(() => {
+                el.classList.add('animate-slide-up');
+                el.style.opacity = '1';
+            }, 100 * (index + 1));
+        });
+    });
+
+    // Simple micro-interaction for form focus
+    document.querySelectorAll('input, select').forEach(el => {
+        el.addEventListener('focus', () => {
+            const parent = el.closest('.flex-col');
+            if (parent) parent.classList.add('glow-border');
+        });
+        el.addEventListener('blur', () => {
+            const parent = el.closest('.flex-col');
+            if (parent) parent.classList.remove('glow-border');
+        });
+    });
+
+    // Floating particle effect in the background (Atmospheric)
+    const canvas = document.createElement('canvas');
+    canvas.style.position = 'fixed';
+    canvas.style.top = '0';
+    canvas.style.left = '0';
+    canvas.style.zIndex = '-1';
+    canvas.style.pointerEvents = 'none';
+    document.body.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    let width, height, particles;
+
+    function initParticles() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+        particles = [];
+        const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+        if (motionPreference.matches) return;
+
+        for (let i = 0; i < 60; i++) {
+            particles.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                size: Math.random() * 1.2,
+                speed: Math.random() * 0.2 + 0.05,
+                opacity: Math.random() * 0.2,
+                color: Math.random() > 0.5 ? '#00f5d4' : '#ffb1c2'
+            });
+        }
+    }
+
+    function animate() {
+        if (particles && particles.length > 0) {
+            ctx.clearRect(0, 0, width, height);
+            particles.forEach(p => {
+                ctx.globalAlpha = p.opacity;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+                p.y -= p.speed;
+                if (p.y < 0) p.y = height;
+            });
+        }
+        requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', initParticles);
+    initParticles();
+    animate();
+
+    // Footer scroll behavior visibility
+    let lastScroll = 0;
+    const footer = document.querySelector('footer');
+    window.addEventListener('scroll', () => {
+        const currentScroll = window.pageYOffset;
+        if (currentScroll > lastScroll && currentScroll > 100) {
+            footer.style.transform = 'translateY(10px)';
+        } else {
+            footer.style.transform = 'translateY(0)';
+        }
+        lastScroll = currentScroll;
+    });
+</script>
+</body></html>

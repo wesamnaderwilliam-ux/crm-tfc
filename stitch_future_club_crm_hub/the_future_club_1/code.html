@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>تفاصيل حالة الطلب - The Future Club</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&amp;family=Hanken+Grotesk:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #050505;
+            color: #e2e2e8;
+            overflow-x: hidden;
+        }
+
+        .glass-panel {
+            background: rgba(20, 22, 26, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .cyan-glow {
+            box-shadow: 0 0 15px rgba(0, 245, 212, 0.4);
+        }
+
+        .mesh-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(0, 245, 212, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(152, 0, 68, 0.1) 0%, transparent 40%);
+            animation: mesh-move 20s ease-in-out infinite alternate;
+        }
+
+        @keyframes mesh-move {
+            0% { transform: scale(1) translate(0, 0); }
+            100% { transform: scale(1.1) translate(2%, 2%); }
+        }
+
+        .progress-ring-circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+
+        .pulse-cyan {
+            animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse-ring {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "background": "#111317",
+                "primary-container": "#00f5d4",
+                "surface-container-highest": "#333539",
+                "on-background": "#e2e2e8",
+                "error-container": "#93000a",
+                "tertiary-fixed": "#bce9ff",
+                "error": "#ffb4ab",
+                "on-secondary-fixed-variant": "#8f0040",
+                "surface-container-low": "#1a1c20",
+                "outline-variant": "#3a4a46",
+                "on-primary": "#00382f",
+                "surface-tint": "#00dfc1",
+                "on-error": "#690005",
+                "on-tertiary": "#003545",
+                "on-primary-fixed": "#00201a",
+                "on-tertiary-fixed": "#001f2a",
+                "tertiary-container": "#a6e3ff",
+                "secondary": "#ffb1c2",
+                "on-surface-variant": "#b9cac4",
+                "on-secondary-fixed": "#3f0018",
+                "surface-dim": "#111317",
+                "primary": "#d7fff3",
+                "secondary-fixed-dim": "#ffb1c2",
+                "secondary-fixed": "#ffd9e0",
+                "surface-container-high": "#282a2e",
+                "primary-fixed": "#26fedc",
+                "on-primary-fixed-variant": "#005144",
+                "inverse-surface": "#e2e2e8",
+                "on-tertiary-fixed-variant": "#004d63",
+                "on-secondary-container": "#ffa1b7",
+                "inverse-on-surface": "#2f3035",
+                "secondary-container": "#980044",
+                "on-primary-container": "#006c5c",
+                "surface-container": "#1e2024",
+                "outline": "#83948f",
+                "on-tertiary-container": "#006784",
+                "inverse-primary": "#006b5b",
+                "surface-container-lowest": "#0c0e12",
+                "surface-bright": "#37393e",
+                "on-surface": "#e2e2e8",
+                "surface": "#111317",
+                "on-secondary": "#66002b",
+                "primary-fixed-dim": "#00dfc1",
+                "on-error-container": "#ffdad6",
+                "tertiary": "#edf8ff",
+                "surface-variant": "#333539",
+                "tertiary-fixed-dim": "#6cd3fc"
+            },
+            "fontFamily": {
+                "mono-data": ["Hanken Grotesk"],
+                "headline-md": ["Sora"],
+                "label-md": ["Hanken Grotesk"],
+                "headline-lg": ["Sora"],
+                "body-lg": ["Hanken Grotesk"],
+                "display-lg": ["Sora"],
+                "body-md": ["Hanken Grotesk"]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-on-surface">
+<div class="mesh-gradient"></div>
+<!-- Navigation Header -->
+<header class="sticky top-0 z-50 bg-background/60 backdrop-blur-xl border-b border-white/5 h-16 flex justify-between items-center px-6">
+<div class="flex items-center gap-4">
+<button class="p-2 hover:bg-white/5 rounded-full transition-colors">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<h1 class="font-headline-md text-headline-md font-bold tracking-tight text-primary-fixed drop-shadow-[0_0_10px_rgba(0,245,212,0.5)]">تقدم الطلب</h1>
+</div>
+<div class="flex items-center gap-3">
+<span class="font-label-md text-label-md text-on-surface-variant hidden md:block">THE FUTURE CLUB</span>
+<img alt="User Avatar" class="w-8 h-8 rounded-full border border-primary-fixed/30" data-alt="A professional headshot of a middle-eastern executive man in a tailored dark suit, set against a blurred high-tech office background with cyan and deep blue ambient lighting. The style is clean, corporate, and futuristic, maintaining the high-stakes elite atmosphere of a wealth management club." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBFnETXJg5tC918dxLPtYx7WYxx6wstWJ4L-sPL8KQmqKsrm382EpsY7CmvizFhs115xK-GNUq-1aa7wOTBqF4tK5W-DNKzGLJjhmWw_NAVJCKAbMWl7osmv0n_uEh2i0toLeuCmzm2HjgtkCtTJUKjlv0DRN_-oIzCDtrDXIt9adeYqrA1pCiF4v0JLKE03Kqe5UGA3_IiWnzlD4O-itzmJHkkMB8Wj9qQpLpnOIVza8ClPWUHwuNA_1_hL0SVFqjFiCBgt3m9F0Gm"/>
+</div>
+</header>
+<main class="max-w-4xl mx-auto p-gutter space-y-8 pb-32">
+<!-- Status Overview Card -->
+<section class="glass-panel rounded-3xl p-8 flex flex-col md:flex-row items-center gap-8 border-primary-fixed/20">
+<div class="relative w-40 h-40 flex items-center justify-center">
+<svg class="w-full h-full transform -scale-x-100">
+<circle class="text-white/5" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary-fixed progress-ring-circle" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-dasharray="440" stroke-dashoffset="154" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="font-headline-lg text-headline-lg text-primary-fixed">65%</span>
+<span class="font-label-md text-label-md text-on-surface-variant">مكتمل</span>
+</div>
+<div class="absolute inset-0 bg-primary-fixed/5 blur-3xl rounded-full"></div>
+</div>
+<div class="flex-1 text-center md:text-right space-y-2">
+<div class="inline-flex items-center gap-2 bg-primary-container/10 px-4 py-1 rounded-full border border-primary-container/20">
+<div class="w-2 h-2 bg-primary-fixed rounded-full pulse-cyan"></div>
+<span class="text-primary-fixed font-label-md">الحالة الحالية</span>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">قيد المراجعة - البنك</h2>
+<p class="text-on-surface-variant font-body-md max-w-md">تم رفع كافة المستندات بنجاح. فريق الائتمان يقوم حالياً بتحليل البيانات المالية لضمان أفضل شروط تمويل لناديك.</p>
+</div>
+</section>
+<!-- Detailed Timeline -->
+<section class="space-y-6">
+<h3 class="font-headline-md text-headline-md px-2 border-r-4 border-primary-fixed">مسار الطلب الذكي</h3>
+<div class="relative space-y-0 pr-6">
+<!-- Vertical Line -->
+<div class="absolute right-3.5 top-2 bottom-2 w-px bg-gradient-to-b from-primary-fixed via-primary-fixed/50 to-white/5"></div>
+<!-- Step 1: Completed -->
+<div class="relative pb-10">
+<div class="absolute -right-3 top-1 w-7 h-7 bg-primary-fixed rounded-full flex items-center justify-center cyan-glow z-10">
+<span class="material-symbols-outlined text-on-primary text-sm font-bold" data-icon="check">check</span>
+</div>
+<div class="glass-panel p-6 rounded-2xl mr-10 border-l-primary-fixed/30 border-l-2">
+<div class="flex justify-between items-start">
+<div>
+<h4 class="font-headline-md text-lg text-on-surface">تم استلام الوثائق</h4>
+<p class="text-on-surface-variant font-body-md">تم التحقق من صحة 12 وثيقة مرفقة.</p>
+</div>
+<span class="text-xs font-mono-data text-outline">12 أكتوبر, 2023</span>
+</div>
+</div>
+</div>
+<!-- Step 2: Active -->
+<div class="relative pb-10">
+<div class="absolute -right-3 top-1 w-7 h-7 bg-background border-2 border-primary-fixed rounded-full flex items-center justify-center z-10">
+<div class="w-2 h-2 bg-primary-fixed rounded-full pulse-cyan"></div>
+</div>
+<div class="glass-panel p-6 rounded-2xl mr-10 bg-primary-fixed/[0.03] border border-primary-fixed/30">
+<div class="flex flex-col md:flex-row md:items-start justify-between gap-6">
+<div class="space-y-4 flex-1">
+<div>
+<h4 class="font-headline-md text-lg text-primary-fixed">قيد المراجعة - البنك</h4>
+<div class="flex items-center gap-2 mt-1">
+<span class="material-symbols-outlined text-primary-fixed text-sm" data-icon="query_stats">query_stats</span>
+<p class="text-on-surface font-body-md">الحالة: <span class="text-primary-fixed">تحليل القوائم المالية</span></p>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+<img class="w-10 h-10 rounded-full grayscale hover:grayscale-0 transition-all border border-white/10" data-alt="Close-up portrait of a senior financial credit analyst, Ahmed Mansour, with a focused and professional expression. He has short hair and a neatly trimmed beard, wearing a crisp white dress shirt. The background is a soft-focus high-end bank interior with cool blue and cyan digital accents." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtyDjMiXAjOFDK16bu01VLjcNuFT-BY-O23wpVFnUCAMVVENWlafr08xwe_AbnSDs2tNizhzhQ2nXW52pv8eU8IJZPXTXyZ27XLvxxBMpj1Tw7_OgBryCMPV2a7pCEF7Anmf-rsoFMARwvzpb9Iz1hmDjPrknaW5eo2--tCzlGArSbI50CZvib1lzltwfJ6WLbWVCDQvKctXUVtV53Pd7Lf05wZO8ArjfgEUL_EyF9VjN8l66kLBkAtWULkxUUKi3vVKDAl-ty0kp5"/>
+<div>
+<p class="text-xs text-outline font-label-md">المسؤول عن المراجعة</p>
+<p class="text-sm font-headline-md">أحمد منصور</p>
+</div>
+</div>
+<div class="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
+<div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary-fixed" data-icon="schedule">schedule</span>
+</div>
+<div>
+<p class="text-xs text-outline font-label-md">الوقت المتوقع</p>
+<p class="text-sm font-headline-md">2-3 أيام عمل</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 3: Upcoming -->
+<div class="relative pb-10 opacity-40">
+<div class="absolute -right-3 top-1 w-7 h-7 bg-surface-container-highest rounded-full flex items-center justify-center z-10 border border-white/10"></div>
+<div class="glass-panel p-6 rounded-2xl mr-10">
+<h4 class="font-headline-md text-lg text-on-surface">انتظار الموافقة النهائية</h4>
+<p class="text-on-surface-variant font-body-md">تصديق من قبل لجنة الائتمان العليا.</p>
+</div>
+</div>
+<!-- Step 4: Upcoming -->
+<div class="relative opacity-40">
+<div class="absolute -right-3 top-1 w-7 h-7 bg-surface-container-highest rounded-full flex items-center justify-center z-10 border border-white/10"></div>
+<div class="glass-panel p-6 rounded-2xl mr-10">
+<h4 class="font-headline-md text-lg text-on-surface">صرف التمويل</h4>
+<p class="text-on-surface-variant font-body-md">تحويل المبلغ إلى حساب النادي المعتمد.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Required Documents Section -->
+<section class="glass-panel rounded-3xl p-6 space-y-4">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-md text-lg">الوثائق قيد المراجعة</h3>
+<span class="bg-surface-container-highest text-outline px-3 py-1 rounded text-xs font-mono-data">2 من 2</span>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div class="flex items-center justify-between p-4 bg-background/50 rounded-xl border border-white/5 hover:border-primary-fixed/30 transition-all cursor-pointer group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-fixed group-hover:scale-110 transition-transform" data-icon="id_card">id_card</span>
+<span class="font-body-md">الهوية الوطنية</span>
+</div>
+<span class="material-symbols-outlined text-primary-fixed text-sm" data-icon="verified" data-weight="fill">verified</span>
+</div>
+<div class="flex items-center justify-between p-4 bg-background/50 rounded-xl border border-white/5 hover:border-primary-fixed/30 transition-all cursor-pointer group">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary-fixed group-hover:scale-110 transition-transform" data-icon="description">description</span>
+<span class="font-body-md">شهادة الراتب</span>
+</div>
+<span class="material-symbols-outlined text-primary-fixed text-sm" data-icon="verified" data-weight="fill">verified</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Action Bar -->
+<div class="fixed bottom-0 left-0 w-full p-6 z-50">
+<div class="max-w-4xl mx-auto flex items-center justify-center md:justify-end">
+<button class="flex items-center gap-3 bg-primary-fixed text-on-primary-fixed px-8 py-4 rounded-full font-headline-md hover:scale-105 transition-all shadow-lg shadow-primary-fixed/20 group">
+<span class="material-symbols-outlined group-hover:rotate-12 transition-transform" data-icon="support_agent">support_agent</span>
+<span>تحدث مع الدعم الفني</span>
+</button>
+</div>
+</div>
+<!-- Background Decoration -->
+<div class="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+<div class="absolute top-[10%] right-[5%] w-[400px] h-[400px] bg-primary-fixed/5 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-[20%] left-[5%] w-[300px] h-[300px] bg-secondary-container/10 rounded-full blur-[100px]"></div>
+</div>
+<script>
+        // Micro-interaction for the progress ring
+        window.addEventListener('DOMContentLoaded', () => {
+            const circle = document.querySelector('.progress-ring-circle');
+            const radius = circle.r.baseVal.value;
+            const circumference = radius * 2 * Math.PI;
+            
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            circle.style.strokeDashoffset = circumference;
+
+            const setProgress = (percent) => {
+                const offset = circumference - (percent / 100 * circumference);
+                circle.style.strokeDashoffset = offset;
+            }
+
+            // Animate on load
+            setTimeout(() => setProgress(65), 500);
+        });
+    </script>
+</body></html>
