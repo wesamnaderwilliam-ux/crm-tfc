@@ -29,6 +29,7 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
   final _nationalIdController = TextEditingController();
   final _birthDateController = TextEditingController();
   String _employmentType = "private_sector";
+  final _customEmploymentTypeController = TextEditingController();
   final _companyNameController = TextEditingController();
   final _jobTitleController = TextEditingController();
   bool _isInsured = true;
@@ -38,6 +39,9 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
   // Salary detail controllers
   final List<Map<String, TextEditingController>> _salaryBankEntries = [];
   final _cashSalaryController = TextEditingController();
+
+  // Business owner details
+  final List<Map<String, dynamic>> _businessEntries = [];
 
   // Page 2 Form Lists
   final List<Map<String, dynamic>> _loansList =
@@ -83,6 +87,7 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
       'amount': initialAmountCtrl,
     });
     _cashSalaryController.addListener(_recalculateAll);
+    _addBusinessRow();
     // Pre-populate representative name with active user
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = ref.read(authProvider);
@@ -247,6 +252,37 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
     });
   }
 
+  void _addBusinessRow() {
+    setState(() {
+      _businessEntries.add({
+        'activity': TextEditingController(),
+        'startDate': TextEditingController(),
+        'place': TextEditingController(),
+        'documents': {
+          'سجل تجارى': false,
+          'بطاقة ضربية': false,
+          'كشف حساب': false,
+          'ميزانيات': false,
+          'فواتير': false,
+          'رخصة مشروع او صناعية': false,
+          'عقد ايجار او تمليك لمقر الشركة': false,
+        },
+        'taxCardFiles': <ClientDocumentModel>[],
+        'otherAttachments': <ClientDocumentModel>[],
+      });
+    });
+  }
+
+  void _removeBusinessRow(int index) {
+    if (_businessEntries.length <= 1) return;
+    setState(() {
+      _businessEntries[index]['activity']!.dispose();
+      _businessEntries[index]['startDate']!.dispose();
+      _businessEntries[index]['place']!.dispose();
+      _businessEntries.removeAt(index);
+    });
+  }
+
   void _addSalaryBankRow() {
     final amtCtrl = TextEditingController();
     amtCtrl.addListener(_recalculateAll);
@@ -311,7 +347,24 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
       representativeName: _repNameController.text.trim(),
       status: 'pending',
       createdAt: DateTime.now(),
-      documents: _uploadedDocuments.where((d) => d.documentUrl.isNotEmpty).toList(),
+      businessData: _employmentType == 'business_owner'
+          ? _businessEntries.map((b) {
+              return {
+                'activity': b['activity']!.text.trim(),
+                'startDate': b['startDate']!.text.trim(),
+                'place': b['place']!.text.trim(),
+                'documents': b['documents'],
+              };
+            }).toList()
+          : [],
+      documents: [
+        ..._uploadedDocuments,
+        if (_employmentType == 'business_owner')
+          ..._businessEntries.expand((b) => [
+                ...(b['taxCardFiles'] as List<ClientDocumentModel>),
+                ...(b['otherAttachments'] as List<ClientDocumentModel>),
+              ]),
+      ].where((d) => d.documentUrl.isNotEmpty).toList(),
     );
 
     // Build submodels
@@ -350,7 +403,19 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
     }
 
     // Build custom salary details log notes
-    final String customNotes;
+    String customNotes = "";
+    if (_employmentType == 'business_owner') {
+      final bizDetails = _businessEntries.map((b) {
+        final docs = (b['documents'] as Map<String, bool>)
+            .entries
+            .where((e) => e.value)
+            .map((e) => e.key)
+            .join(", ");
+        return "النشاط: ${b['activity'].text.trim()} (بدء: ${b['startDate'].text.trim()}, مكان: ${b['place'].text.trim()}). الأوراق المتاحة: $docs";
+      }).join(" | ");
+      customNotes = "تفاصيل الأنشطة التجارية: $bizDetails. ";
+    }
+
     if (_salaryTransfer == 'bank_transfer') {
       final entries = _salaryBankEntries
           .where(
@@ -358,11 +423,11 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
           .map((e) =>
               "${e['bank']!.text.trim()} (${e['amount']!.text.trim()} ج.م)")
           .join(", ");
-      customNotes =
-          "تم إنشاء الملف بنجاح. طريقة تحويل الراتب: تحويل بنكي على الحسابات: $entries";
+      customNotes +=
+          "طريقة تحويل الراتب: تحويل بنكي على الحسابات: $entries";
     } else {
-      customNotes =
-          "تم إنشاء الملف بنجاح. طريقة تحويل الراتب: إيداع نقدي بمبلغ: ${_cashSalaryController.text.trim()} ج.م";
+      customNotes +=
+          "طريقة تحويل الراتب: إيداع نقدي بمبلغ: ${_cashSalaryController.text.trim()} ج.م";
     }
 
     final errorMsg = await ref
@@ -760,20 +825,56 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                         isExpanded: true,
                         items: const [
                           DropdownMenuItem(
-                              value: "private_sector",
-                              child: Text("قطاع خاص",
+                              value: "government_employee",
+                              child: Text("موظف حكومى",
                                   textDirection: TextDirection.rtl)),
                           DropdownMenuItem(
-                              value: "government_sector",
-                              child: Text("قطاع حكومي",
+                              value: "private_sector",
+                              child: Text("موظف قطاع خاص",
+                                  textDirection: TextDirection.rtl)),
+                          DropdownMenuItem(
+                              value: "business_owner",
+                              child: Text("صاحب عمل",
+                                  textDirection: TextDirection.rtl)),
+                          DropdownMenuItem(
+                              value: "doctor_clinic",
+                              child: Text("دكتور عيادة",
+                                  textDirection: TextDirection.rtl)),
+                          DropdownMenuItem(
+                              value: "doctor_hospital",
+                              child: Text("دكتور مستشفى",
+                                  textDirection: TextDirection.rtl)),
+                          DropdownMenuItem(
+                              value: "pharmacist",
+                              child: Text("صيدلى",
+                                  textDirection: TextDirection.rtl)),
+                          DropdownMenuItem(
+                              value: "pharmacist_owner",
+                              child: Text("صيدلى صاحب صيدلية",
+                                  textDirection: TextDirection.rtl)),
+                          DropdownMenuItem(
+                              value: "military",
+                              child: Text("قوات مسلحة",
+                                  textDirection: TextDirection.rtl)),
+                          DropdownMenuItem(
+                              value: "faculty",
+                              child: Text("هيئة تدريس",
+                                  textDirection: TextDirection.rtl)),
+                          DropdownMenuItem(
+                              value: "teacher",
+                              child: Text("مدرس",
                                   textDirection: TextDirection.rtl)),
                           DropdownMenuItem(
                               value: "freelance",
-                              child: Text("أعمال حرة / تجاري",
+                              child: Text("فريلانس",
                                   textDirection: TextDirection.rtl)),
                           DropdownMenuItem(
                               value: "retired",
-                              child: Text("بالمعاش / متقاعد",
+                              child: Text("معاش",
+                                  textDirection: TextDirection.rtl)),
+                          DropdownMenuItem(
+                              value: "other",
+                              child: Text("أخرى",
                                   textDirection: TextDirection.rtl)),
                         ],
                         onChanged: (val) {
@@ -788,6 +889,20 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                   ),
                 ),
               ),
+              if (_employmentType == "other") ...[
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildFormField(
+                    label: "حدد نوع التوظيف",
+                    child: TextFormField(
+                      controller: _customEmploymentTypeController,
+                      textAlign: TextAlign.right,
+                      decoration:
+                          const InputDecoration(hintText: "اكتب نوع التوظيف"),
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(width: 16),
               Expanded(
                 child: _buildFormField(
@@ -856,6 +971,267 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
             ],
           ),
           const SizedBox(height: 20),
+
+          if (_employmentType == "business_owner") ...[
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              textDirection: TextDirection.rtl,
+              children: [
+                const Text(
+                  "تفاصيل الأنشطة التجارية",
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: TfcColors.secondary),
+                ),
+                TextButton.icon(
+                  style: TextButton.styleFrom(foregroundColor: TfcColors.primary),
+                  onPressed: _addBusinessRow,
+                  icon: const Icon(Icons.add_circle, size: 16),
+                  label: const Text("إضافة نشاط تجاري آخر", style: TextStyle(fontSize: 12)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _businessEntries.length,
+              itemBuilder: (context, idx) {
+                final entry = _businessEntries[idx];
+                final docsMap = entry['documents'] as Map<String, bool>;
+                final taxFiles = entry['taxCardFiles'] as List<ClientDocumentModel>;
+                final otherFiles = entry['otherAttachments'] as List<ClientDocumentModel>;
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 24),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withAlpha(10),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white24),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        textDirection: TextDirection.rtl,
+                        children: [
+                          Text("النشاط #${idx + 1}",
+                              style: const TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
+                          if (_businessEntries.length > 1)
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
+                              onPressed: () => _removeBusinessRow(idx),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // Activity & Start Date
+                      Row(
+                        textDirection: TextDirection.rtl,
+                        children: [
+                          Expanded(
+                            child: _buildFormField(
+                              label: "النشاط",
+                              child: TextFormField(
+                                controller: entry['activity'],
+                                textAlign: TextAlign.right,
+                                decoration: const InputDecoration(hintText: "مثال: تجارة مواد البناء"),
+                                validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _buildFormField(
+                              label: "تاريخ بدء النشاط",
+                              child: TextFormField(
+                                controller: entry['startDate'],
+                                textAlign: TextAlign.right,
+                                decoration: const InputDecoration(hintText: "سنة البدء أو تاريخ كامل"),
+                                validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      // Place of Activity
+                      _buildFormField(
+                        label: "مكان النشاط",
+                        child: TextFormField(
+                          controller: entry['place'],
+                          textAlign: TextAlign.right,
+                          decoration: const InputDecoration(hintText: "العنوان بالكامل أو المحافظة والحي"),
+                          validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Available Documents Checkboxes
+                      const Text(
+                        "الأوراق المتاحة",
+                        textAlign: TextAlign.right,
+                        style: TextStyle(fontSize: 14, color: TfcColors.secondary, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: Wrap(
+                          spacing: 16,
+                          runSpacing: 8,
+                          children: docsMap.keys.map((docName) {
+                            return Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Checkbox(
+                                  value: docsMap[docName],
+                                  activeColor: TfcColors.primary,
+                                  onChanged: (val) {
+                                    setState(() {
+                                      docsMap[docName] = val ?? false;
+                                    });
+                                  },
+                                ),
+                                Text(docName, style: const TextStyle(fontSize: 12)),
+                              ],
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Commercial Register & Tax Card uploads
+                      Row(
+                        textDirection: TextDirection.rtl,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Text(
+                                  "صور السجل والبطاقة الضريبية",
+                                  textAlign: TextAlign.right,
+                                  style: TextStyle(fontSize: 12, color: TfcColors.secondary),
+                                ),
+                                const SizedBox(height: 6),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    DocumentUploadHelper.showUploadDialog(
+                                      context,
+                                      onUploadComplete: (name, url) {
+                                        setState(() {
+                                          taxFiles.add(
+                                            ClientDocumentModel(
+                                              id: "tax-doc-${DateTime.now().millisecondsSinceEpoch}",
+                                              documentName: "سجل/بطاقة ضريبية: $name",
+                                              documentUrl: url,
+                                              status: "pending",
+                                            ),
+                                          );
+                                        });
+                                      },
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: TfcColors.primary.withValues(alpha: 0.1),
+                                    foregroundColor: TfcColors.primary,
+                                  ),
+                                  icon: const Icon(Icons.upload_file, size: 14),
+                                  label: const Text("رفع ملف", style: TextStyle(fontSize: 12)),
+                                ),
+                                if (taxFiles.isNotEmpty) ...[
+                                  const SizedBox(height: 6),
+                                  ...taxFiles.map((file) => Row(
+                                    textDirection: TextDirection.rtl,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          file.documentName.replaceAll("سجل/بطاقة ضريبية: ", ""),
+                                          style: const TextStyle(fontSize: 11, color: Colors.white70),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.close, size: 14, color: Colors.redAccent),
+                                        onPressed: () => setState(() => taxFiles.remove(file)),
+                                      )
+                                    ],
+                                  )),
+                                ]
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                const Text(
+                                  "مرفقات أخرى للنشاط",
+                                  textAlign: TextAlign.right,
+                                  style: TextStyle(fontSize: 12, color: TfcColors.secondary),
+                                ),
+                                const SizedBox(height: 6),
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    DocumentUploadHelper.showUploadDialog(
+                                      context,
+                                      onUploadComplete: (name, url) {
+                                        setState(() {
+                                          otherFiles.add(
+                                            ClientDocumentModel(
+                                              id: "other-activity-doc-${DateTime.now().millisecondsSinceEpoch}",
+                                              documentName: "مرفق نشاط: $name",
+                                              documentUrl: url,
+                                              status: "pending",
+                                            ),
+                                          );
+                                        });
+                                      },
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: TfcColors.primary.withValues(alpha: 0.1),
+                                    foregroundColor: TfcColors.primary,
+                                  ),
+                                  icon: const Icon(Icons.upload_file, size: 14),
+                                  label: const Text("رفع ملف", style: TextStyle(fontSize: 12)),
+                                ),
+                                if (otherFiles.isNotEmpty) ...[
+                                  const SizedBox(height: 6),
+                                  ...otherFiles.map((file) => Row(
+                                    textDirection: TextDirection.rtl,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          file.documentName.replaceAll("مرفق نشاط: ", ""),
+                                          style: const TextStyle(fontSize: 11, color: Colors.white70),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.close, size: 14, color: Colors.redAccent),
+                                        onPressed: () => setState(() => otherFiles.remove(file)),
+                                      )
+                                    ],
+                                  )),
+                                ]
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 20),
+          ],
 
           // Salary Transfer
           _buildFormField(

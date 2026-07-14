@@ -340,18 +340,18 @@ class ClientNotifier extends StateNotifier<ClientState> {
 
       fetchClients();
       return null;
-    } catch (e) {
-      _logger.e("Supabase insert error: $e");
+    } catch (e, stack) {
+      _logger.e("Supabase insert error: $e", error: e, stackTrace: stack);
       if (e is PostgrestException) {
         if (e.code == '23505' || e.message.contains('national_id') || (e.details?.toString().contains('national_id') ?? false)) {
           return "الرقم القومي مسجل بالفعل لعميل آخر في النظام.";
         }
+        return "خطأ في قاعدة البيانات: ${e.message} (${e.code})";
       } else if (e.toString().contains("23505") || e.toString().contains("national_id")) {
         return "الرقم القومي مسجل بالفعل لعميل آخر في النظام.";
       }
 
-      _addClientSimulated(client, loans, cards, customNotes: customNotes);
-      return null;
+      return "خطأ في حفظ العميل: $e";
     }
   }
 
@@ -710,18 +710,18 @@ class ClientNotifier extends StateNotifier<ClientState> {
 
       fetchClients();
       return null;
-    } catch (e) {
-      _logger.e("Supabase client update error: $e");
+    } catch (e, stack) {
+      _logger.e("Supabase client update error: $e", error: e, stackTrace: stack);
       if (e is PostgrestException) {
         if (e.code == '23505' || e.message.contains('national_id') || (e.details?.toString().contains('national_id') ?? false)) {
           return "الرقم القومي مسجل بالفعل لعميل آخر في النظام.";
         }
+        return "خطأ في تحديث قاعدة البيانات: ${e.message} (${e.code})";
       } else if (e.toString().contains("23505") || e.toString().contains("national_id")) {
         return "الرقم القومي مسجل بالفعل لعميل آخر في النظام.";
       }
 
-      _updateClientSimulated(updatedClient, staffName, customNotes: diffNotes);
-      return null;
+      return "خطأ في تعديل العميل: $e";
     }
   }
 

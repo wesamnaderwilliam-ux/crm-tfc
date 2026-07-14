@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:convert';
 import '../../core/theme.dart';
 import '../../core/supabase_config.dart';
 import '../../models/client_model.dart';
@@ -1110,9 +1111,112 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               client.isInsured ? "مؤمن عليه" : "غير مؤمن عليه"),
           _buildInfoRow("المحافظة", client.governorate),
           _buildInfoRow("المندوب المسؤول", client.representativeName ?? "-"),
-        ],
-      ),
-    );
+
+          if (client.employmentType == 'business_owner') ...[
+            const SizedBox(height: 16),
+            const Divider(color: Colors.white10),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              textDirection: TextDirection.rtl,
+              children: [
+                const Text(
+                  "تفاصيل الأنشطة التجارية",
+                  style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: TfcColors.secondary),
+                ),
+                if (permissions.canEditClients)
+                  TextButton.icon(
+                    style: TextButton.styleFrom(foregroundColor: TfcColors.primary),
+                    onPressed: () => _showManageBusinessDialog(context, client, staffName),
+                    icon: const Icon(Icons.settings, size: 14),
+                    label: const Text("إدارة الأنشطة", style: TextStyle(fontSize: 11)),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            KeyedSubtree(
+              key: UniqueKey(),
+              child: Builder(
+                builder: (context) {
+                try {
+                  final bizData = client.businessData.isNotEmpty
+                      ? client.businessData
+                      : _parseBusinesses(client.companyName ?? "[]");
+
+                  if (bizData.isEmpty) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(
+                        "لا توجد أنشطة مسجلة حالياً",
+                        textDirection: TextDirection.rtl,
+                        style: TextStyle(fontSize: 12, color: Colors.white38),
+                      ),
+                    );
+                  }
+
+                  return Column(
+                    children: bizData.asMap().entries.map((ent) {
+                      final idx = ent.key;
+                      final biz = ent.value;
+                      final activity = biz['activity']?.toString() ?? '-';
+                      final startDate = biz['startDate']?.toString() ?? '-';
+                      final place = biz['place']?.toString() ?? '-';
+                      
+                      String docsDisplay = 'لا يوجد';
+                      final docsMap = biz['documents'];
+                      if (docsMap is Map) {
+                        docsDisplay = docsMap.entries
+                            .where((e) => e.value == true)
+                            .map((e) => e.key.toString())
+                            .join('، ');
+                      } else if (docsMap is List) {
+                        docsDisplay = docsMap.map((e) => e.toString()).join('، ');
+                      }
+                      if (docsDisplay.isEmpty) docsDisplay = 'لا يوجد';
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(10),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text("نشاط #${idx + 1}: $activity",
+                                textDirection: TextDirection.rtl,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: TfcColors.primary)),
+                            const SizedBox(height: 6),
+                            _buildSubInfoRow("تاريخ البدء", startDate),
+                            _buildSubInfoRow("مكان النشاط", place),
+                            _buildSubInfoRow("الأوراق المتاحة", docsDisplay),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                  );
+                } catch (e) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      "خطأ في عرض البيانات: \$e",
+                      textDirection: TextDirection.rtl,
+                      style: const TextStyle(fontSize: 12, color: Colors.redAccent),
+                    ),
+                  );
+                }
+              },
+            ),
+            ),
+      ],
+    ],
+  ),
+);
   }
 
   // Bento Box 2: Credit Score and Bank Approval controller
@@ -3230,6 +3334,313 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     );
   }
 
+  List<Map<String, dynamic>> _parseBusinesses(String jsonStr) {
+    try {
+      final decoded = jsonDecode(jsonStr);
+      if (decoded is List) {
+        return decoded.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      }
+    } catch (_) {}
+    return [];
+  }
+
+  Widget _buildSubInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        textDirection: TextDirection.rtl,
+        children: [
+          Text("$label: ", style: const TextStyle(fontSize: 11, color: Colors.white54)),
+          Expanded(
+            child: Text(value,
+                textDirection: TextDirection.rtl,
+                style: const TextStyle(fontSize: 11, color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showManageBusinessDialog(BuildContext context, ClientModel client, String staffName) {
+    final List<Map<String, dynamic>> tempEntries = client.businessData.isNotEmpty
+        ? client.businessData
+        : _parseBusinesses(client.companyName ?? "[]");
+    
+    final List<Map<String, dynamic>> uiEntries = tempEntries.map((b) {
+      return {
+        'activity': TextEditingController(text: b['activity'] ?? ''),
+        'startDate': TextEditingController(text: b['startDate'] ?? ''),
+        'place': TextEditingController(text: b['place'] ?? ''),
+        'documents': (() {
+          final d = b['documents'];
+          if (d is Map) {
+            return {
+              'سجل تجارى': d['سجل تجارى'] == true,
+              'بطاقة ضربية': d['بطاقة ضربية'] == true,
+              'كشف حساب': d['كشف حساب'] == true,
+              'ميزانيات': d['ميزانيات'] == true,
+              'فواتير': d['فواتير'] == true,
+              'رخصة مشروع او صناعية': d['رخصة مشروع او صناعية'] == true,
+              'عقد ايجار او تمليك لمقر الشركة': d['عقد ايجار او تمليك لمقر الشركة'] == true,
+            };
+          }
+          final list = d is List ? d : <dynamic>[];
+          return {
+            'سجل تجارى': list.contains('سجل تجارى'),
+            'بطاقة ضربية': list.contains('بطاقة ضربية'),
+            'كشف حساب': list.contains('كشف حساب'),
+            'ميزانيات': list.contains('ميزانيات'),
+            'فواتير': list.contains('فواتير'),
+            'رخصة مشروع او صناعية': list.contains('رخصة مشروع او صناعية'),
+            'عقد ايجار او تمليك لمقر الشركة': list.contains('عقد ايجار او تمليك لمقر الشركة'),
+          };
+        })(),
+      };
+    }).toList();
+
+    if (uiEntries.isEmpty) {
+      uiEntries.add({
+        'activity': TextEditingController(),
+        'startDate': TextEditingController(),
+        'place': TextEditingController(),
+        'documents': {
+          'سجل تجارى': false,
+          'بطاقة ضربية': false,
+          'كشف حساب': false,
+          'ميزانيات': false,
+          'فواتير': false,
+          'رخصة مشروع او صناعية': false,
+          'عقد ايجار او تمليك لمقر الشركة': false,
+        },
+      });
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              backgroundColor: TfcColors.surfaceDim,
+              title: const Text("إدارة الأنشطة التجارية للعميل",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
+              content: SizedBox(
+                width: 600,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: uiEntries.length,
+                        itemBuilder: (context, idx) {
+                          final b = uiEntries[idx];
+                          final docsMap = b['documents'] as Map<String, bool>;
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(5),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.white12),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  textDirection: TextDirection.rtl,
+                                  children: [
+                                    Text("النشاط #${idx + 1}",
+                                        style: const TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
+                                    if (uiEntries.length > 1)
+                                      IconButton(
+                                        icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18),
+                                        onPressed: () {
+                                          setDialogState(() {
+                                            uiEntries.removeAt(idx);
+                                          });
+                                        },
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  textDirection: TextDirection.rtl,
+                                  children: [
+                                    Expanded(
+                                      child: _buildDialogFormField(
+                                        label: "النشاط",
+                                        child: TextFormField(
+                                          controller: b['activity'],
+                                          textAlign: TextAlign.right,
+                                          decoration: const InputDecoration(hintText: "اسم النشاط"),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: _buildDialogFormField(
+                                        label: "تاريخ بدء النشاط",
+                                        child: TextFormField(
+                                          controller: b['startDate'],
+                                          textAlign: TextAlign.right,
+                                          decoration: const InputDecoration(hintText: "مثال: 2020"),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                _buildDialogFormField(
+                                  label: "مكان النشاط",
+                                  child: TextFormField(
+                                    controller: b['place'],
+                                    textAlign: TextAlign.right,
+                                    decoration: const InputDecoration(hintText: "العنوان بالتفصيل"),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  "الأوراق المتاحة",
+                                  textAlign: TextAlign.right,
+                                  style: TextStyle(fontSize: 12, color: TfcColors.secondary, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 6),
+                                Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: Wrap(
+                                    spacing: 12,
+                                    runSpacing: 6,
+                                    children: docsMap.keys.map((docName) {
+                                      return Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Checkbox(
+                                            value: docsMap[docName],
+                                            activeColor: TfcColors.primary,
+                                            onChanged: (val) {
+                                              setDialogState(() {
+                                                docsMap[docName] = val ?? false;
+                                              });
+                                            },
+                                          ),
+                                          Text(docName, style: const TextStyle(fontSize: 10)),
+                                        ],
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextButton.icon(
+                        onPressed: () {
+                          setDialogState(() {
+                            uiEntries.add({
+                              'activity': TextEditingController(),
+                              'startDate': TextEditingController(),
+                              'place': TextEditingController(),
+                              'documents': {
+                                'سجل تجارى': false,
+                                'بطاقة ضربية': false,
+                                'كشف حساب': false,
+                                'ميزانيات': false,
+                                'فواتير': false,
+                                'رخصة مشروع او صناعية': false,
+                                'عقد ايجار او تمليك لمقر الشركة': false,
+                              },
+                            });
+                          });
+                        },
+                        icon: const Icon(Icons.add_circle),
+                        label: const Text("إضافة نشاط آخر"),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("إلغاء"),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    final businessList = uiEntries.map((b) => {
+                      'activity': b['activity'].text.trim(),
+                      'startDate': b['startDate'].text.trim(),
+                      'place': b['place'].text.trim(),
+                      'documents': (b['documents'] as Map<String, bool>)
+                          .entries
+                          .where((e) => e.value)
+                          .map((e) => e.key)
+                          .toList(),
+                    }).toList();
+
+                    final primaryCompany = businessList.isNotEmpty 
+                        ? businessList[0]['activity'] as String 
+                        : '';
+
+                    final updated = ClientModel(
+                      id: client.id,
+                      fullName: client.fullName,
+                      phoneNumber: client.phoneNumber,
+                      secondaryPhoneNumber: client.secondaryPhoneNumber,
+                      nationalId: client.nationalId,
+                      birthDate: client.birthDate,
+                      companyName: primaryCompany.isNotEmpty ? primaryCompany : null,
+                      jobTitle: client.jobTitle,
+                      employmentType: client.employmentType,
+                      isInsured: client.isInsured,
+                      salaryTransferMethod: client.salaryTransferMethod,
+                      salaryBankDetails: client.salaryBankDetails,
+                      cashSalaryAmount: client.cashSalaryAmount,
+                      creditScore: client.creditScore,
+                      requestedAmount: client.requestedAmount,
+                      governorate: client.governorate,
+                      representativeName: client.representativeName,
+                      status: client.status,
+                      createdAt: client.createdAt,
+                      businessData: businessList,
+                    );
+
+                    final error = await ref.read(clientProvider.notifier).updateClient(updated, staffName: staffName);
+                    if (context.mounted) {
+                      Navigator.pop(context);
+                      if (error != null) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("تم حفظ التعديلات بنجاح")));
+                      }
+                    }
+                  },
+                  child: const Text("حفظ التغييرات"),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDialogFormField({required String label, required Widget child}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(label, textAlign: TextAlign.right, style: const TextStyle(fontSize: 11, color: TfcColors.secondary)),
+        const SizedBox(height: 4),
+        child,
+      ],
+    );
+  }
+
   Widget _buildInfoRow(String label, String value, {bool highlight = false}) {
     return Container(
       decoration: highlight
@@ -3617,7 +4028,19 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     final repCtrl =
         TextEditingController(text: client.representativeName ?? '');
 
-    String employment = client.employmentType;
+    // Map legacy employment type values to new ones
+    const legacyEmploymentMap = {
+      'government_sector': 'government_employee',
+    };
+    const validEmploymentTypes = [
+      'government_employee', 'private_sector', 'business_owner',
+      'doctor_clinic', 'doctor_hospital', 'pharmacist', 'pharmacist_owner',
+      'military', 'faculty', 'teacher', 'freelance', 'retired', 'other',
+    ];
+    String employment = legacyEmploymentMap[client.employmentType] 
+        ?? (validEmploymentTypes.contains(client.employmentType) 
+            ? client.employmentType 
+            : 'other');
     String salaryMethod = client.salaryTransferMethod;
     bool insured = client.isInsured;
     const egyptGovernorates = [
@@ -3883,23 +4306,68 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                       isExpanded: true,
                                       items: const [
                                         DropdownMenuItem(
-                                            value: "private_sector",
-                                            child: Text("قطاع خاص",
+                                            value: "government_employee",
+                                            child: Text("موظف حكومى",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
-                                            value: "government_sector",
-                                            child: Text("قطاع حكومي",
+                                            value: "private_sector",
+                                            child: Text("موظف قطاع خاص",
+                                                textDirection:
+                                                    TextDirection.rtl)),
+                                        DropdownMenuItem(
+                                            value: "business_owner",
+                                            child: Text("صاحب عمل",
+                                                textDirection:
+                                                    TextDirection.rtl)),
+                                        DropdownMenuItem(
+                                            value: "doctor_clinic",
+                                            child: Text("دكتور عيادة",
+                                                textDirection:
+                                                    TextDirection.rtl)),
+                                        DropdownMenuItem(
+                                            value: "doctor_hospital",
+                                            child: Text("دكتور مستشفى",
+                                                textDirection:
+                                                    TextDirection.rtl)),
+                                        DropdownMenuItem(
+                                            value: "pharmacist",
+                                            child: Text("صيدلى",
+                                                textDirection:
+                                                    TextDirection.rtl)),
+                                        DropdownMenuItem(
+                                            value: "pharmacist_owner",
+                                            child: Text("صيدلى صاحب صيدلية",
+                                                textDirection:
+                                                    TextDirection.rtl)),
+                                        DropdownMenuItem(
+                                            value: "military",
+                                            child: Text("قوات مسلحة",
+                                                textDirection:
+                                                    TextDirection.rtl)),
+                                        DropdownMenuItem(
+                                            value: "faculty",
+                                            child: Text("هيئة تدريس",
+                                                textDirection:
+                                                    TextDirection.rtl)),
+                                        DropdownMenuItem(
+                                            value: "teacher",
+                                            child: Text("مدرس",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
                                             value: "freelance",
-                                            child: Text("أعمال حرة / تجاري",
+                                            child: Text("فريلانس",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
                                             value: "retired",
-                                            child: Text("بالمعاش / متقاعد",
+                                            child: Text("معاش",
+                                                textDirection:
+                                                    TextDirection.rtl)),
+                                        DropdownMenuItem(
+                                            value: "other",
+                                            child: Text("أخرى",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                       ],

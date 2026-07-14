@@ -127,12 +127,9 @@ class TfcGlassBackground extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          // Ambient neon top glow
           Positioned(
             top: -150,
-            left: MediaQueryData.fromView(
-              WidgetsBinding.instance.platformDispatcher.views.first,
-            ).size.width * 0.25,
+            left: MediaQuery.sizeOf(context).width * 0.25,
             child: Container(
               width: 600,
               height: 400,

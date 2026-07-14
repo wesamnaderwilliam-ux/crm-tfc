@@ -20,6 +20,7 @@ class ClientModel {
   final String status; // pending, iscore_inquiry, preparing_documents, under_review, at_bank, approved, rejected
   final DateTime createdAt;
   
+  final List<Map<String, dynamic>> businessData;
   final List<ExistingLoanModel> existingLoans;
   final List<CreditCardRequestModel> creditCardsRequests;
   final List<InteractionLogModel> history;
@@ -46,6 +47,7 @@ class ClientModel {
     this.createdBy,
     required this.status,
     required this.createdAt,
+    this.businessData = const [],
     this.existingLoans = const [],
     this.creditCardsRequests = const [],
     this.history = const [],
@@ -78,6 +80,9 @@ class ClientModel {
       createdAt: json['created_at'] != null 
           ? DateTime.parse(json['created_at']) 
           : DateTime.now(),
+      businessData: (json['business_data'] as List?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ?? [],
       existingLoans: (json['existing_loans'] as List?)
               ?.map((e) => ExistingLoanModel.fromJson(e))
               .toList() ?? [],
@@ -114,6 +119,7 @@ class ClientModel {
       'representative_name': representativeName,
       'created_by': createdBy,
       'status': status,
+      'business_data': businessData,
     };
   }
 
@@ -138,6 +144,7 @@ class ClientModel {
     String? createdBy,
     String? status,
     DateTime? createdAt,
+    List<Map<String, dynamic>>? businessData,
     List<ExistingLoanModel>? existingLoans,
     List<CreditCardRequestModel>? creditCardsRequests,
     List<InteractionLogModel>? history,
@@ -164,6 +171,7 @@ class ClientModel {
       createdBy: createdBy ?? this.createdBy,
       status: status ?? this.status,
       createdAt: createdAt ?? this.createdAt,
+      businessData: businessData ?? this.businessData,
       existingLoans: existingLoans ?? this.existingLoans,
       creditCardsRequests: creditCardsRequests ?? this.creditCardsRequests,
       history: history ?? this.history,
