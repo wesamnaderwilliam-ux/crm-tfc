@@ -3347,15 +3347,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   Widget _buildSubInfoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
+      child: Wrap(
         textDirection: TextDirection.rtl,
         children: [
           Text("$label: ", style: const TextStyle(fontSize: 11, color: Colors.white54)),
-          Expanded(
-            child: Text(value,
-                textDirection: TextDirection.rtl,
-                style: const TextStyle(fontSize: 11, color: Colors.white)),
-          ),
+          Text(value,
+              textDirection: TextDirection.rtl,
+              style: const TextStyle(fontSize: 11, color: Colors.white)),
         ],
       ),
     );
