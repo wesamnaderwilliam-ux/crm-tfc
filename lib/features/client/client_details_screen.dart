@@ -1256,42 +1256,51 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     );
                   }
 
-                  final biz = bizDataList[0];
-                  final specialization = biz['specialization']?.toString() ?? '-';
-                  final practiceStartDate = biz['practiceStartDate']?.toString() ?? '-';
-                  final licenseDate = biz['licenseDate']?.toString() ?? '-';
-                  
-                  String docsDisplay = 'لا يوجد';
-                  final docsMap = biz['documents'];
-                  if (docsMap is Map) {
-                    docsDisplay = docsMap.entries
-                        .where((e) => e.value == true)
-                        .map((e) => e.key.toString())
-                        .join('، ');
-                  } else if (docsMap is List) {
-                    docsDisplay = docsMap.map((e) => e.toString()).join('، ');
-                  }
-                  if (docsDisplay.isEmpty) docsDisplay = 'لا يوجد';
+                  return Column(
+                    children: bizDataList.asMap().entries.map((ent) {
+                      final idx = ent.key;
+                      final biz = ent.value;
+                      final specialization = biz['specialization']?.toString() ?? '-';
+                      final practiceStartDate = biz['practiceStartDate']?.toString() ?? '-';
+                      final licenseDate = biz['licenseDate']?.toString() ?? '-';
+                      
+                      String docsDisplay = 'لا يوجد';
+                      final docsMap = biz['documents'];
+                      if (docsMap is Map) {
+                        docsDisplay = docsMap.entries
+                            .where((e) => e.value == true)
+                            .map((e) => e.key.toString())
+                            .join('، ');
+                      } else if (docsMap is List) {
+                        docsDisplay = docsMap.map((e) => e.toString()).join('، ');
+                      }
+                      if (docsDisplay.isEmpty) docsDisplay = 'لا يوجد';
 
-                  return Container(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha(10),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.white12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (['doctor_clinic', 'doctor_hospital'].contains(client.employmentType))
-                          _buildSubInfoRow("التخصص", specialization),
-                        _buildSubInfoRow("تاريخ مزاولة المهنة", practiceStartDate),
-                        if (['doctor_clinic', 'pharmacist_owner'].contains(client.employmentType))
-                          _buildSubInfoRow("تاريخ الترخيص", licenseDate),
-                        _buildSubInfoRow("الأوراق المتاحة", docsDisplay),
-                      ],
-                    ),
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha(10),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text("نشاط طبي #${idx + 1}",
+                                textDirection: TextDirection.rtl,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: TfcColors.primary)),
+                            const SizedBox(height: 6),
+                            if (['doctor_clinic', 'doctor_hospital'].contains(client.employmentType))
+                              _buildSubInfoRow("التخصص", specialization),
+                            _buildSubInfoRow("تاريخ مزاولة المهنة", practiceStartDate),
+                            if (['doctor_clinic', 'pharmacist_owner'].contains(client.employmentType))
+                              _buildSubInfoRow("تاريخ الترخيص", licenseDate),
+                            _buildSubInfoRow("الأوراق المتاحة", docsDisplay),
+                          ],
+                        ),
+                      );
+                    }).toList(),
                   );
                 } catch (e) {
                   return Padding(
@@ -3727,27 +3736,42 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         ? client.businessData
         : [];
     
-    Map<String, dynamic> b = tempEntries.isNotEmpty ? tempEntries[0] : {};
-    
-    final specializationCtrl = TextEditingController(text: b['specialization']?.toString() ?? '');
-    final practiceStartDateCtrl = TextEditingController(text: b['practiceStartDate']?.toString() ?? '');
-    final licenseDateCtrl = TextEditingController(text: b['licenseDate']?.toString() ?? '');
-    
-    Map<String, bool> docsMap = {
-      'صورة كارنيه النقابة': false,
-      'صورة مزاولة المهنة': false,
-      'صورة رخصة العيادة/الصيدلية': false,
-    };
+    final List<Map<String, dynamic>> uiEntries = tempEntries.map((b) {
+      final docsMap = {
+        'صورة كارنيه النقابة': false,
+        'صورة مزاولة المهنة': false,
+        'صورة رخصة العيادة/الصيدلية': false,
+      };
+      final d = b['documents'];
+      if (d is Map) {
+        docsMap['صورة كارنيه النقابة'] = d['صورة كارنيه النقابة'] == true;
+        docsMap['صورة مزاولة المهنة'] = d['صورة مزاولة المهنة'] == true;
+        docsMap['صورة رخصة العيادة/الصيدلية'] = d['صورة رخصة العيادة/الصيدلية'] == true;
+      } else if (d is List) {
+        docsMap['صورة كارنيه النقابة'] = d.contains('صورة كارنيه النقابة');
+        docsMap['صورة مزاولة المهنة'] = d.contains('صورة مزاولة المهنة');
+        docsMap['صورة رخصة العيادة/الصيدلية'] = d.contains('صورة رخصة العيادة/الصيدلية');
+      }
 
-    final d = b['documents'];
-    if (d is Map) {
-      docsMap['صورة كارنيه النقابة'] = d['صورة كارنيه النقابة'] == true;
-      docsMap['صورة مزاولة المهنة'] = d['صورة مزاولة المهنة'] == true;
-      docsMap['صورة رخصة العيادة/الصيدلية'] = d['صورة رخصة العيادة/الصيدلية'] == true;
-    } else if (d is List) {
-      docsMap['صورة كارنيه النقابة'] = d.contains('صورة كارنيه النقابة');
-      docsMap['صورة مزاولة المهنة'] = d.contains('صورة مزاولة المهنة');
-      docsMap['صورة رخصة العيادة/الصيدلية'] = d.contains('صورة رخصة العيادة/الصيدلية');
+      return {
+        'specialization': TextEditingController(text: b['specialization']?.toString() ?? ''),
+        'practiceStartDate': TextEditingController(text: b['practiceStartDate']?.toString() ?? ''),
+        'licenseDate': TextEditingController(text: b['licenseDate']?.toString() ?? ''),
+        'documents': docsMap,
+      };
+    }).toList();
+
+    if (uiEntries.isEmpty) {
+      uiEntries.add({
+        'specialization': TextEditingController(),
+        'practiceStartDate': TextEditingController(),
+        'licenseDate': TextEditingController(),
+        'documents': {
+          'صورة كارنيه النقابة': false,
+          'صورة مزاولة المهنة': false,
+          'صورة رخصة العيادة/الصيدلية': false,
+        },
+      });
     }
 
     showDialog(
@@ -3757,84 +3781,147 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: TfcColors.surfaceDim,
-              title: const Text("تعديل تفاصيل النشاط الطبي",
+              title: const Text("إدارة الأنشطة الطبية للعميل",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
               content: SizedBox(
-                width: 500,
+                width: 600,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (['doctor_clinic', 'doctor_hospital'].contains(client.employmentType))
-                        _buildDialogFormField(
-                          label: "التخصص",
-                          child: TextFormField(
-                            controller: specializationCtrl,
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                      if (['doctor_clinic', 'doctor_hospital'].contains(client.employmentType))
-                        const SizedBox(height: 12),
-                      Row(
-                        textDirection: TextDirection.rtl,
-                        children: [
-                          Expanded(
-                            child: _buildDialogFormField(
-                              label: "تاريخ مزاولة المهنة",
-                              child: TextFormField(
-                                controller: practiceStartDateCtrl,
-                                textAlign: TextAlign.right,
-                              ),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: uiEntries.length,
+                        itemBuilder: (context, idx) {
+                          final b = uiEntries[idx];
+                          final docsMap = b['documents'] as Map<String, bool>;
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(5),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.white12),
                             ),
-                          ),
-                          if (['doctor_clinic', 'pharmacist_owner'].contains(client.employmentType)) ...[
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildDialogFormField(
-                                label: "تاريخ الترخيص",
-                                child: TextFormField(
-                                  controller: licenseDateCtrl,
-                                  textAlign: TextAlign.right,
-                                ),
-                              ),
-                            ),
-                          ]
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        "الأوراق المتاحة",
-                        textAlign: TextAlign.right,
-                        style: TextStyle(fontSize: 12, color: TfcColors.secondary, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 6),
-                      Directionality(
-                        textDirection: TextDirection.rtl,
-                        child: Wrap(
-                          spacing: 12,
-                          runSpacing: 6,
-                          children: docsMap.keys.map((docName) {
-                            if (docName == 'صورة رخصة العيادة/الصيدلية' && client.employmentType == 'doctor_hospital') {
-                              return const SizedBox.shrink();
-                            }
-                            return Row(
-                              mainAxisSize: MainAxisSize.min,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                Checkbox(
-                                  value: docsMap[docName],
-                                  activeColor: TfcColors.primary,
-                                  onChanged: (val) {
-                                    setDialogState(() {
-                                      docsMap[docName] = val ?? false;
-                                    });
-                                  },
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  textDirection: TextDirection.rtl,
+                                  children: [
+                                    Text("نشاط طبي #${idx + 1}",
+                                        style: const TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
+                                    if (uiEntries.length > 1)
+                                      IconButton(
+                                        icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18),
+                                        onPressed: () {
+                                          setDialogState(() {
+                                            uiEntries.removeAt(idx);
+                                          });
+                                        },
+                                      ),
+                                  ],
                                 ),
-                                Text(docName, style: const TextStyle(fontSize: 10)),
+                                const SizedBox(height: 12),
+                                if (['doctor_clinic', 'doctor_hospital'].contains(client.employmentType))
+                                  _buildDialogFormField(
+                                    label: "التخصص",
+                                    child: TextFormField(
+                                      controller: b['specialization'],
+                                      textAlign: TextAlign.right,
+                                      decoration: const InputDecoration(hintText: "مثال: باطنة، أسنان..."),
+                                    ),
+                                  ),
+                                if (['doctor_clinic', 'doctor_hospital'].contains(client.employmentType))
+                                  const SizedBox(height: 12),
+                                Row(
+                                  textDirection: TextDirection.rtl,
+                                  children: [
+                                    Expanded(
+                                      child: _buildDialogFormField(
+                                        label: "تاريخ مزاولة المهنة",
+                                        child: TextFormField(
+                                          controller: b['practiceStartDate'],
+                                          textAlign: TextAlign.right,
+                                          decoration: const InputDecoration(hintText: "مثال: 2015-05-01"),
+                                        ),
+                                      ),
+                                    ),
+                                    if (['doctor_clinic', 'pharmacist_owner'].contains(client.employmentType)) ...[
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _buildDialogFormField(
+                                          label: "تاريخ الترخيص",
+                                          child: TextFormField(
+                                            controller: b['licenseDate'],
+                                            textAlign: TextAlign.right,
+                                            decoration: const InputDecoration(hintText: "مثال: 2018-01-01"),
+                                          ),
+                                        ),
+                                      ),
+                                    ]
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                const Text(
+                                  "الأوراق المتاحة",
+                                  textAlign: TextAlign.right,
+                                  style: TextStyle(fontSize: 12, color: TfcColors.secondary, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 6),
+                                Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: Wrap(
+                                    spacing: 12,
+                                    runSpacing: 6,
+                                    children: docsMap.keys.map((docName) {
+                                      if (docName == 'صورة رخصة العيادة/الصيدلية' && client.employmentType == 'doctor_hospital') {
+                                        return const SizedBox.shrink();
+                                      }
+                                      return Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Checkbox(
+                                            value: docsMap[docName],
+                                            activeColor: TfcColors.primary,
+                                            onChanged: (val) {
+                                              setDialogState(() {
+                                                docsMap[docName] = val ?? false;
+                                              });
+                                            },
+                                          ),
+                                          Text(docName, style: const TextStyle(fontSize: 10)),
+                                        ],
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
                               ],
-                            );
-                          }).toList(),
-                        ),
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextButton.icon(
+                        onPressed: () {
+                          setDialogState(() {
+                            uiEntries.add({
+                              'specialization': TextEditingController(),
+                              'practiceStartDate': TextEditingController(),
+                              'licenseDate': TextEditingController(),
+                              'documents': {
+                                'صورة كارنيه النقابة': false,
+                                'صورة مزاولة المهنة': false,
+                                'صورة رخصة العيادة/الصيدلية': false,
+                              },
+                            });
+                          });
+                        },
+                        icon: const Icon(Icons.add_circle),
+                        label: const Text("إضافة نشاط طبي آخر"),
                       ),
                     ],
                   ),
@@ -3847,15 +3934,16 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    final businessList = [{
-                      'specialization': specializationCtrl.text.trim(),
-                      'practiceStartDate': practiceStartDateCtrl.text.trim(),
-                      'licenseDate': licenseDateCtrl.text.trim(),
-                      'documents': docsMap.entries
+                    final businessList = uiEntries.map((b) => {
+                      'specialization': b['specialization'].text.trim(),
+                      'practiceStartDate': b['practiceStartDate'].text.trim(),
+                      'licenseDate': b['licenseDate'].text.trim(),
+                      'documents': (b['documents'] as Map<String, bool>)
+                          .entries
                           .where((e) => e.value)
                           .map((e) => e.key)
                           .toList(),
-                    }];
+                    }).toList();
 
                     final updated = ClientModel(
                       id: client.id,
