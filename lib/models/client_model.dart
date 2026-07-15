@@ -25,6 +25,11 @@ class ClientModel {
   final List<CreditCardRequestModel> creditCardsRequests;
   final List<InteractionLogModel> history;
   final List<ClientDocumentModel> documents;
+  
+  final bool hasCompoundUnit;
+  final bool hasModernCar;
+  final List<Map<String, dynamic>> compoundUnitsData;
+  final List<Map<String, dynamic>> modernCarsData;
 
   ClientModel({
     required this.id,
@@ -52,6 +57,10 @@ class ClientModel {
     this.creditCardsRequests = const [],
     this.history = const [],
     this.documents = const [],
+    this.hasCompoundUnit = false,
+    this.hasModernCar = false,
+    this.compoundUnitsData = const [],
+    this.modernCarsData = const [],
   });
 
   factory ClientModel.fromJson(Map<String, dynamic> json) {
@@ -95,6 +104,14 @@ class ClientModel {
       documents: (json['documents'] as List?)
               ?.map((e) => ClientDocumentModel.fromJson(e))
               .toList() ?? [],
+      hasCompoundUnit: json['has_compound_unit'] ?? false,
+      hasModernCar: json['has_modern_car'] ?? false,
+      compoundUnitsData: (json['compound_units_data'] as List?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ?? [],
+      modernCarsData: (json['modern_cars_data'] as List?)
+              ?.map((e) => Map<String, dynamic>.from(e as Map))
+              .toList() ?? [],
     );
   }
 
@@ -120,6 +137,10 @@ class ClientModel {
       'created_by': createdBy,
       'status': status,
       'business_data': businessData,
+      'has_compound_unit': hasCompoundUnit,
+      'has_modern_car': hasModernCar,
+      'compound_units_data': compoundUnitsData,
+      'modern_cars_data': modernCarsData,
     };
   }
 
@@ -149,6 +170,10 @@ class ClientModel {
     List<CreditCardRequestModel>? creditCardsRequests,
     List<InteractionLogModel>? history,
     List<ClientDocumentModel>? documents,
+    bool? hasCompoundUnit,
+    bool? hasModernCar,
+    List<Map<String, dynamic>>? compoundUnitsData,
+    List<Map<String, dynamic>>? modernCarsData,
   }) {
     return ClientModel(
       id: id ?? this.id,
@@ -176,6 +201,10 @@ class ClientModel {
       creditCardsRequests: creditCardsRequests ?? this.creditCardsRequests,
       history: history ?? this.history,
       documents: documents ?? this.documents,
+      hasCompoundUnit: hasCompoundUnit ?? this.hasCompoundUnit,
+      hasModernCar: hasModernCar ?? this.hasModernCar,
+      compoundUnitsData: compoundUnitsData ?? this.compoundUnitsData,
+      modernCarsData: modernCarsData ?? this.modernCarsData,
     );
   }
 }
@@ -375,5 +404,14 @@ class ClientDocumentModel {
       documentUrl: json['document_url'] ?? '',
       status: json['status'] ?? 'pending',
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'document_name': documentName,
+      'document_url': documentUrl,
+      'status': status,
+    };
   }
 }

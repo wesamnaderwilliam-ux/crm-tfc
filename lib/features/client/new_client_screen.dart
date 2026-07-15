@@ -46,6 +46,11 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
   // Medical details
   final List<Map<String, dynamic>> _medicalEntries = [];
 
+  // Compound units and Modern cars
+  bool _hasCompoundUnit = false;
+  final List<Map<String, dynamic>> _compoundUnitsList = [];
+  bool _hasModernCar = false;
+  final List<Map<String, dynamic>> _modernCarsList = [];
 
   // Page 2 Form Lists
   final List<Map<String, dynamic>> _loansList =
@@ -136,7 +141,90 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
       c['highest'].dispose();
       c['notes'].dispose();
     }
+    for (var u in _compoundUnitsList) {
+      u['compoundName'].dispose();
+      u['developerName'].dispose();
+      u['contractDate'].dispose();
+      u['unitValue'].dispose();
+      u['downPayment'].dispose();
+      u['downPaymentPercent'].dispose();
+      u['paidInstallmentsCount'].dispose();
+      u['paidAmount'].dispose();
+    }
+    for (var car in _modernCarsList) {
+      car['carType'].dispose();
+      car['carModel'].dispose();
+      car['carTodayValue'].dispose();
+    }
     super.dispose();
+  }
+
+  void _addCompoundUnitRow() {
+    final unitValCtrl = TextEditingController();
+    final downPayCtrl = TextEditingController();
+    final downPayPercentCtrl = TextEditingController(text: "0.0%");
+
+    void calcPercent() {
+      final unitVal = double.tryParse(unitValCtrl.text) ?? 0.0;
+      final downPay = double.tryParse(downPayCtrl.text) ?? 0.0;
+      if (unitVal > 0) {
+        final pct = (downPay / unitVal) * 100;
+        downPayPercentCtrl.text = "${pct.toStringAsFixed(1)}%";
+      } else {
+        downPayPercentCtrl.text = "0.0%";
+      }
+    }
+
+    unitValCtrl.addListener(calcPercent);
+    downPayCtrl.addListener(calcPercent);
+
+    setState(() {
+      _compoundUnitsList.add({
+        'compoundName': TextEditingController(),
+        'developerName': TextEditingController(),
+        'contractDate': TextEditingController(),
+        'unitValue': unitValCtrl,
+        'downPayment': downPayCtrl,
+        'downPaymentPercent': downPayPercentCtrl,
+        'paidInstallmentsCount': TextEditingController(),
+        'paidAmount': TextEditingController(),
+        'unitContractFiles': <ClientDocumentModel>[],
+      });
+    });
+  }
+
+  void _removeCompoundUnitRow(int index) {
+    setState(() {
+      _compoundUnitsList[index]['compoundName'].dispose();
+      _compoundUnitsList[index]['developerName'].dispose();
+      _compoundUnitsList[index]['contractDate'].dispose();
+      _compoundUnitsList[index]['unitValue'].dispose();
+      _compoundUnitsList[index]['downPayment'].dispose();
+      _compoundUnitsList[index]['downPaymentPercent'].dispose();
+      _compoundUnitsList[index]['paidInstallmentsCount'].dispose();
+      _compoundUnitsList[index]['paidAmount'].dispose();
+      _compoundUnitsList.removeAt(index);
+    });
+  }
+
+  void _addModernCarRow() {
+    setState(() {
+      _modernCarsList.add({
+        'carType': TextEditingController(),
+        'carModel': TextEditingController(),
+        'carTodayValue': TextEditingController(),
+        'licenseStatus': 'بدون حظر',
+      });
+    });
+  }
+
+  void _removeModernCarRow(int index) {
+    setState(() {
+      _modernCarsList[index]['carType'].dispose();
+      _modernCarsList[index]['carModel'].dispose();
+      _modernCarsList[index]['carTodayValue'].dispose();
+      _modernCarsList.removeAt(index);
+    });
   }
 
   void _addLoanRow() {
@@ -400,12 +488,42 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                   };
                 }).toList()
               : [],
+      hasCompoundUnit: _hasCompoundUnit,
+      hasModernCar: _hasModernCar,
+      compoundUnitsData: _hasCompoundUnit
+          ? _compoundUnitsList.map((u) {
+              return {
+                'compoundName': u['compoundName']!.text.trim(),
+                'developerName': u['developerName']!.text.trim(),
+                'contractDate': u['contractDate']!.text.trim(),
+                'unitValue': double.tryParse(u['unitValue']!.text) ?? 0.0,
+                'downPayment': double.tryParse(u['downPayment']!.text) ?? 0.0,
+                'paidInstallmentsCount': int.tryParse(u['paidInstallmentsCount']!.text) ?? 0,
+                'paidAmount': double.tryParse(u['paidAmount']!.text) ?? 0.0,
+                'unitContractFiles': (u['unitContractFiles'] as List<ClientDocumentModel>).map((file) => file.toJson()).toList(),
+              };
+            }).toList()
+          : [],
+      modernCarsData: _hasModernCar
+          ? _modernCarsList.map((c) {
+              return {
+                'carType': c['carType']!.text.trim(),
+                'carModel': c['carModel']!.text.trim(),
+                'carTodayValue': double.tryParse(c['carTodayValue']!.text) ?? 0.0,
+                'licenseStatus': c['licenseStatus'],
+              };
+            }).toList()
+          : [],
       documents: <ClientDocumentModel>[
         ..._uploadedDocuments,
         if (_employmentType == 'business_owner')
           ..._businessEntries.expand((b) => <ClientDocumentModel>[
                 ...(b['taxCardFiles'] as List<ClientDocumentModel>? ?? []),
                 ...(b['otherAttachments'] as List<ClientDocumentModel>? ?? []),
+              ]),
+        if (_hasCompoundUnit)
+          ..._compoundUnitsList.expand((u) => <ClientDocumentModel>[
+                ...(u['unitContractFiles'] as List<ClientDocumentModel>? ?? []),
               ]),
       ].where((d) => d.documentUrl.isNotEmpty).toList(),
     );
@@ -1914,6 +2032,482 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
           ),
         )),
         const SizedBox(height: 24),
+        // Compound unit section
+        GlassCard(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                textDirection: TextDirection.rtl,
+                children: [
+                  const Text(
+                    "امتلاك وحدة في كمبوند",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: TfcColors.secondary),
+                  ),
+                  Row(
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      Radio<bool>(
+                        value: true,
+                        groupValue: _hasCompoundUnit,
+                        activeColor: TfcColors.primary,
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              _hasCompoundUnit = val;
+                              if (_compoundUnitsList.isEmpty) {
+                                _addCompoundUnitRow();
+                              }
+                            });
+                          }
+                        },
+                      ),
+                      const Text("نعم"),
+                      const SizedBox(width: 12),
+                      Radio<bool>(
+                        value: false,
+                        groupValue: _hasCompoundUnit,
+                        activeColor: TfcColors.primary,
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              _hasCompoundUnit = val;
+                            });
+                          }
+                        },
+                      ),
+                      const Text("لا"),
+                    ],
+                  ),
+                ],
+              ),
+              if (_hasCompoundUnit) ...[
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  textDirection: TextDirection.rtl,
+                  children: [
+                    const Text(
+                      "تفاصيل الوحدات",
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: TfcColors.primary),
+                    ),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(foregroundColor: TfcColors.primary),
+                      onPressed: _addCompoundUnitRow,
+                      icon: const Icon(Icons.add_circle, size: 16),
+                      label: const Text("إضافة وحدة أخرى", style: TextStyle(fontSize: 12)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _compoundUnitsList.length,
+                  itemBuilder: (context, idx) {
+                    final entry = _compoundUnitsList[idx];
+                    final files = entry['unitContractFiles'] as List<ClientDocumentModel>;
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            textDirection: TextDirection.rtl,
+                            children: [
+                              Text("الوحدة #${idx + 1}",
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
+                              if (_compoundUnitsList.length > 1)
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18),
+                                  onPressed: () => _removeCompoundUnitRow(idx),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            textDirection: TextDirection.rtl,
+                            children: [
+                              Expanded(
+                                child: _buildFormField(
+                                  label: "اسم الكمبوند",
+                                  child: TextFormField(
+                                    controller: entry['compoundName'],
+                                    textAlign: TextAlign.right,
+                                    decoration: const InputDecoration(hintText: "مثال: بيفيرلي هيلز"),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildFormField(
+                                  label: "اسم المطور",
+                                  child: TextFormField(
+                                    controller: entry['developerName'],
+                                    textAlign: TextAlign.right,
+                                    decoration: const InputDecoration(hintText: "مثال: سوديك"),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            textDirection: TextDirection.rtl,
+                            children: [
+                              Expanded(
+                                child: _buildFormField(
+                                  label: "تاريخ التعاقد",
+                                  child: TextFormField(
+                                    controller: entry['contractDate'],
+                                    textAlign: TextAlign.right,
+                                    decoration: const InputDecoration(hintText: "مثال: 2022-01-01"),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildFormField(
+                                  label: "قيمة الوحدة",
+                                  child: TextFormField(
+                                    controller: entry['unitValue'],
+                                    textAlign: TextAlign.right,
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(hintText: "0.00"),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            textDirection: TextDirection.rtl,
+                            children: [
+                              Expanded(
+                                child: _buildFormField(
+                                  label: "المقدم المدفوع",
+                                  child: TextFormField(
+                                    controller: entry['downPayment'],
+                                    textAlign: TextAlign.right,
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(hintText: "0.00"),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildFormField(
+                                  label: "نسبة المقدم",
+                                  child: TextFormField(
+                                    controller: entry['downPaymentPercent'],
+                                    textAlign: TextAlign.right,
+                                    readOnly: true,
+                                    style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold),
+                                    decoration: const InputDecoration(hintText: "0.0%"),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            textDirection: TextDirection.rtl,
+                            children: [
+                              Expanded(
+                                child: _buildFormField(
+                                  label: "عدد الأقساط المدفوعة",
+                                  child: TextFormField(
+                                    controller: entry['paidInstallmentsCount'],
+                                    textAlign: TextAlign.right,
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(hintText: "0"),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildFormField(
+                                  label: "قيمة ما تم دفعه",
+                                  child: TextFormField(
+                                    controller: entry['paidAmount'],
+                                    textAlign: TextAlign.right,
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(hintText: "0.00"),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const Text(
+                                "صورة عقد الوحدة",
+                                textAlign: TextAlign.right,
+                                style: TextStyle(fontSize: 12, color: TfcColors.secondary),
+                              ),
+                              const SizedBox(height: 6),
+                              ElevatedButton.icon(
+                                onPressed: () {
+                                  DocumentUploadHelper.showUploadDialog(
+                                    context,
+                                    onUploadComplete: (name, url) {
+                                      setState(() {
+                                        files.add(
+                                          ClientDocumentModel(
+                                            id: "unit-doc-${DateTime.now().millisecondsSinceEpoch}",
+                                            documentName: "عقد وحدة: $name",
+                                            documentUrl: url,
+                                            status: "pending",
+                                          ),
+                                        );
+                                      });
+                                    },
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: TfcColors.primary.withValues(alpha: 0.1),
+                                  foregroundColor: TfcColors.primary,
+                                ),
+                                icon: const Icon(Icons.upload_file, size: 14),
+                                label: const Text("رفع ملف العقد", style: TextStyle(fontSize: 12)),
+                              ),
+                              if (files.isNotEmpty) ...[
+                                const SizedBox(height: 6),
+                                ...files.map((file) => Row(
+                                  textDirection: TextDirection.rtl,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        file.documentName.replaceAll("عقد وحدة: ", ""),
+                                        style: const TextStyle(fontSize: 11, color: Colors.white70),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.close, size: 14, color: Colors.redAccent),
+                                      onPressed: () => setState(() => files.remove(file)),
+                                    )
+                                  ],
+                                )),
+                              ]
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 24),
+        // Modern Car section
+        GlassCard(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                textDirection: TextDirection.rtl,
+                children: [
+                  const Text(
+                    "امتلاك سيارة حديثة",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: TfcColors.secondary),
+                  ),
+                  Row(
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      Radio<bool>(
+                        value: true,
+                        groupValue: _hasModernCar,
+                        activeColor: TfcColors.primary,
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              _hasModernCar = val;
+                              if (_modernCarsList.isEmpty) {
+                                _addModernCarRow();
+                              }
+                            });
+                          }
+                        },
+                      ),
+                      const Text("نعم"),
+                      const SizedBox(width: 12),
+                      Radio<bool>(
+                        value: false,
+                        groupValue: _hasModernCar,
+                        activeColor: TfcColors.primary,
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              _hasModernCar = val;
+                            });
+                          }
+                        },
+                      ),
+                      const Text("لا"),
+                    ],
+                  ),
+                ],
+              ),
+              if (_hasModernCar) ...[
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  textDirection: TextDirection.rtl,
+                  children: [
+                    const Text(
+                      "تفاصيل السيارات",
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: TfcColors.primary),
+                    ),
+                    TextButton.icon(
+                      style: TextButton.styleFrom(foregroundColor: TfcColors.primary),
+                      onPressed: _addModernCarRow,
+                      icon: const Icon(Icons.add_circle, size: 16),
+                      label: const Text("إضافة سيارة أخرى", style: TextStyle(fontSize: 12)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: _modernCarsList.length,
+                  itemBuilder: (context, idx) {
+                    final entry = _modernCarsList[idx];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            textDirection: TextDirection.rtl,
+                            children: [
+                              Text("السيارة #${idx + 1}",
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
+                              if (_modernCarsList.length > 1)
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18),
+                                  onPressed: () => _removeModernCarRow(idx),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            textDirection: TextDirection.rtl,
+                            children: [
+                              Expanded(
+                                child: _buildFormField(
+                                  label: "نوع السيارة",
+                                  child: TextFormField(
+                                    controller: entry['carType'],
+                                    textAlign: TextAlign.right,
+                                    decoration: const InputDecoration(hintText: "مثال: هيونداي توسان"),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildFormField(
+                                  label: "موديل كام",
+                                  child: TextFormField(
+                                    controller: entry['carModel'],
+                                    textAlign: TextAlign.right,
+                                    decoration: const InputDecoration(hintText: "مثال: 2022"),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            textDirection: TextDirection.rtl,
+                            children: [
+                              Expanded(
+                                child: _buildFormField(
+                                  label: "قيمة سعر السيارة اليوم",
+                                  child: TextFormField(
+                                    controller: entry['carTodayValue'],
+                                    textAlign: TextAlign.right,
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(hintText: "0.00"),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildFormField(
+                                  label: "الرخصة",
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withValues(alpha: 0.04),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                                    ),
+                                    child: DropdownButtonHideUnderline(
+                                      child: DropdownButton<String>(
+                                        value: entry['licenseStatus'],
+                                        dropdownColor: TfcColors.surfaceDim,
+                                        isExpanded: true,
+                                        items: const [
+                                          DropdownMenuItem(
+                                            value: 'عليها حظر',
+                                            child: Text("عليها حظر"),
+                                          ),
+                                          DropdownMenuItem(
+                                            value: 'بدون حظر',
+                                            child: Text("بدون حظر"),
+                                          ),
+                                        ],
+                                        onChanged: (val) {
+                                          if (val != null) {
+                                            setState(() {
+                                              entry['licenseStatus'] = val;
+                                            });
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 24),
         // Credit Summary Card
         _buildCreditSummaryCard(),
       ],
@@ -2004,6 +2598,54 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                                 setState(() => _governorate = val);
                               }
                             },
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                textDirection: TextDirection.rtl,
+                children: [
+                  Expanded(
+                    child: _buildFormField(
+                      label: "امتلاك وحدة في كمبوند",
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white24),
+                        ),
+                        child: Text(
+                          _hasCompoundUnit ? "نعم" : "لا",
+                          textDirection: TextDirection.rtl,
+                          style: TextStyle(
+                            color: _hasCompoundUnit ? Colors.greenAccent : Colors.white70,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildFormField(
+                      label: "امتلاك سيارة حديثة",
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white24),
+                        ),
+                        child: Text(
+                          _hasModernCar ? "نعم" : "لا",
+                          textDirection: TextDirection.rtl,
+                          style: TextStyle(
+                            color: _hasModernCar ? Colors.greenAccent : Colors.white70,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
