@@ -43,6 +43,22 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
   // Business owner details
   final List<Map<String, dynamic>> _businessEntries = [];
 
+  // Medical details
+  final Map<String, dynamic> _medicalData = {
+    'specialization': TextEditingController(),
+    'practiceStartDate': TextEditingController(),
+    'licenseDate': TextEditingController(),
+    'documents': {
+      'صورة كارنيه النقابة': false,
+      'صورة مزاولة المهنة': false,
+      'صورة رخصة العيادة/الصيدلية': false,
+    },
+    'syndicateCardFiles': <ClientDocumentModel>[],
+    'practiceLicenseFiles': <ClientDocumentModel>[],
+    'clinicLicenseFiles': <ClientDocumentModel>[],
+  };
+
+
   // Page 2 Form Lists
   final List<Map<String, dynamic>> _loansList =
       []; // {bank: textController, installment: textController, notes: textController}
@@ -106,6 +122,9 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
     _jobTitleController.dispose();
     _requestDateController.dispose();
     _cashSalaryController.dispose();
+    _medicalData['specialization'].dispose();
+    _medicalData['practiceStartDate'].dispose();
+    _medicalData['licenseDate'].dispose();
     for (var entry in _salaryBankEntries) {
       entry['bank']!.dispose();
       entry['amount']!.dispose();
@@ -356,7 +375,14 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                 'documents': b['documents'],
               };
             }).toList()
-          : [],
+          : ['doctor_clinic', 'doctor_hospital', 'pharmacist_owner'].contains(_employmentType)
+              ? [{
+                  'specialization': _medicalData['specialization']!.text.trim(),
+                  'practiceStartDate': _medicalData['practiceStartDate']!.text.trim(),
+                  'licenseDate': _medicalData['licenseDate']!.text.trim(),
+                  'documents': _medicalData['documents'],
+                }]
+              : [],
       documents: [
         ..._uploadedDocuments,
         if (_employmentType == 'business_owner')
@@ -364,6 +390,12 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                 ...(b['taxCardFiles'] as List<ClientDocumentModel>),
                 ...(b['otherAttachments'] as List<ClientDocumentModel>),
               ]),
+        if (['doctor_clinic', 'doctor_hospital', 'pharmacist_owner'].contains(_employmentType))
+          ...[
+            ...(_medicalData['syndicateCardFiles'] as List<ClientDocumentModel>),
+            ...(_medicalData['practiceLicenseFiles'] as List<ClientDocumentModel>),
+            ...(_medicalData['clinicLicenseFiles'] as List<ClientDocumentModel>),
+          ],
       ].where((d) => d.documentUrl.isNotEmpty).toList(),
     );
 
@@ -1229,6 +1261,110 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                   ),
                 );
               },
+            ),
+            const SizedBox(height: 20),
+          ],
+
+          if (['doctor_clinic', 'doctor_hospital', 'pharmacist_owner'].contains(_employmentType)) ...[
+            const SizedBox(height: 24),
+            const Text(
+              "تفاصيل النشاط الطبي",
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: TfcColors.secondary),
+              textDirection: TextDirection.rtl,
+            ),
+            const SizedBox(height: 12),
+            Container(
+              margin: const EdgeInsets.only(bottom: 24),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white.withAlpha(10),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white24),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  if (['doctor_clinic', 'doctor_hospital'].contains(_employmentType))
+                    _buildFormField(
+                      label: "التخصص",
+                      child: TextFormField(
+                        controller: _medicalData['specialization'],
+                        textAlign: TextAlign.right,
+                        decoration: const InputDecoration(hintText: "مثال: باطنة، أسنان..."),
+                        validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                      ),
+                    ),
+                  if (['doctor_clinic', 'doctor_hospital'].contains(_employmentType))
+                    const SizedBox(height: 16),
+                  Row(
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      Expanded(
+                        child: _buildFormField(
+                          label: "تاريخ مزاولة المهنة",
+                          child: TextFormField(
+                            controller: _medicalData['practiceStartDate'],
+                            textAlign: TextAlign.right,
+                            decoration: const InputDecoration(hintText: "مثال: 2015-05-01"),
+                            validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                          ),
+                        ),
+                      ),
+                      if (['doctor_clinic', 'pharmacist_owner'].contains(_employmentType)) ...[
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildFormField(
+                            label: "تاريخ الترخيص",
+                            child: TextFormField(
+                              controller: _medicalData['licenseDate'],
+                              textAlign: TextAlign.right,
+                              decoration: const InputDecoration(hintText: "مثال: 2018-01-01"),
+                              validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                            ),
+                          ),
+                        ),
+                      ]
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "الأوراق المتاحة",
+                    textAlign: TextAlign.right,
+                    style: TextStyle(fontSize: 14, color: TfcColors.secondary, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Wrap(
+                      spacing: 16,
+                      runSpacing: 8,
+                      children: (_medicalData['documents'] as Map<String, dynamic>).keys.map((docName) {
+                        if (docName == 'صورة رخصة العيادة/الصيدلية' && _employmentType == 'doctor_hospital') {
+                          return const SizedBox.shrink();
+                        }
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Checkbox(
+                              value: _medicalData['documents'][docName] as bool,
+                              activeColor: TfcColors.primary,
+                              onChanged: (val) {
+                                setState(() {
+                                  _medicalData['documents'][docName] = val ?? false;
+                                });
+                              },
+                            ),
+                            Text(docName, style: const TextStyle(fontSize: 12)),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 20),
           ],
