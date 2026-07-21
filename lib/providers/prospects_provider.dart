@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../core/supabase_config.dart';
 import '../models/prospect_model.dart';
@@ -124,28 +125,52 @@ class GoogleSheetConfigNotifier extends StateNotifier<AsyncValue<GoogleSheetConf
 
   Future<void> fetchConfig() async {
     try {
-      if (!SupabaseConfig.isInitialized) {
-        state = const AsyncValue.data(null);
-        return;
-      }
-      final response = await SupabaseConfig.client
-          .from('google_sheets_config')
-          .select()
-          .limit(1)
-          .maybeSingle();
+      if (SupabaseConfig.isInitialized) {
+        final response = await SupabaseConfig.client
+            .from('google_sheets_config')
+            .select()
+            .limit(1)
+            .maybeSingle();
 
-      if (response != null) {
-        state = AsyncValue.data(GoogleSheetConfigModel.fromJson(response));
+        if (response != null) {
+          state = AsyncValue.data(GoogleSheetConfigModel.fromJson(response));
+          return;
+        }
+      }
+      
+      // Fallback to local storage (SharedPreferences)
+      final prefs = await SharedPreferences.getInstance();
+      final savedJson = prefs.getString('saved_google_sheets_config');
+      if (savedJson != null) {
+        final map = jsonDecode(savedJson);
+        state = AsyncValue.data(GoogleSheetConfigModel.fromJson(map));
       } else {
         state = const AsyncValue.data(null);
       }
-    } catch (e, st) {
-      state = AsyncValue.error(e, st);
+    } catch (e) {
+      // Try local storage on network error
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final savedJson = prefs.getString('saved_google_sheets_config');
+        if (savedJson != null) {
+          final map = jsonDecode(savedJson);
+          state = AsyncValue.data(GoogleSheetConfigModel.fromJson(map));
+        } else {
+          state = const AsyncValue.data(null);
+        }
+      } catch (_) {
+        state = const AsyncValue.data(null);
+      }
     }
   }
 
   Future<bool> saveConfig(GoogleSheetConfigModel config) async {
     try {
+      // 1. Save locally
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('saved_google_sheets_config', jsonEncode(config.toJson()));
+
+      // 2. Try DB if available
       if (SupabaseConfig.isInitialized) {
         final existing = state.value;
         if (existing != null && existing.id.isNotEmpty) {
@@ -162,7 +187,9 @@ class GoogleSheetConfigNotifier extends StateNotifier<AsyncValue<GoogleSheetConf
       state = AsyncValue.data(config);
       return true;
     } catch (e) {
-      return false;
+      // Local save already succeeded
+      state = AsyncValue.data(config);
+      return true;
     }
   }
 

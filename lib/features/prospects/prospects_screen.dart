@@ -6,13 +6,14 @@ import '../../models/client_model.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/prospects_provider.dart';
 import '../../providers/employees_provider.dart';
+import '../../providers/client_provider.dart';
 
 class ProspectsScreen extends ConsumerStatefulWidget {
-  final Function(ClientModel)? onNavigateToNewClient;
+  final Function(String clientId)? onNavigateToClientDetails;
 
   const ProspectsScreen({
     super.key,
-    this.onNavigateToNewClient,
+    this.onNavigateToClientDetails,
   });
 
   @override
@@ -506,33 +507,68 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
               final updated = prospect.copyWith(isConverted: true, status: 'converted');
               await ref.read(prospectsProvider.notifier).updateProspect(updated);
 
-              // Build initial client model and pass to callback / new client form
-              final newClientDraft = ClientModel(
-                id: '',
+              // 1. Parse custom mapped data from prospect.rawData
+              final raw = prospect.rawData;
+              final hasCompound = raw['has_compound_unit'] == true || raw['compound_name'] != null;
+              final hasCar = raw['has_modern_car'] == true || raw['car_brand'] != null;
+
+              final List<Map<String, dynamic>> compoundUnits = [];
+              if (raw['compound_name'] != null) {
+                compoundUnits.add({
+                  'compound_name': raw['compound_name'] ?? '',
+                  'developer_name': raw['developer_name'] ?? '',
+                  'contract_date': raw['contract_date'] ?? '',
+                  'unit_value': (raw['unit_value'] as num?)?.toDouble() ?? 0.0,
+                  'down_payment': (raw['down_payment'] as num?)?.toDouble() ?? 0.0,
+                });
+              }
+
+              final List<Map<String, dynamic>> modernCars = [];
+              if (raw['car_brand'] != null) {
+                modernCars.add({
+                  'car_brand': raw['car_brand'] ?? '',
+                  'car_model_year': raw['car_model_year'] ?? '',
+                  'car_market_value': (raw['car_market_value'] as num?)?.toDouble() ?? 0.0,
+                  'car_license_status': raw['car_license_status'] ?? 'بدون حظر',
+                });
+              }
+
+              // 2. Build official ClientModel
+              final newClient = ClientModel(
+                id: DateTime.now().millisecondsSinceEpoch.toString(),
                 fullName: prospect.fullName,
                 phoneNumber: prospect.phoneNumber ?? '',
                 secondaryPhoneNumber: prospect.secondaryPhoneNumber,
                 nationalId: prospect.nationalId ?? '',
-                birthDate: '1990-01-01',
-                employmentType: 'private_sector',
+                birthDate: raw['birth_date'] ?? '1990-01-01',
+                employmentType: raw['employment_type'] ?? 'private_sector',
                 companyName: prospect.companyName,
                 jobTitle: prospect.jobTitle,
                 isInsured: false,
-                salaryTransferMethod: 'bank_transfer',
-                creditScore: 650,
-                requestedAmount: prospect.salaryAmount ?? 0,
+                salaryTransferMethod: raw['salary_transfer_method'] ?? 'bank_transfer',
+                cashSalaryAmount: prospect.salaryAmount,
+                creditScore: int.tryParse(raw['credit_score']?.toString() ?? '') ?? 650,
+                requestedAmount: (raw['requested_amount'] as num?)?.toDouble() ?? prospect.salaryAmount ?? 0,
                 governorate: prospect.governorate ?? 'القاهرة',
                 representativeName: prospect.assignedToName,
                 status: 'pending',
                 createdAt: DateTime.now(),
+                hasCompoundUnit: hasCompound,
+                hasModernCar: hasCar,
+                compoundUnitsData: compoundUnits,
+                modernCarsData: modernCars,
               );
 
-              if (widget.onNavigateToNewClient != null) {
-                widget.onNavigateToNewClient!(newClientDraft);
+              // 3. Add to Clients List
+              await ref.read(clientProvider.notifier).addClient(newClient, [], []);
+
+              // 4. Navigate directly to Client Details
+              if (widget.onNavigateToClientDetails != null) {
+                widget.onNavigateToClientDetails!(newClient.id);
               }
 
               messenger.showSnackBar(
-                const SnackBar(content: Text('تم تحويل العميل بنجاح وتجهيز نموذج التمويل!')),
+                const SnackBar(content: Text('تم تحويل العميل بنجاح وتوجيهك لصفحة تفاصيل العميل!')),
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),

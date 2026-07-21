@@ -801,14 +801,41 @@ class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSetting
   bool _isLoadingHeaders = false;
 
   final Map<String, String> _targetClientFields = {
-    'full_name': 'الاسم الكامل (full_name)',
-    'phone_number': 'رقم الهاتف (phone_number)',
-    'secondary_phone_number': 'رقم الهاتف الإضافي',
-    'national_id': 'الرقم القومي (national_id)',
-    'company_name': 'جهة العمل / الشركة (company_name)',
-    'job_title': 'المسمى الوظيفي (job_title)',
-    'governorate': 'المحافظة (governorate)',
-    'salary_amount': 'الدخل / المربوط المالي (salary_amount)',
+    // 👤 البيانات الشخصية
+    'full_name': '👤 [بيانات شخصية] الاسم الكامل (full_name)',
+    'phone_number': '📞 [بيانات شخصية] رقم الهاتف (phone_number)',
+    'secondary_phone_number': '📱 [بيانات شخصية] رقم الهاتف الإضافي',
+    'national_id': '🪪 [بيانات شخصية] الرقم القومي (national_id)',
+    'birth_date': '📅 [بيانات شخصية] تاريخ الميلاد',
+    'governorate': '📍 [بيانات شخصية] المحافظة (governorate)',
+    
+    // 🏢 البيانات الوظيفية والمالية
+    'employment_type': '💼 [بيانات وظيفية] طبيعة العمل (حكومي / خاص / حر / متقاعد)',
+    'company_name': '🏢 [بيانات وظيفية] جهة العمل / الشركة (company_name)',
+    'job_title': '👔 [بيانات وظيفية] المسمى الوظيفي (job_title)',
+    'salary_transfer_method': '🏦 [بيانات وظيفية] طريقة تحويل الراتب (بنكي / كاش)',
+    'cash_salary_amount': '💵 [بيانات وظيفية] الراتب الكاش / المالي (salary_amount)',
+    
+    // 💳 البيانات الائتمانية والتمويل
+    'credit_score': '📊 [بيانات ائتمانية] التقييم الائتماني (I-Score)',
+    'requested_amount': '💰 [بيانات ائتمانية] مبلغ التمويل المطلوب',
+    'representative_name': '👨‍💼 [بيانات ائتمانية] المندوب المسند إليه',
+
+    // 🏢 قسم وحدات في كمبوند
+    'compound_name': '🏡 [وحدة في كمبوند] اسم الكمبوند',
+    'developer_name': '🏗️ [وحدة في كمبوند] اسم المطور العقاري',
+    'contract_date': '📅 [وحدة في كمبوند] تاريخ التعاقد',
+    'unit_value': '💎 [وحدة في كمبوند] إجمالي قيمة الوحدة',
+    'down_payment': '💵 [وحدة في كمبوند] المقدم المدفوع',
+
+    // 🚗 قسم سيارة حديثة
+    'car_brand': '🚗 [سيارة حديثة] نوع وماركة السيارة',
+    'car_model_year': '📅 [سيارة حديثة] سنة الموديل',
+    'car_market_value': '💰 [سيارة حديثة] قيمة السيارة اليوم',
+    'car_license_status': '📑 [سيارة حديثة] حالة حظر الرخصة',
+
+    // 📝 ملاحظات وبيانات إضافية
+    'notes': '📝 [ملاحظات] ملاحظات وبيانات إضافية',
   };
 
   @override

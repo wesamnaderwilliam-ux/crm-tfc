@@ -115,11 +115,8 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
         label: 'العملاء المحتملين',
         icon: Icons.recent_actors,
         screen: ProspectsScreen(
-          onNavigateToNewClient: (clientDraft) {
-            final newClientIdx = navItems.indexWhere((i) => i.label == 'طلب تمويل جديد');
-            if (newClientIdx != -1) {
-              navigateToTab(newClientIdx);
-            }
+          onNavigateToClientDetails: (convertedClientId) {
+            selectClient(convertedClientId);
           },
         ),
       ));
