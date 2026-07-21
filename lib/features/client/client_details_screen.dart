@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import '../../core/theme.dart';
@@ -46,14 +46,14 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
 
   // Helper map for Arabic status names
   final Map<String, String> _statusNames = {
-    'all': 'Ø§Ù„ÙƒÙ„',
-    'pending': 'Ù‚ÙŠØ¯ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±',
-    'iscore_inquiry': 'Ø§Ø³ØªØ¹Ù„Ø§Ù… Ø£ÙŠ Ø³ÙƒÙˆØ±',
-    'preparing_documents': 'ØªØ¬Ù‡ÙŠØ² Ø£ÙˆØ±Ø§Ù‚',
-    'under_review': 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©',
-    'at_bank': 'Ø¨Ø§Ù„Ø¨Ù†Ùƒ',
-    'approved': 'Ù…ÙˆØ§ÙÙ‚ Ø¹Ù„ÙŠÙ‡',
-    'rejected': 'Ù…Ø±ÙÙˆØ¶',
+    'all': 'الكل',
+    'pending': 'قيد الانتظار',
+    'iscore_inquiry': 'استعلام أي سكور',
+    'preparing_documents': 'تجهيز أوراق',
+    'under_review': 'قيد المراجعة',
+    'at_bank': 'بالبنك',
+    'approved': 'موافق عليه',
+    'rejected': 'مرفوض',
   };
 
   @override
@@ -156,7 +156,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("ØªÙ… Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø© Ø¨Ù†Ø¬Ø§Ø­",
+          content: Text("تم إضافة الملاحظة بنجاح",
               textAlign: TextAlign.right),
           backgroundColor: TfcColors.primary,
         ),
@@ -178,7 +178,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
       _submitLog(
         staffName: staffName,
         logType: 'follow_up',
-        actionName: "Ù…ØªØ§Ø¨Ø¹Ø© Ù…Ø¬Ø¯ÙˆÙ„Ø©",
+        actionName: "متابعة مجدولة",
         followUpDate: picked,
         followUpStatus: 'pending',
       );
@@ -223,29 +223,29 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     // 1. Role-based visibility filtering
     final visibleClients = clientState.clients.where((client) {
       if (authState.role == 'company_employee') {
-        final cleanUser = authState.fullName.replaceAll(RegExp(r'\s*\(ØªØ¬Ø±ÙŠØ¨ÙŠ\)'), '').trim().toLowerCase();
-        final cleanRep = (client.representativeName ?? '').replaceAll(RegExp(r'\s*\(ØªØ¬Ø±ÙŠØ¨ÙŠ\)'), '').trim().toLowerCase();
+        final cleanUser = authState.fullName.replaceAll(RegExp(r'\s*\(تجريبي\)'), '').trim().toLowerCase();
+        final cleanRep = (client.representativeName ?? '').replaceAll(RegExp(r'\s*\(تجريبي\)'), '').trim().toLowerCase();
         return cleanRep == cleanUser || cleanRep.contains(cleanUser) || cleanUser.contains(cleanRep);
       } else if (authState.role == 'bank_employee') {
-        final cleanUser = authState.fullName.replaceAll(RegExp(r'\s*\(ØªØ¬Ø±ÙŠØ¨ÙŠ\)'), '').trim().toLowerCase();
+        final cleanUser = authState.fullName.replaceAll(RegExp(r'\s*\(تجريبي\)'), '').trim().toLowerCase();
         String bankKeyword = "";
-        if (cleanUser.contains("Ø§Ù„Ø£Ù‡Ù„ÙŠ") || cleanUser.contains("Ø§Ù„Ø§Ù‡Ù„ÙŠ")) {
-          bankKeyword = "Ø§Ù„Ø£Ù‡Ù„ÙŠ";
-        } else if (cleanUser.contains("Ø§Ù„Ø±Ø§Ø¬Ø­ÙŠ")) {
-          bankKeyword = "Ø§Ù„Ø±Ø§Ø¬Ø­ÙŠ";
-        } else if (cleanUser.contains("Ù…ØµØ±")) {
-          bankKeyword = "Ù…ØµØ±";
-        } else if (cleanUser.contains("Ø§Ù„Ø±ÙŠØ§Ø¶")) {
-          bankKeyword = "Ø§Ù„Ø±ÙŠØ§Ø¶";
+        if (cleanUser.contains("الأهلي") || cleanUser.contains("الاهلي")) {
+          bankKeyword = "الأهلي";
+        } else if (cleanUser.contains("الراجحي")) {
+          bankKeyword = "الراجحي";
+        } else if (cleanUser.contains("مصر")) {
+          bankKeyword = "مصر";
+        } else if (cleanUser.contains("الرياض")) {
+          bankKeyword = "الرياض";
         } else {
-          bankKeyword = cleanUser.replaceAll("Ù…ÙˆØ¸Ù Ø§Ù„Ø¨Ù†Ùƒ", "").trim();
+          bankKeyword = cleanUser.replaceAll("موظف البنك", "").trim();
         }
         
         if (bankKeyword.isEmpty) return true;
         
         bool matchesBank(String bankName) {
-          final normalizedBank = bankName.replaceAll("Ø¥", "Ø§").replaceAll("Ø£", "Ø§").replaceAll("Ø¢", "Ø§").toLowerCase();
-          final normalizedKeyword = bankKeyword.replaceAll("Ø¥", "Ø§").replaceAll("Ø£", "Ø§").replaceAll("Ø¢", "Ø§").toLowerCase();
+          final normalizedBank = bankName.replaceAll("إ", "ا").replaceAll("أ", "ا").replaceAll("آ", "ا").toLowerCase();
+          final normalizedKeyword = bankKeyword.replaceAll("إ", "ا").replaceAll("أ", "ا").replaceAll("آ", "ا").toLowerCase();
           return normalizedBank.contains(normalizedKeyword);
         }
         
@@ -301,8 +301,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               ),
               title: Text(
                 client != null
-                    ? "Ù…Ù„Ù Ø§Ù„Ø¹Ù…ÙŠÙ„: ${client.fullName}"
-                    : "Ø¯Ù„ÙŠÙ„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡",
+                    ? "ملف العميل: ${client.fullName}"
+                    : "دليل تفاصيل العملاء",
                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
               ),
               centerTitle: false,
@@ -310,7 +310,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 if (client != null) ...[
                   IconButton(
                     icon: const Icon(Icons.print, color: TfcColors.primary),
-                    tooltip: "Ø·Ø¨Ø§Ø¹Ø© Ù…Ù„Ù Ø§Ù„Ø¹Ù…ÙŠÙ„ PDF",
+                    tooltip: "طباعة ملف العميل PDF",
                     onPressed: () => _printClientProfile(client),
                   ),
                   if (canEditClients)
@@ -318,7 +318,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       padding: const EdgeInsets.only(left: 8.0),
                       child: IconButton(
                         icon: const Icon(Icons.edit, color: TfcColors.primary),
-                        tooltip: "ØªØ¹Ø¯ÙŠÙ„ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹Ù…ÙŠÙ„",
+                        tooltip: "تعديل بيانات العميل",
                         onPressed: () =>
                             _showEditClientDialog(context, client, authState.fullName),
                       ),
@@ -328,7 +328,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       padding: const EdgeInsets.only(left: 16.0),
                       child: IconButton(
                         icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
-                        tooltip: "Ø­Ø°Ù Ø§Ù„Ø¹Ù…ÙŠÙ„ Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹",
+                        tooltip: "حذف العميل نهائياً",
                         onPressed: () => _confirmDeleteClient(context, client),
                       ),
                     ),
@@ -357,7 +357,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                               Icon(Icons.people_alt, color: TfcColors.primary, size: 20),
                               SizedBox(width: 8),
                               Text(
-                                "Ø¯Ù„ÙŠÙ„ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡",
+                                "دليل العملاء",
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -379,7 +379,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                 });
                               },
                               decoration: InputDecoration(
-                                hintText: "Ø¨Ø­Ø« Ø¨Ø§Ù„Ø§Ø³Ù…ØŒ Ø§Ù„Ù‡Ø§ØªÙØŒ Ø§Ù„Ø±Ù‚Ù… Ø§Ù„Ù‚ÙˆÙ…ÙŠ...",
+                                hintText: "بحث بالاسم، الهاتف، الرقم القومي...",
                                 hintStyle: const TextStyle(color: TfcColors.outline, fontSize: 11),
                                 prefixIcon: const Icon(Icons.search, color: TfcColors.outline, size: 18),
                                 suffixIcon: _clientSearchQuery.isNotEmpty
@@ -469,7 +469,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                               items: [
                                 const DropdownMenuItem(
                                   value: 'all',
-                                  child: Text('ÙƒÙ„ Ø§Ù„Ù…Ù†Ø§Ø¯ÙŠØ¨', textDirection: TextDirection.rtl),
+                                  child: Text('كل المناديب', textDirection: TextDirection.rtl),
                                 ),
                                 ...reps.map((name) {
                                   return DropdownMenuItem(
@@ -494,7 +494,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             child: filteredClients.isEmpty
                                 ? const Center(
                                     child: Text(
-                                      "Ù„Ø§ ØªÙˆØ¬Ø¯ Ù†ØªØ§Ø¦Ø¬ Ù…Ø·Ø§Ø¨Ù‚Ø© Ù„Ø¨Ø­Ø«Ùƒ.",
+                                      "لا توجد نتائج مطابقة لبحثك.",
                                       style: TextStyle(color: TfcColors.outline, fontSize: 13),
                                       textAlign: TextAlign.center,
                                     ),
@@ -555,7 +555,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 icon: const Icon(Icons.arrow_back, color: TfcColors.primary),
                 onPressed: widget.onBack,
               ),
-              title: const Text("Ø¯Ù„ÙŠÙ„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              title: const Text("دليل تفاصيل العملاء", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
             ),
             body: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -573,7 +573,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                         });
                       },
                       decoration: InputDecoration(
-                        hintText: "Ø¨Ø­Ø« Ø¨Ø§Ù„Ø§Ø³Ù…ØŒ Ø§Ù„Ù‡Ø§ØªÙØŒ Ø§Ù„Ø±Ù‚Ù… Ø§Ù„Ù‚ÙˆÙ…ÙŠ...",
+                        hintText: "بحث بالاسم، الهاتف، الرقم القومي...",
                         hintStyle: const TextStyle(color: TfcColors.outline, fontSize: 12),
                         prefixIcon: const Icon(Icons.search, color: TfcColors.outline, size: 18),
                         suffixIcon: _clientSearchQuery.isNotEmpty
@@ -665,7 +665,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       items: [
                         const DropdownMenuItem(
                           value: 'all',
-                          child: Text('ÙƒÙ„ Ø§Ù„Ù…Ù†Ø§Ø¯ÙŠØ¨', textDirection: TextDirection.rtl),
+                          child: Text('كل المناديب', textDirection: TextDirection.rtl),
                         ),
                         ...reps.map((name) {
                           return DropdownMenuItem(
@@ -688,7 +688,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     child: filteredClients.isEmpty
                         ? const Center(
                             child: Text(
-                              "Ù„Ø§ ØªÙˆØ¬Ø¯ Ù†ØªØ§Ø¦Ø¬ Ù…Ø·Ø§Ø¨Ù‚Ø© Ù„Ø¨Ø­Ø«Ùƒ.",
+                              "لا توجد نتائج مطابقة لبحثك.",
                               style: TextStyle(color: TfcColors.outline),
                             ),
                           )
@@ -719,13 +719,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               },
             ),
             title: Text(
-              "Ù…Ù„Ù Ø§Ù„Ø¹Ù…ÙŠÙ„: ${client.fullName}",
+              "ملف العميل: ${client.fullName}",
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             actions: [
               IconButton(
                 icon: const Icon(Icons.print, color: TfcColors.primary),
-                tooltip: "Ø·Ø¨Ø§Ø¹Ø© Ù…Ù„Ù Ø§Ù„Ø¹Ù…ÙŠÙ„ PDF",
+                tooltip: "طباعة ملف العميل PDF",
                 onPressed: () => _printClientProfile(client),
               ),
               if (permissions.canEditClients)
@@ -876,7 +876,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
       children: [
         _buildCollapsibleSection(
           key: 'personal',
-          title: 'Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø´Ø®ØµÙŠØ© ÙˆØ§Ù„Ù…Ø§Ù„ÙŠØ© Ù„Ù„Ø¹Ù…ÙŠÙ„',
+          title: 'البيانات الشخصية والمالية للعميل',
           icon: Icons.person_outline,
           child: _buildPersonalDetailsBento(
             client,
@@ -890,7 +890,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         ),
         _buildCollapsibleSection(
           key: 'credit',
-          title: 'Ø§Ù„ØªÙ‚ÙŠÙŠÙ… Ø§Ù„Ø§Ø¦ØªÙ…Ø§Ù†ÙŠ ÙˆØ§Ù„ØªØ­Ù„ÙŠÙ„ Ø§Ù„Ù…Ø§Ù„ÙŠ',
+          title: 'التقييم الائتماني والتحليل المالي',
           icon: Icons.analytics_outlined,
           child: Column(
             children: [
@@ -914,7 +914,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         ),
         _buildCollapsibleSection(
           key: 'loans',
-          title: 'Ø§Ù„Ù‚Ø±ÙˆØ¶ ÙˆØ§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª Ø§Ù„Ù…ØµØ±ÙÙŠØ©',
+          title: 'القروض والبطاقات المصرفية',
           icon: Icons.credit_card_outlined,
           child: _buildLoansCardsBento(
             client,
@@ -927,7 +927,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         ),
         _buildCollapsibleSection(
           key: 'documents',
-          title: 'Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ù…Ø³ØªÙ†Ø¯Ø§Øª Ø§Ù„Ù…Ø±ÙÙ‚Ø© ÙˆØ§Ù„Ø±ÙØ¹',
+          title: 'مراجعة المستندات المرفقة والرفع',
           icon: Icons.file_present_outlined,
           child: _buildDocumentsBento(
             client,
@@ -937,7 +937,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         ),
         _buildCollapsibleSection(
           key: 'distribution',
-          title: 'ØªÙˆØ²ÙŠØ¹ Ø£Ø±Ø¨Ø§Ø­ Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡',
+          title: 'توزيع أرباح العملاء',
           icon: Icons.pie_chart_outline,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -946,7 +946,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 ElevatedButton.icon(
                   onPressed: () => widget.onViewAiAnalysis!(client.id),
                   icon: const Icon(Icons.psychology, size: 16),
-                  label: const Text("ØªØ­Ù„ÙŠÙ„ Ø°ÙƒÙŠ ÙˆÙ…Ø·Ø§Ø¨Ù‚Ø© Ø¨Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ (AI)"),
+                  label: const Text("تحليل ذكي ومطابقة بالذكاء الاصطناعي (AI)"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: TfcColors.primary.withValues(alpha: 0.15),
                     foregroundColor: TfcColors.primary,
@@ -966,19 +966,19 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         ),
         _buildCollapsibleSection(
           key: 'operations',
-          title: 'Ø§Ù„Ø¹Ù…Ù„ÙŠØ§Øª',
+          title: 'العمليات',
           icon: Icons.settings_suggest_outlined,
           child: OperationsWidget(clientId: client.id),
         ),
         _buildCollapsibleSection(
           key: 'total_fees',
-          title: 'Ø¥Ø¬Ù…Ø§Ù„Ù‰ Ø§Ù„Ø£ØªØ¹Ø§Ø¨',
+          title: 'إجمالى الأتعاب',
           icon: Icons.account_balance_wallet_outlined,
           child: _TotalFeesWidget(clientId: client.id),
         ),
         _buildCollapsibleSection(
           key: 'logs',
-          title: 'Ø³Ø¬Ù„ Ø§Ù„Ù†Ø´Ø§Ø· ÙˆØ§Ù„ØªØ¹Ù„ÙŠÙ‚Ø§Øª Ø§Ù„ØªÙØ§Ø¹Ù„ÙŠØ©',
+          title: 'سجل النشاط والتعليقات التفاعلية',
           icon: Icons.history_toggle_off_outlined,
           child: Column(
             children: [
@@ -1022,7 +1022,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             children: [
               const Icon(Icons.badge, color: TfcColors.primary, size: 20),
               const SizedBox(width: 8),
-              const Text("Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ© ÙˆØ§Ù„ÙˆØ¸ÙŠÙÙŠØ©",
+              const Text("المعلومات الأساسية والوظيفية",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const Spacer(),
               if (permissions.canEditClients)
@@ -1038,29 +1038,29 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           const SizedBox(height: 16),
           const Divider(color: Colors.white10),
           const SizedBox(height: 12),
-          _buildInfoRow("Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„", client.fullName),
+          _buildInfoRow("الاسم الكامل", client.fullName),
           if (showPhone) ...[
-            _buildInfoRow("Ø§Ù„Ù‡Ø§ØªÙ Ø§Ù„Ù…Ø­Ù…ÙˆÙ„", client.phoneNumber),
+            _buildInfoRow("الهاتف المحمول", client.phoneNumber),
             if (client.secondaryPhoneNumber != null &&
                 client.secondaryPhoneNumber!.isNotEmpty)
-              _buildInfoRow("Ù‡Ø§ØªÙ Ø¥Ø¶Ø§ÙÙŠ", client.secondaryPhoneNumber!),
+              _buildInfoRow("هاتف إضافي", client.secondaryPhoneNumber!),
           ],
           if (showNationalId)
-            _buildInfoRow("Ø§Ù„Ø±Ù‚Ù… Ø§Ù„Ù‚ÙˆÙ…ÙŠ",
-                client.nationalId.isEmpty ? "ØºÙŠØ± Ù…Ø³Ø¬Ù„" : client.nationalId),
+            _buildInfoRow("الرقم القومي",
+                client.nationalId.isEmpty ? "غير مسجل" : client.nationalId),
           // birthDate
           if (effectivePerms[EmployeePermissionKeys.fieldBirthDate] ?? true)
-            _buildInfoRow("ØªØ§Ø±ÙŠØ® Ø§Ù„Ù…ÙŠÙ„Ø§Ø¯", client.birthDate),
+            _buildInfoRow("تاريخ الميلاد", client.birthDate),
           // employment
           if (effectivePerms[EmployeePermissionKeys.fieldEmployment] ?? true) ...[
-            _buildInfoRow("Ø¬Ù‡Ø© Ø§Ù„Ø¹Ù…Ù„", client.companyName ?? "-"),
-            _buildInfoRow("Ø§Ù„Ù…Ø³Ù…Ù‰ Ø§Ù„ÙˆØ¸ÙŠÙÙŠ", client.jobTitle ?? "-"),
+            _buildInfoRow("جهة العمل", client.companyName ?? "-"),
+            _buildInfoRow("المسمى الوظيفي", client.jobTitle ?? "-"),
           ],
           _buildInfoRow(
-              "Ø·Ø±ÙŠÙ‚Ø© Ø§Ù„Ø§Ø³ØªÙ„Ø§Ù…",
+              "طريقة الاستلام",
               client.salaryTransferMethod == 'bank_transfer'
-                  ? "ØªØ­ÙˆÙŠÙ„ Ø±Ø§ØªØ¨ Ø¨Ù†ÙƒÙŠ"
-                  : "Ù†Ù‚Ø¯ÙŠ / ÙƒØ§Ø´"),
+                  ? "تحويل راتب بنكي"
+                  : "نقدي / كاش"),
           // Salary bank details breakdown
           if (showSalary) ...[
             if (hasBankDetails) ...[
@@ -1072,7 +1072,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      "Ø§Ù„Ø­Ø³Ø§Ø¨Ø§Øª Ø§Ù„Ø¨Ù†ÙƒÙŠØ©:",
+                      "الحسابات البنكية:",
                       style: TextStyle(
                           fontSize: 12,
                           color: TfcColors.onSurfaceVariant,
@@ -1087,7 +1087,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           final amount =
                               double.tryParse(e['amount'] ?? '') ?? 0.0;
                           return Text(
-                            "$bank: ${_formatLargeNumber(amount)} Ø¬.Ù…",
+                            "$bank: ${_formatLargeNumber(amount)} ج.م",
                             style: const TextStyle(
                                 fontSize: 12, color: Colors.white70),
                             textAlign: TextAlign.right,
@@ -1102,15 +1102,15 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             // Total salary row
             if (hasBankDetails || hasCashSalary)
               _buildInfoRow(
-                "Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø±Ø§ØªØ¨ Ø§Ù„Ø´Ù‡Ø±ÙŠ",
-                "${_formatLargeNumber(totalSalary)} Ø¬.Ù…",
+                "إجمالي الراتب الشهري",
+                "${_formatLargeNumber(totalSalary)} ج.م",
                 highlight: true,
               ),
           ],
-          _buildInfoRow("Ø§Ù„ØªØ£Ù…ÙŠÙ† Ø§Ù„Ø§Ø¬ØªÙ…Ø§Ø¹ÙŠ",
-              client.isInsured ? "Ù…Ø¤Ù…Ù† Ø¹Ù„ÙŠÙ‡" : "ØºÙŠØ± Ù…Ø¤Ù…Ù† Ø¹Ù„ÙŠÙ‡"),
-          _buildInfoRow("Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø©", client.governorate),
-          _buildInfoRow("Ø§Ù„Ù…Ù†Ø¯ÙˆØ¨ Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„", client.representativeName ?? "-"),
+          _buildInfoRow("التأمين الاجتماعي",
+              client.isInsured ? "مؤمن عليه" : "غير مؤمن عليه"),
+          _buildInfoRow("المحافظة", client.governorate),
+          _buildInfoRow("المندوب المسؤول", client.representativeName ?? "-"),
 
           if (client.employmentType == 'business_owner') ...[
             const SizedBox(height: 16),
@@ -1121,7 +1121,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               textDirection: TextDirection.rtl,
               children: [
                 const Text(
-                  "ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ø£Ù†Ø´Ø·Ø© Ø§Ù„ØªØ¬Ø§Ø±ÙŠØ©",
+                  "تفاصيل الأنشطة التجارية",
                   style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -1132,7 +1132,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     style: TextButton.styleFrom(foregroundColor: TfcColors.primary),
                     onPressed: () => _showManageBusinessDialog(context, client, staffName),
                     icon: const Icon(Icons.settings, size: 14),
-                    label: const Text("Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø£Ù†Ø´Ø·Ø©", style: TextStyle(fontSize: 11)),
+                    label: const Text("إدارة الأنشطة", style: TextStyle(fontSize: 11)),
                   ),
               ],
             ),
@@ -1150,7 +1150,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     return const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
-                        "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø£Ù†Ø´Ø·Ø© Ù…Ø³Ø¬Ù„Ø© Ø­Ø§Ù„ÙŠØ§Ù‹",
+                        "لا توجد أنشطة مسجلة حالياً",
                         textDirection: TextDirection.rtl,
                         style: TextStyle(fontSize: 12, color: Colors.white38),
                       ),
@@ -1165,17 +1165,17 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       final startDate = biz['startDate']?.toString() ?? '-';
                       final place = biz['place']?.toString() ?? '-';
                       
-                      String docsDisplay = 'Ù„Ø§ ÙŠÙˆØ¬Ø¯';
+                      String docsDisplay = 'لا يوجد';
                       final docsMap = biz['documents'];
                       if (docsMap is Map) {
                         docsDisplay = docsMap.entries
                             .where((e) => e.value == true)
                             .map((e) => e.key.toString())
-                            .join('ØŒ ');
+                            .join('، ');
                       } else if (docsMap is List) {
-                        docsDisplay = docsMap.map((e) => e.toString()).join('ØŒ ');
+                        docsDisplay = docsMap.map((e) => e.toString()).join('، ');
                       }
-                      if (docsDisplay.isEmpty) docsDisplay = 'Ù„Ø§ ÙŠÙˆØ¬Ø¯';
+                      if (docsDisplay.isEmpty) docsDisplay = 'لا يوجد';
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
@@ -1188,13 +1188,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text("Ù†Ø´Ø§Ø· #${idx + 1}: $activity",
+                            Text("نشاط #${idx + 1}: $activity",
                                 textDirection: TextDirection.rtl,
                                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: TfcColors.primary)),
                             const SizedBox(height: 6),
-                            _buildSubInfoRow("ØªØ§Ø±ÙŠØ® Ø§Ù„Ø¨Ø¯Ø¡", startDate),
-                            _buildSubInfoRow("Ù…ÙƒØ§Ù† Ø§Ù„Ù†Ø´Ø§Ø·", place),
-                            _buildSubInfoRow("Ø§Ù„Ø£ÙˆØ±Ø§Ù‚ Ø§Ù„Ù…ØªØ§Ø­Ø©", docsDisplay),
+                            _buildSubInfoRow("تاريخ البدء", startDate),
+                            _buildSubInfoRow("مكان النشاط", place),
+                            _buildSubInfoRow("الأوراق المتاحة", docsDisplay),
                           ],
                         ),
                       );
@@ -1204,7 +1204,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Text(
-                      "Ø®Ø·Ø£ ÙÙŠ Ø¹Ø±Ø¶ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª: \$e",
+                      "خطأ في عرض البيانات: \$e",
                       textDirection: TextDirection.rtl,
                       style: const TextStyle(fontSize: 12, color: Colors.redAccent),
                     ),
@@ -1223,7 +1223,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               textDirection: TextDirection.rtl,
               children: [
                 const Text(
-                  "ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ù†Ø´Ø§Ø· Ø§Ù„Ø·Ø¨ÙŠ",
+                  "تفاصيل النشاط الطبي",
                   style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -1234,7 +1234,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     style: TextButton.styleFrom(foregroundColor: TfcColors.primary),
                     onPressed: () => _showManageMedicalDialog(context, client, staffName),
                     icon: const Icon(Icons.settings, size: 14),
-                    label: const Text("ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ù†Ø´Ø§Ø·", style: TextStyle(fontSize: 11)),
+                    label: const Text("تعديل النشاط", style: TextStyle(fontSize: 11)),
                   ),
               ],
             ),
@@ -1249,7 +1249,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     return const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
-                        "Ù„Ø§ ØªÙˆØ¬Ø¯ ØªÙØ§ØµÙŠÙ„ Ù†Ø´Ø§Ø· Ø·Ø¨ÙŠ Ù…Ø³Ø¬Ù„Ø© Ø­Ø§Ù„ÙŠØ§Ù‹",
+                        "لا توجد تفاصيل نشاط طبي مسجلة حالياً",
                         textDirection: TextDirection.rtl,
                         style: TextStyle(fontSize: 12, color: Colors.white38),
                       ),
@@ -1264,17 +1264,17 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       final practiceStartDate = biz['practiceStartDate']?.toString() ?? '-';
                       final licenseDate = biz['licenseDate']?.toString() ?? '-';
                       
-                      String docsDisplay = 'Ù„Ø§ ÙŠÙˆØ¬Ø¯';
+                      String docsDisplay = 'لا يوجد';
                       final docsMap = biz['documents'];
                       if (docsMap is Map) {
                         docsDisplay = docsMap.entries
                             .where((e) => e.value == true)
                             .map((e) => e.key.toString())
-                            .join('ØŒ ');
+                            .join('، ');
                       } else if (docsMap is List) {
-                        docsDisplay = docsMap.map((e) => e.toString()).join('ØŒ ');
+                        docsDisplay = docsMap.map((e) => e.toString()).join('، ');
                       }
-                      if (docsDisplay.isEmpty) docsDisplay = 'Ù„Ø§ ÙŠÙˆØ¬Ø¯';
+                      if (docsDisplay.isEmpty) docsDisplay = 'لا يوجد';
 
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
@@ -1287,16 +1287,16 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text("Ù†Ø´Ø§Ø· Ø·Ø¨ÙŠ #${idx + 1}",
+                            Text("نشاط طبي #${idx + 1}",
                                 textDirection: TextDirection.rtl,
                                 style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: TfcColors.primary)),
                             const SizedBox(height: 6),
                             if (['doctor_clinic', 'doctor_hospital'].contains(client.employmentType))
-                              _buildSubInfoRow("Ø§Ù„ØªØ®ØµØµ", specialization),
-                            _buildSubInfoRow("ØªØ§Ø±ÙŠØ® Ù…Ø²Ø§ÙˆÙ„Ø© Ø§Ù„Ù…Ù‡Ù†Ø©", practiceStartDate),
+                              _buildSubInfoRow("التخصص", specialization),
+                            _buildSubInfoRow("تاريخ مزاولة المهنة", practiceStartDate),
                             if (['doctor_clinic', 'pharmacist_owner'].contains(client.employmentType))
-                              _buildSubInfoRow("ØªØ§Ø±ÙŠØ® Ø§Ù„ØªØ±Ø®ÙŠØµ", licenseDate),
-                            _buildSubInfoRow("Ø§Ù„Ø£ÙˆØ±Ø§Ù‚ Ø§Ù„Ù…ØªØ§Ø­Ø©", docsDisplay),
+                              _buildSubInfoRow("تاريخ الترخيص", licenseDate),
+                            _buildSubInfoRow("الأوراق المتاحة", docsDisplay),
                           ],
                         ),
                       );
@@ -1306,7 +1306,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 8.0),
                     child: Text(
-                      "Ø®Ø·Ø£ ÙÙŠ Ø¹Ø±Ø¶ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª: $e",
+                      "خطأ في عرض البيانات: $e",
                       textDirection: TextDirection.rtl,
                       style: const TextStyle(fontSize: 12, color: Colors.redAccent),
                     ),
@@ -1332,13 +1332,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   ) {
     final score = client.creditScore;
     Color scoreColor = Colors.redAccent;
-    String scoreGrade = "Ø³ÙŠØ¡ (High Risk)";
+    String scoreGrade = "سيء (High Risk)";
     if (score >= 720) {
       scoreColor = TfcColors.success;
-      scoreGrade = "Ù…Ù…ØªØ§Ø² (Excellent)";
+      scoreGrade = "ممتاز (Excellent)";
     } else if (score >= 620) {
       scoreColor = Colors.amber;
-      scoreGrade = "Ù…ØªÙˆØ³Ø· (Fair)";
+      scoreGrade = "متوسط (Fair)";
     }
 
     // If iScore/creditScore field is hidden, show a locked view
@@ -1351,7 +1351,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               Icon(Icons.lock_outline, color: TfcColors.outline),
               SizedBox(height: 12),
               Text(
-                "ØªÙ… Ø­Ø¬Ø¨ ØµÙ„Ø§Ø­ÙŠØ© Ø¹Ø±Ø¶ Ø§Ù„ØªÙ‚ÙŠÙŠÙ… Ø§Ù„Ø§Ø¦ØªÙ…Ø§Ù†ÙŠ",
+                "تم حجب صلاحية عرض التقييم الائتماني",
                 style: TextStyle(color: TfcColors.outline, fontSize: 13),
               ),
             ],
@@ -1371,7 +1371,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             children: [
               Icon(Icons.donut_large, color: TfcColors.secondary, size: 20),
               SizedBox(width: 8),
-              Text("Ø§Ù„ØªÙ‚ÙŠÙŠÙ… Ø§Ù„Ø§Ø¦ØªÙ…Ø§Ù†ÙŠ ÙˆÙ‚Ø±Ø§Ø± Ø§Ù„ØªÙ…ÙˆÙŠÙ„",
+              Text("التقييم الائتماني وقرار التمويل",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
@@ -1416,12 +1416,12 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text("Ù…Ø¨Ù„Øº Ø§Ù„ØªÙ…ÙˆÙŠÙ„ Ø§Ù„Ù…Ø·Ù„ÙˆØ¨",
+                    const Text("مبلغ التمويل المطلوب",
                         style:
                             TextStyle(color: TfcColors.outline, fontSize: 13)),
                     const SizedBox(height: 4),
                     Text(
-                      "${_formatLargeNumber(client.requestedAmount)} Ø¬.Ù…",
+                      "${_formatLargeNumber(client.requestedAmount)} ج.م",
                       style: const TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -1429,7 +1429,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      "Ø¯Ø±Ø¬Ø© Ø§Ù„Ø¹Ù…ÙŠÙ„: $scoreGrade",
+                      "درجة العميل: $scoreGrade",
                       style: TextStyle(
                           color: scoreColor,
                           fontSize: 12,
@@ -1468,7 +1468,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             children: [
               Icon(Icons.lock_outline, color: TfcColors.outline),
               SizedBox(height: 8),
-              Text("Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø§Ù„ØªØ²Ø§Ù…Ø§Øª Ø§Ù„Ø§Ø¦ØªÙ…Ø§Ù†ÙŠØ© Ù…Ø®ÙÙŠØ© Ù„Ø¹Ø¯Ù… ØªÙˆÙØ± Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ§Øª",
+              Text("بيانات الالتزامات الائتمانية مخفية لعدم توفر الصلاحيات",
                   style: TextStyle(color: TfcColors.outline),
                   textAlign: TextAlign.center),
             ],
@@ -1488,7 +1488,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             children: [
               Icon(Icons.credit_card, color: TfcColors.primary, size: 20),
               SizedBox(width: 8),
-              Text("Ø§Ù„ØªØ²Ø§Ù…Ø§Øª Ø§Ù„Ù‚Ø±ÙˆØ¶ ÙˆØ§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª Ø§Ù„Ù‚Ø§Ø¦Ù…Ø©",
+              Text("التزامات القروض والبطاقات القائمة",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
@@ -1499,13 +1499,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             const Row(
               textDirection: TextDirection.rtl,
               children: [
-                Text("Ø§Ù„Ù‚Ø±ÙˆØ¶ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© ÙˆØ§Ù„ØªØ³Ù‡ÙŠÙ„Ø§Øª:",
+                Text("القروض القائمة والتسهيلات:",
                     style: TextStyle(fontSize: 13, color: TfcColors.outline)),
               ],
             ),
             const SizedBox(height: 8),
             if (client.existingLoans.isEmpty)
-              const Text("Ù„Ø§ ØªÙˆØ¬Ø¯ Ù‚Ø±ÙˆØ¶ Ù‚Ø§Ø¦Ù…Ø© Ù…Ø³Ø¬Ù„Ø© Ù„Ù„Ø¹Ù…ÙŠÙ„",
+              const Text("لا توجد قروض قائمة مسجلة للعميل",
                   style: TextStyle(color: TfcColors.outline, fontSize: 12),
                   textDirection: TextDirection.rtl)
             else
@@ -1535,7 +1535,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                       fontWeight: FontWeight.bold)),
                               const SizedBox(width: 12),
                               Text(
-                                "Ø§Ù„Ù‚Ø³Ø·: ${_formatLargeNumber(l.installmentValue)} Ø¬.Ù…",
+                                "القسط: ${_formatLargeNumber(l.installmentValue)} ج.م",
                                 style: const TextStyle(
                                     color: TfcColors.secondary, fontSize: 13),
                               ),
@@ -1590,7 +1590,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 child: TextButton.icon(
                   onPressed: () => _showAddEditLoanDialog(context, client, staffName),
                   icon: const Icon(Icons.add_circle_outline, color: TfcColors.primary, size: 18),
-                  label: const Text("Ø¥Ø¶Ø§ÙØ© Ù‚Ø±Ø¶ Ù‚Ø§Ø¦Ù…", style: TextStyle(color: TfcColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
+                  label: const Text("إضافة قرض قائم", style: TextStyle(color: TfcColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     shape: RoundedRectangleBorder(
@@ -1608,7 +1608,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               children: [
                 Icon(Icons.lock_outline, size: 14, color: TfcColors.outline),
                 SizedBox(width: 6),
-                Text("Ø§Ù„Ù‚Ø±ÙˆØ¶ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø© Ù…Ø®ÙÙŠØ© Ù…Ù† Ù‚ÙØ¨Ù„ Ø§Ù„Ø¥Ø¯Ø§Ø±Ø©",
+                Text("القروض القائمة مخفية من قِبل الإدارة",
                     style: TextStyle(color: TfcColors.outline, fontSize: 12)),
               ],
             ),
@@ -1623,13 +1623,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             const Row(
               textDirection: TextDirection.rtl,
               children: [
-                Text("Ø§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª ÙˆØ§Ù„Ø·Ù„Ø¨Ø§Øª (Ù…Ø¹ Ø­Ø³Ø§Ø¨ Ø§Ù„Ù€ 5% Ø¹Ø¨Ø¡ Ø§Ù„Ø¯ÙŠÙ†):",
+                Text("البطاقات والطلبات (مع حساب الـ 5% عبء الدين):",
                     style: TextStyle(fontSize: 13, color: TfcColors.outline)),
               ],
             ),
             const SizedBox(height: 8),
             if (client.creditCardsRequests.isEmpty)
-              const Text("Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¨Ø·Ø§Ù‚Ø§Øª Ø§Ø¦ØªÙ…Ø§Ù†ÙŠØ© Ù…Ø¯Ø±Ø¬Ø©",
+              const Text("لا توجد بطاقات ائتمانية مدرجة",
                   style: TextStyle(color: TfcColors.outline, fontSize: 12),
                   textDirection: TextDirection.rtl)
             else
@@ -1681,8 +1681,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                         ),
                                         child: Text(
                                           c.type == 'card'
-                                              ? "Ø¨Ø·Ø§Ù‚Ø©"
-                                              : "Ø£Ø¨Ù„ÙƒÙŠØ´Ù†",
+                                              ? "بطاقة"
+                                              : "أبلكيشن",
                                           style: TextStyle(
                                               fontSize: 10,
                                               color: c.type == 'card'
@@ -1701,26 +1701,26 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                 runSpacing: 8,
                                 children: [
                                   Text(
-                                    "Ø§Ù„Ù„ÙŠÙ…Øª: ${_formatLargeNumber(c.value)} Ø¬.Ù…",
+                                    "الليمت: ${_formatLargeNumber(c.value)} ج.م",
                                     style: const TextStyle(fontSize: 12, color: Colors.white70),
                                   ),
                                   if (c.highestValue > 0)
                                     Text(
-                                      "Ø£Ø¹Ù„Ù‰ Ù‚ÙŠÙ…Ø©: ${_formatLargeNumber(c.highestValue)} Ø¬.Ù…",
+                                      "أعلى قيمة: ${_formatLargeNumber(c.highestValue)} ج.م",
                                       style: const TextStyle(fontSize: 12, color: Colors.white70),
                                     ),
                                   if (c.installment > 0)
                                     Text(
-                                      "Ø§Ù„Ù‚Ø³Ø·: ${_formatLargeNumber(c.installment)} Ø¬.Ù…",
+                                      "القسط: ${_formatLargeNumber(c.installment)} ج.م",
                                       style: const TextStyle(fontSize: 12, color: Colors.white70),
                                     ),
                                   if (c.duration.isNotEmpty)
                                     Text(
-                                      "Ø§Ù„Ù…Ø¯Ø©: ${c.duration}",
+                                      "المدة: ${c.duration}",
                                       style: const TextStyle(fontSize: 12, color: Colors.white70),
                                     ),
                                   Text(
-                                    "Ø¹Ø¨Ø¡ Ø§Ù„Ø¯ÙŠÙ† (5%): ${_formatLargeNumber(c.fivePercentCalc)} Ø¬.Ù…",
+                                    "عبء الدين (5%): ${_formatLargeNumber(c.fivePercentCalc)} ج.م",
                                     style: const TextStyle(
                                         color: TfcColors.primary,
                                         fontWeight: FontWeight.bold,
@@ -1731,7 +1731,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                               if (c.notes != null && c.notes!.isNotEmpty) ...[
                                 const SizedBox(height: 6),
                                 Text(
-                                  "Ù…Ù„Ø§Ø­Ø¸Ø§Øª: ${c.notes}",
+                                  "ملاحظات: ${c.notes}",
                                   style: const TextStyle(color: TfcColors.outline, fontSize: 11),
                                   textAlign: TextAlign.right,
                                   textDirection: TextDirection.rtl,
@@ -1778,7 +1778,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 child: TextButton.icon(
                   onPressed: () => _showAddEditCardDialog(context, client, staffName),
                   icon: const Icon(Icons.add_circle_outline, color: TfcColors.primary, size: 18),
-                  label: const Text("Ø¥Ø¶Ø§ÙØ© Ø¨Ø·Ø§Ù‚Ø© / Ø·Ù„Ø¨", style: TextStyle(color: TfcColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
+                  label: const Text("إضافة بطاقة / طلب", style: TextStyle(color: TfcColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
                   style: TextButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                     shape: RoundedRectangleBorder(
@@ -1796,7 +1796,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               children: [
                 Icon(Icons.lock_outline, size: 14, color: TfcColors.outline),
                 SizedBox(width: 6),
-                Text("Ø§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª Ø§Ù„Ø§Ø¦ØªÙ…Ø§Ù†ÙŠØ© Ù…Ø®ÙÙŠØ© Ù…Ù† Ù‚ÙØ¨Ù„ Ø§Ù„Ø¥Ø¯Ø§Ø±Ø©",
+                Text("البطاقات الائتمانية مخفية من قِبل الإدارة",
                     style: TextStyle(color: TfcColors.outline, fontSize: 12)),
               ],
             ),
@@ -1818,7 +1818,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   Icon(Icons.home_work, color: TfcColors.primary, size: 20),
                   SizedBox(width: 8),
                   Text(
-                    "ÙˆØ­Ø¯Ø§Øª ÙÙŠ ÙƒÙ…Ø¨ÙˆÙ†Ø¯",
+                    "وحدات في كمبوند",
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -1831,7 +1831,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   style: TextButton.styleFrom(foregroundColor: TfcColors.primary),
                   onPressed: () => _showManageCompoundUnitsDialog(context, client, staffName),
                   icon: const Icon(Icons.settings, size: 14),
-                  label: const Text("Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„ÙˆØ­Ø¯Ø§Øª", style: TextStyle(fontSize: 11)),
+                  label: const Text("إدارة الوحدات", style: TextStyle(fontSize: 11)),
                 ),
             ],
           ),
@@ -1863,20 +1863,20 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text("Ø§Ù„ÙˆØ­Ø¯Ø© #${idx + 1}",
+                    Text("الوحدة #${idx + 1}",
                         textDirection: TextDirection.rtl,
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: TfcColors.primary)),
                     const SizedBox(height: 6),
-                    _buildSubInfoRow("Ø§Ø³Ù… Ø§Ù„ÙƒÙ…Ø¨ÙˆÙ†Ø¯", name),
-                    _buildSubInfoRow("Ø§Ø³Ù… Ø§Ù„Ù…Ø·ÙˆØ±", dev),
-                    _buildSubInfoRow("ØªØ§Ø±ÙŠØ® Ø§Ù„ØªØ¹Ø§Ù‚Ø¯", date),
-                    _buildSubInfoRow("Ù‚ÙŠÙ…Ø© Ø§Ù„ÙˆØ­Ø¯Ø©", "${_formatLargeNumber(value)} Ø¬.Ù…"),
-                    _buildSubInfoRow("Ø§Ù„Ù…Ù‚Ø¯Ù… Ø§Ù„Ù…Ø¯ÙÙˆØ¹", "${_formatLargeNumber(down)} Ø¬.Ù… (${pct.toStringAsFixed(1)}%)"),
-                    _buildSubInfoRow("Ø¹Ø¯Ø¯ Ø§Ù„Ø£Ù‚Ø³Ø§Ø· Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø©", "$count Ù‚Ø³Ø·"),
-                    _buildSubInfoRow("Ù‚ÙŠÙ…Ø© Ù…Ø§ ØªÙ… Ø¯ÙØ¹Ù‡", "${_formatLargeNumber(paid)} Ø¬.Ù…"),
+                    _buildSubInfoRow("اسم الكمبوند", name),
+                    _buildSubInfoRow("اسم المطور", dev),
+                    _buildSubInfoRow("تاريخ التعاقد", date),
+                    _buildSubInfoRow("قيمة الوحدة", "${_formatLargeNumber(value)} ج.م"),
+                    _buildSubInfoRow("المقدم المدفوع", "${_formatLargeNumber(down)} ج.م (${pct.toStringAsFixed(1)}%)"),
+                    _buildSubInfoRow("عدد الأقساط المدفوعة", "$count قسط"),
+                    _buildSubInfoRow("قيمة ما تم دفعه", "${_formatLargeNumber(paid)} ج.م"),
                     if (files.isNotEmpty) ...[
                       const SizedBox(height: 8),
-                      const Text("Ù…Ø³ØªÙ†Ø¯Ø§Øª Ø¹Ù‚Ø¯ Ø§Ù„ÙˆØ­Ø¯Ø©:", textDirection: TextDirection.rtl, style: TextStyle(fontSize: 11, color: TfcColors.secondary)),
+                      const Text("مستندات عقد الوحدة:", textDirection: TextDirection.rtl, style: TextStyle(fontSize: 11, color: TfcColors.secondary)),
                       const SizedBox(height: 4),
                       ...files.map((file) => Padding(
                         padding: const EdgeInsets.symmetric(vertical: 2.0),
@@ -1886,7 +1886,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           children: [
                             Expanded(
                               child: Text(
-                                file.documentName.replaceAll("Ø¹Ù‚Ø¯ ÙˆØ­Ø¯Ø©: ", ""),
+                                file.documentName.replaceAll("عقد وحدة: ", ""),
                                 style: const TextStyle(fontSize: 11, color: Colors.white70),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -1909,7 +1909,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             const Row(
               textDirection: TextDirection.rtl,
               children: [
-                Text("Ù„Ø§ ØªÙˆØ¬Ø¯ ÙˆØ­Ø¯Ø§Øª Ù…Ø³Ø¬Ù„Ø© Ù„Ù„Ø¹Ù…ÙŠÙ„",
+                Text("لا توجد وحدات مسجلة للعميل",
                     style: TextStyle(color: TfcColors.outline, fontSize: 12),
                     textDirection: TextDirection.rtl),
               ],
@@ -1932,7 +1932,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   Icon(Icons.directions_car, color: TfcColors.primary, size: 20),
                   SizedBox(width: 8),
                   Text(
-                    "Ø³ÙŠØ§Ø±Ø© Ø­Ø¯ÙŠØ«Ø©",
+                    "سيارة حديثة",
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -1945,7 +1945,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   style: TextButton.styleFrom(foregroundColor: TfcColors.primary),
                   onPressed: () => _showManageModernCarsDialog(context, client, staffName),
                   icon: const Icon(Icons.settings, size: 14),
-                  label: const Text("Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø³ÙŠØ§Ø±Ø§Øª", style: TextStyle(fontSize: 11)),
+                  label: const Text("إدارة السيارات", style: TextStyle(fontSize: 11)),
                 ),
             ],
           ),
@@ -1970,14 +1970,14 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text("Ø§Ù„Ø³ÙŠØ§Ø±Ø© #${idx + 1}",
+                    Text("السيارة #${idx + 1}",
                         textDirection: TextDirection.rtl,
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: TfcColors.primary)),
                     const SizedBox(height: 6),
-                    _buildSubInfoRow("Ù†ÙˆØ¹ Ø§Ù„Ø³ÙŠØ§Ø±Ø©", type),
-                    _buildSubInfoRow("Ø§Ù„Ù…ÙˆØ¯ÙŠÙ„", model),
-                    _buildSubInfoRow("Ø§Ù„Ù‚ÙŠÙ…Ø© Ø§Ù„Ø­Ø§Ù„ÙŠØ© Ù„Ù„Ø³ÙŠØ§Ø±Ø© Ø§Ù„ÙŠÙˆÙ…", "${_formatLargeNumber(value)} Ø¬.Ù…"),
-                    _buildSubInfoRow("Ø­Ø§Ù„Ø© Ø§Ù„Ø±Ø®ØµØ©", license),
+                    _buildSubInfoRow("نوع السيارة", type),
+                    _buildSubInfoRow("الموديل", model),
+                    _buildSubInfoRow("القيمة الحالية للسيارة اليوم", "${_formatLargeNumber(value)} ج.م"),
+                    _buildSubInfoRow("حالة الرخصة", license),
                   ],
                 ),
               );
@@ -1986,7 +1986,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             const Row(
               textDirection: TextDirection.rtl,
               children: [
-                Text("Ù„Ø§ ØªÙˆØ¬Ø¯ Ø³ÙŠØ§Ø±Ø§Øª Ù…Ø³Ø¬Ù„Ø© Ù„Ù„Ø¹Ù…ÙŠÙ„",
+                Text("لا توجد سيارات مسجلة للعميل",
                     style: TextStyle(color: TfcColors.outline, fontSize: 12),
                     textDirection: TextDirection.rtl),
               ],
@@ -2008,7 +2008,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               Icon(Icons.lock_outline, color: TfcColors.outline),
               SizedBox(height: 12),
               Text(
-                "ØªÙ… Ø­Ø¬Ø¨ ØµÙ„Ø§Ø­ÙŠØ© Ø¹Ø±Ø¶ Ø§Ù„Ù…Ø³ØªÙ†Ø¯Ø§Øª",
+                "تم حجب صلاحية عرض المستندات",
                 style: TextStyle(color: TfcColors.outline, fontSize: 13),
               ),
             ],
@@ -2028,13 +2028,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             children: [
               Icon(Icons.file_present, color: TfcColors.primary, size: 20),
               SizedBox(width: 8),
-              Text("Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ù…Ø³ØªÙ†Ø¯Ø§Øª Ø§Ù„Ù…Ø±ÙÙ‚Ø©",
+              Text("مراجعة المستندات المرفقة",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
           const SizedBox(height: 16),
           if (client.documents.isEmpty)
-            const Text("Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø³ØªÙ†Ø¯Ø§Øª Ù…Ø±ÙÙˆØ¹Ø© Ù„Ù‡Ø°Ø§ Ø§Ù„Ø¹Ù…ÙŠÙ„",
+            const Text("لا توجد مستندات مرفوعة لهذا العميل",
                 style: TextStyle(color: TfcColors.outline, fontSize: 12),
                 textDirection: TextDirection.rtl)
           else
@@ -2045,13 +2045,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               itemBuilder: (context, idx) {
                 final d = client.documents[idx];
                 Color statusColor = Colors.amber;
-                String statusLabel = "ØªØ­Øª Ø§Ù„ØªØ¯Ù‚ÙŠÙ‚";
+                String statusLabel = "تحت التدقيق";
                 if (d.status == 'verified') {
                   statusColor = TfcColors.success;
-                  statusLabel = "Ù…Ù‚Ø¨ÙˆÙ„";
+                  statusLabel = "مقبول";
                 } else if (d.status == 'rejected') {
                   statusColor = Colors.redAccent;
-                  statusLabel = "Ù…Ø±ÙÙˆØ¶";
+                  statusLabel = "مرفوض";
                 }
 
                 return Padding(
@@ -2097,7 +2097,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                               icon: const Icon(Icons.check_circle, color: TfcColors.success, size: 18),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
-                              tooltip: "Ù…ÙˆØ§ÙÙ‚Ø©",
+                              tooltip: "موافقة",
                               onPressed: () => _updateDocumentStatus(client, d, 'verified'),
                             ),
                             const SizedBox(width: 8),
@@ -2105,7 +2105,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                               icon: const Icon(Icons.cancel, color: Colors.redAccent, size: 18),
                               padding: EdgeInsets.zero,
                               constraints: const BoxConstraints(),
-                              tooltip: "Ø±ÙØ¶",
+                              tooltip: "رفض",
                               onPressed: () => _updateDocumentStatus(client, d, 'rejected'),
                             ),
                             const SizedBox(width: 8),
@@ -2132,7 +2132,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             icon: const Icon(Icons.edit, color: TfcColors.secondary, size: 16),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
-                            tooltip: "ØªØ¹Ø¯ÙŠÙ„",
+                            tooltip: "تعديل",
                             onPressed: () => _editDocument(client, d),
                           ),
                           const SizedBox(width: 8),
@@ -2140,7 +2140,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             icon: const Icon(Icons.delete, color: Colors.redAccent, size: 16),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints(),
-                            tooltip: "Ø­Ø°Ù",
+                            tooltip: "حذف",
                             onPressed: () => _deleteDocument(client, d),
                           ),
                         ],
@@ -2155,7 +2155,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             child: TextButton.icon(
               onPressed: () => _addDocument(client),
               icon: const Icon(Icons.add_circle_outline, color: TfcColors.primary, size: 18),
-              label: const Text("Ø¥Ø¶Ø§ÙØ© Ù…Ø³ØªÙ†Ø¯ Ø¬Ø¯ÙŠØ¯", style: TextStyle(color: TfcColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
+              label: const Text("إضافة مستند جديد", style: TextStyle(color: TfcColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 shape: RoundedRectangleBorder(
@@ -2173,15 +2173,15 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
 
   void _showDocumentPreview(ClientDocumentModel doc) {
     Color statusColor = Colors.amber;
-    String statusLabel = "ØªØ­Øª Ø§Ù„ØªØ¯Ù‚ÙŠÙ‚";
+    String statusLabel = "تحت التدقيق";
     IconData statusIcon = Icons.hourglass_top;
     if (doc.status == 'verified') {
       statusColor = TfcColors.success;
-      statusLabel = "Ù…Ù‚Ø¨ÙˆÙ„ âœ“";
+      statusLabel = "مقبول ✓";
       statusIcon = Icons.check_circle;
     } else if (doc.status == 'rejected') {
       statusColor = Colors.redAccent;
-      statusLabel = "Ù…Ø±ÙÙˆØ¶ âœ—";
+      statusLabel = "مرفوض ✗";
       statusIcon = Icons.cancel;
     }
 
@@ -2283,7 +2283,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                               children: [
                                 Icon(Icons.broken_image, color: Colors.white30, size: 36),
                                 SizedBox(height: 8),
-                                Text("ØªØ¹Ø°Ø± ØªØ­Ù…ÙŠÙ„ Ù…Ø¹Ø§ÙŠÙ†Ø© Ø§Ù„ØµÙˆØ±Ø©", style: TextStyle(color: Colors.white38, fontSize: 12)),
+                                Text("تعذر تحميل معاينة الصورة", style: TextStyle(color: Colors.white38, fontSize: 12)),
                               ],
                             ),
                           ),
@@ -2312,7 +2312,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                         const Icon(Icons.info_outline, color: Colors.white54, size: 14),
                         const SizedBox(width: 6),
                         Text(
-                          hasUrl ? "Ø§Ù„Ù…Ø³ØªÙ†Ø¯ Ø¬Ø§Ù‡Ø² Ù„Ù„Ù…Ø¹Ø§ÙŠÙ†Ø© ÙˆØ§Ù„ÙØªØ­" : "Ø§Ù„Ù…Ø³ØªÙ†Ø¯ Ù…Ø±ÙÙˆØ¹ - ÙÙŠ Ø§Ù†ØªØ¸Ø§Ø± Ø§Ù„Ø±Ø¨Ø· Ø¨Ø§Ù„Ø®Ø§Ø¯Ù…",
+                          hasUrl ? "المستند جاهز للمعاينة والفتح" : "المستند مرفوع - في انتظار الربط بالخادم",
                           style: const TextStyle(color: Colors.white54, fontSize: 12),
                           textDirection: TextDirection.rtl,
                         ),
@@ -2354,7 +2354,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           }
                         },
                         icon: const Icon(Icons.open_in_new, size: 16),
-                        label: const Text("ÙØªØ­ Ø§Ù„Ù…Ø³ØªÙ†Ø¯"),
+                        label: const Text("فتح المستند"),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: TfcColors.primary,
                           foregroundColor: Colors.black,
@@ -2373,7 +2373,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
-                      child: const Text("Ø¥ØºÙ„Ø§Ù‚"),
+                      child: const Text("إغلاق"),
                     ),
                   ),
                 ],
@@ -2396,7 +2396,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     await ref.read(clientProvider.notifier).updateClientDocuments(client.id, updatedDocs, staffName: staffName);
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(newStatus == 'verified' ? "ØªÙ… Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø© Ø¹Ù„Ù‰ Ø§Ù„Ù…Ø³ØªÙ†Ø¯" : "ØªÙ… Ø±ÙØ¶ Ø§Ù„Ù…Ø³ØªÙ†Ø¯", textAlign: TextAlign.right)),
+        SnackBar(content: Text(newStatus == 'verified' ? "تم الموافقة على المستند" : "تم رفض المستند", textAlign: TextAlign.right)),
       );
     }
   }
@@ -2416,7 +2416,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         await ref.read(clientProvider.notifier).updateClientDocuments(client.id, updatedDocs, staffName: staffName);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("ØªÙ… Ø¥Ø¶Ø§ÙØ© Ø§Ù„Ù…Ø³ØªÙ†Ø¯ Ø¨Ù†Ø¬Ø§Ø­", textAlign: TextAlign.right)),
+            const SnackBar(content: Text("تم إضافة المستند بنجاح", textAlign: TextAlign.right)),
           );
         }
       },
@@ -2443,7 +2443,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         await ref.read(clientProvider.notifier).updateClientDocuments(client.id, updatedDocs, staffName: staffName);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("ØªÙ… ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ù…Ø³ØªÙ†Ø¯ Ø¨Ù†Ø¬Ø§Ø­", textAlign: TextAlign.right)),
+            const SnackBar(content: Text("تم تعديل المستند بنجاح", textAlign: TextAlign.right)),
           );
         }
       },
@@ -2455,12 +2455,12 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text("ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø­Ø°Ù", textAlign: TextAlign.right),
-        content: Text("Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø­Ø°Ù Ù…Ø³ØªÙ†Ø¯ \"${doc.documentName}\"ØŸ", textAlign: TextAlign.right),
+        title: const Text("تأكيد الحذف", textAlign: TextAlign.right),
+        content: Text("هل أنت متأكد من حذف مستند \"${doc.documentName}\"؟", textAlign: TextAlign.right),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text("Ø¥Ù„ØºØ§Ø¡"),
+            child: const Text("إلغاء"),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -2469,12 +2469,12 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               await ref.read(clientProvider.notifier).updateClientDocuments(client.id, updatedDocs, staffName: staffName);
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("ØªÙ… Ø­Ø°Ù Ø§Ù„Ù…Ø³ØªÙ†Ø¯ Ø¨Ù†Ø¬Ø§Ø­", textAlign: TextAlign.right)),
+                  const SnackBar(content: Text("تم حذف المستند بنجاح", textAlign: TextAlign.right)),
                 );
               }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            child: const Text("Ø­Ø°Ù"),
+            child: const Text("حذف"),
           ),
         ],
       ),
@@ -2499,7 +2499,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               children: [
                 Icon(Icons.edit_note, color: TfcColors.secondary, size: 20),
                 SizedBox(width: 8),
-                Text("Ø¥Ø¶Ø§ÙØ© Ù…Ù„Ø§Ø­Ø¸Ø© Ù…ØªØ§Ø¨Ø¹Ø© Ø¬Ø¯ÙŠØ¯Ø©",
+                Text("إضافة ملاحظة متابعة جديدة",
                     style:
                         TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ],
@@ -2511,10 +2511,10 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               maxLines: 2,
               decoration: const InputDecoration(
                 hintText:
-                    "Ø§ÙƒØªØ¨ Ù‡Ù†Ø§ ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ø§ØªØµØ§Ù„ØŒ Ø·Ù„Ø¨ Ø£ÙˆØ±Ø§Ù‚ØŒ Ø£Ùˆ ØªØ­Ø¯ÙŠØ« Ù…Ù† Ø§Ù„Ø¨Ù†Ùƒ...",
+                    "اكتب هنا تفاصيل الاتصال، طلب أوراق، أو تحديث من البنك...",
               ),
               validator: (v) => (v == null || v.trim().isEmpty)
-                  ? "Ø§Ù„Ø±Ø¬Ø§Ø¡ ÙƒØªØ§Ø¨Ø© Ø§Ù„Ù…Ù„Ø§Ø­Ø¸Ø©"
+                  ? "الرجاء كتابة الملاحظة"
                   : null,
             ),
             const SizedBox(height: 16),
@@ -2535,10 +2535,10 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   onPressed: () => _submitLog(
                     staffName: staffName,
                     logType: 'file_interaction',
-                    actionName: "ØªØ­Ø¯ÙŠØ« ÙŠØ¯ÙˆÙŠ - Ù…ØªØ§Ø¨Ø¹Ø© Ø§Ù„Ù…Ù„Ù",
+                    actionName: "تحديث يدوي - متابعة الملف",
                   ),
                   icon: const Icon(Icons.description_outlined, size: 16),
-                  label: const Text("Ù…Ù„Ø§Ø­Ø¸Ø© Ù…Ù„Ù", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  label: const Text("ملاحظة ملف", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
 
                 // Button 2: Save as Follow-up (scheduling follow-up date)
@@ -2551,7 +2551,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   ),
                   onPressed: () => _selectFollowUpDate(context, staffName),
                   icon: const Icon(Icons.calendar_month_outlined, size: 16),
-                  label: const Text("Ù…ØªØ§Ø¨Ø¹Ø©", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                  label: const Text("متابعة", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
 
                 if (showBankFollowUp)
@@ -2566,10 +2566,10 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     onPressed: () => _submitLog(
                       staffName: staffName,
                       logType: 'bank_follow_up',
-                      actionName: "Ù…Ø±Ø§Ø³Ù„Ø© Ø§Ù„Ø¨Ù†Ùƒ",
+                      actionName: "مراسلة البنك",
                     ),
                     icon: const Icon(Icons.contact_mail_outlined, size: 16),
-                    label: const Text("Ù…Ø±Ø§Ø³Ù„Ø© Ø§Ù„Ø¨Ù†Ùƒ", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                    label: const Text("مراسلة البنك", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                   ),
               ],
             ),
@@ -2607,7 +2607,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             children: [
               Icon(Icons.history, color: TfcColors.primary, size: 20),
               SizedBox(width: 8),
-              Text("Ø³Ø¬Ù„ Ø§Ù„ØªÙØ§Ø¹Ù„Ø§Øª ÙˆØ§Ù„Ù†Ø´Ø§Ø·Ø§Øª (Ø§Ù„Ø¬Ø¯ÙˆÙ„ Ø§Ù„Ø²Ù…Ù†ÙŠ)",
+              Text("سجل التفاعلات والنشاطات (الجدول الزمني)",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             ],
           ),
@@ -2617,19 +2617,19 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           Row(
             textDirection: TextDirection.rtl,
             children: [
-              _buildTabButton(0, "ØªÙØ§Ø¹Ù„Ø§Øª Ø§Ù„Ù…Ù„Ù", Icons.description_outlined),
+              _buildTabButton(0, "تفاعلات الملف", Icons.description_outlined),
               const SizedBox(width: 8),
-              _buildTabButton(1, "Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø§Øª", Icons.calendar_month_outlined),
+              _buildTabButton(1, "المتابعات", Icons.calendar_month_outlined),
               if (showBankFollowUpTab) ...[
                 const SizedBox(width: 8),
-                _buildTabButton(2, "Ù…Ø±Ø§Ø³Ù„Ø§Øª Ø§Ù„Ø¨Ù†Ùƒ", Icons.contact_mail_outlined),
+                _buildTabButton(2, "مراسلات البنك", Icons.contact_mail_outlined),
               ],
             ],
           ),
           const SizedBox(height: 24),
 
           if (filteredLogs.isEmpty)
-            const Text("Ù„Ø§ ØªÙˆØ¬Ø¯ Ù†Ø´Ø§Ø·Ø§Øª Ù…Ø³Ø¬Ù„Ø© ÙÙŠ Ù‡Ø°Ø§ Ø§Ù„Ù‚Ø³Ù… Ø­Ø§Ù„ÙŠØ§Ù‹",
+            const Text("لا توجد نشاطات مسجلة في هذا القسم حالياً",
                 style: TextStyle(color: TfcColors.outline, fontSize: 12),
                 textDirection: TextDirection.rtl)
           else
@@ -2718,7 +2718,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                       const Icon(Icons.alarm, color: Color(0xFF7B61FF), size: 12),
                                       const SizedBox(width: 4),
                                       Text(
-                                        "ØªØ§Ø±ÙŠØ® Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø© Ø§Ù„Ù…Ø·Ù„ÙˆØ¨: ${log.followUpDate!.day}/${log.followUpDate!.month}/${log.followUpDate!.year}",
+                                        "تاريخ المتابعة المطلوب: ${log.followUpDate!.day}/${log.followUpDate!.month}/${log.followUpDate!.year}",
                                         style: const TextStyle(color: Color(0xFF7B61FF), fontSize: 11, fontWeight: FontWeight.bold),
                                         textDirection: TextDirection.rtl,
                                       ),
@@ -2734,7 +2734,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                   textDirection: TextDirection.rtl,
                                   children: [
                                     PopupMenuButton<String>(
-                                      tooltip: "ØªØºÙŠÙŠØ± Ø­Ø§Ù„Ø© Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø©",
+                                      tooltip: "تغيير حالة المتابعة",
                                       onSelected: (newStatus) {
                                         ref.read(clientProvider.notifier).updateFollowUpStatus(
                                               client.id,
@@ -2746,11 +2746,11 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                       itemBuilder: (ctx) => [
                                         const PopupMenuItem(
                                           value: 'pending',
-                                          child: Text("Ù‚ÙŠØ¯ Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø© â³", textDirection: TextDirection.rtl),
+                                          child: Text("قيد المتابعة ⏳", textDirection: TextDirection.rtl),
                                         ),
                                         const PopupMenuItem(
                                           value: 'completed',
-                                          child: Text("ØªÙ…Øª Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø© âœ…", textDirection: TextDirection.rtl),
+                                          child: Text("تمت المتابعة ✅", textDirection: TextDirection.rtl),
                                         ),
                                       ],
                                       child: Container(
@@ -2782,7 +2782,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                             ),
                                             const SizedBox(width: 4),
                                             Text(
-                                              (log.followUpStatus == 'completed') ? "ØªÙ…Øª Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø©" : "Ù‚ÙŠØ¯ Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø©",
+                                              (log.followUpStatus == 'completed') ? "تمت المتابعة" : "قيد المتابعة",
                                               style: TextStyle(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.bold,
@@ -2808,7 +2808,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                "Ø¨ÙˆØ§Ø³Ø·Ø©: ${log.createdBy}",
+                                "بواسطة: ${log.createdBy}",
                                 style: const TextStyle(
                                     color: TfcColors.outline,
                                     fontSize: 10,
@@ -2836,14 +2836,14 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     double totalLoansInstallments = 0.0;
     String loansHtml = '';
     if (client.existingLoans.isEmpty) {
-      loansHtml = '<tr><td colspan="3" class="empty">Ù„Ø§ ØªÙˆØ¬Ø¯ Ù‚Ø±ÙˆØ¶ Ù‚Ø§Ø¦Ù…Ø© Ù…Ø³Ø¬Ù„Ø©</td></tr>';
+      loansHtml = '<tr><td colspan="3" class="empty">لا توجد قروض قائمة مسجلة</td></tr>';
     } else {
       for (var l in client.existingLoans) {
         totalLoansInstallments += l.installmentValue;
         loansHtml += '''
           <tr>
             <td>${l.bankName}</td>
-            <td>${_formatLargeNumber(l.installmentValue)} Ø¬.Ù…</td>
+            <td>${_formatLargeNumber(l.installmentValue)} ج.م</td>
             <td>${l.notes ?? '-'}</td>
           </tr>
         ''';
@@ -2854,19 +2854,19 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     double totalCardsFivePercent = 0.0;
     String cardsHtml = '';
     if (client.creditCardsRequests.isEmpty) {
-      cardsHtml = '<tr><td colspan="7" class="empty">Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¨Ø·Ø§Ù‚Ø§Øª Ø§Ø¦ØªÙ…Ø§Ù†ÙŠØ© Ù…Ø¯Ø±Ø¬Ø©</td></tr>';
+      cardsHtml = '<tr><td colspan="7" class="empty">لا توجد بطاقات ائتمانية مدرجة</td></tr>';
     } else {
       for (var c in client.creditCardsRequests) {
         totalCardsFivePercent += c.fivePercentCalc;
         cardsHtml += '''
           <tr>
             <td>${c.bankName}</td>
-            <td>${c.type == 'card' ? 'Ø¨Ø·Ø§Ù‚Ø©' : 'Ø£Ø¨Ù„ÙƒÙŠØ´Ù†'}</td>
-            <td>${_formatLargeNumber(c.value)} Ø¬.Ù…</td>
-            <td>${c.highestValue > 0 ? _formatLargeNumber(c.highestValue) + ' Ø¬.Ù…' : '-'}</td>
-            <td>${c.installment > 0 ? _formatLargeNumber(c.installment) + ' Ø¬.Ù…' : '-'}</td>
+            <td>${c.type == 'card' ? 'بطاقة' : 'أبلكيشن'}</td>
+            <td>${_formatLargeNumber(c.value)} ج.م</td>
+            <td>${c.highestValue > 0 ? _formatLargeNumber(c.highestValue) + ' ج.م' : '-'}</td>
+            <td>${c.installment > 0 ? _formatLargeNumber(c.installment) + ' ج.م' : '-'}</td>
             <td>${c.duration.isNotEmpty ? c.duration : '-'}</td>
-            <td class="highlight-val">${_formatLargeNumber(c.fivePercentCalc)} Ø¬.Ù…</td>
+            <td class="highlight-val">${_formatLargeNumber(c.fivePercentCalc)} ج.م</td>
           </tr>
         ''';
       }
@@ -2880,7 +2880,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     final double maxLoanValue = netLimit > 0 ? netLimit * 45 : 0.0;
 
     // 2. Find ID card images (front & back) from client documents
-    final idKeywords = ['Ø¨Ø·Ø§Ù‚Ø©', 'Ù‡ÙˆÙŠØ©', 'ÙˆØ¬Ù‡', 'Ø¸Ù‡Ø±', 'front', 'back', 'national', 'id', 'Ù‚ÙˆÙ…ÙŠ'];
+    final idKeywords = ['بطاقة', 'هوية', 'وجه', 'ظهر', 'front', 'back', 'national', 'id', 'قومي'];
     final imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
     
     // Find documents that look like ID card images
@@ -2925,7 +2925,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
       }
       if (imagesInnerHtml.isNotEmpty) {
         idImagesHtml = '''
-          <div class="section-title" style="page-break-before: auto;">ØµÙˆØ±Ø© Ø§Ù„Ø¨Ø·Ø§Ù‚Ø© Ø§Ù„Ø´Ø®ØµÙŠØ© (ÙˆØ¬Ù‡ ÙˆØ¸Ù‡Ø±)</div>
+          <div class="section-title" style="page-break-before: auto;">صورة البطاقة الشخصية (وجه وظهر)</div>
           <div class="id-cards-grid">
             $imagesInnerHtml
           </div>
@@ -2939,7 +2939,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     <html lang="ar" dir="rtl">
     <head>
       <meta charset="UTF-8">
-      <title>ØªÙ‚Ø±ÙŠØ± Ø§Ù„Ù…Ù„Ù Ø§Ù„Ø§Ø¦ØªÙ…Ø§Ù†ÙŠ Ù„Ù„Ø¹Ù…ÙŠÙ„: ${client.fullName}</title>
+      <title>تقرير الملف الائتماني للعميل: ${client.fullName}</title>
       <style>
         body {
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -3102,67 +3102,67 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     </head>
     <body>
       <div class="header">
-        <h1>ØªÙ‚Ø±ÙŠØ± Ø§Ù„Ù…Ù„Ù Ø§Ù„Ø§Ø¦ØªÙ…Ø§Ù†ÙŠ Ù„Ù„Ø¹Ù…ÙŠÙ„</h1>
-        <p>Ø§Ù„ØªØ§Ø±ÙŠØ®: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year} | Ø§Ù„Ø´Ø±ÙƒØ©: FUTURE CLUB</p>
+        <h1>تقرير الملف الائتماني للعميل</h1>
+        <p>التاريخ: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year} | الشركة: FUTURE CLUB</p>
       </div>
 
-      <div class="section-title">Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ø£Ø³Ø§Ø³ÙŠØ© ÙˆØ§Ù„ÙˆØ¸ÙŠÙÙŠØ©</div>
+      <div class="section-title">المعلومات الأساسية والوظيفية</div>
       <div class="info-grid">
         <div class="info-item">
-          <div class="info-label">Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø¨Ø§Ù„ÙƒØ§Ù…Ù„</div>
+          <div class="info-label">اسم العميل بالكامل</div>
           <div class="info-value">${client.fullName}</div>
         </div>
         <div class="info-item">
-          <div class="info-label">Ø§Ù„Ø±Ù‚Ù… Ø§Ù„Ù‚ÙˆÙ…ÙŠ</div>
-          <div class="info-value">${client.nationalId.isEmpty ? 'ØºÙŠØ± Ù…Ø³Ø¬Ù„' : client.nationalId}</div>
+          <div class="info-label">الرقم القومي</div>
+          <div class="info-value">${client.nationalId.isEmpty ? 'غير مسجل' : client.nationalId}</div>
         </div>
         <div class="info-item">
-          <div class="info-label">ØªØ§Ø±ÙŠØ® Ø§Ù„Ù…ÙŠÙ„Ø§Ø¯</div>
+          <div class="info-label">تاريخ الميلاد</div>
           <div class="info-value">${client.birthDate}</div>
         </div>
         <div class="info-item">
-          <div class="info-label">Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø©</div>
+          <div class="info-label">المحافظة</div>
           <div class="info-value">${client.governorate}</div>
         </div>
         <div class="info-item">
-          <div class="info-label">Ø¬Ù‡Ø© Ø§Ù„Ø¹Ù…Ù„</div>
+          <div class="info-label">جهة العمل</div>
           <div class="info-value">${client.companyName ?? '-'}</div>
         </div>
         <div class="info-item">
-          <div class="info-label">Ø§Ù„Ù…Ø³Ù…Ù‰ Ø§Ù„ÙˆØ¸ÙŠÙÙŠ</div>
+          <div class="info-label">المسمى الوظيفي</div>
           <div class="info-value">${client.jobTitle ?? '-'}</div>
         </div>
         <div class="info-item">
-          <div class="info-label">Ø·Ø±ÙŠÙ‚Ø© Ø§Ø³ØªÙ„Ø§Ù… Ø§Ù„Ø±Ø§ØªØ¨</div>
-          <div class="info-value">${client.salaryTransferMethod == 'bank_transfer' ? 'ØªØ­ÙˆÙŠÙ„ Ø±Ø§ØªØ¨ Ø¨Ù†ÙƒÙŠ' : 'Ù†Ù‚Ø¯ÙŠ / ÙƒØ§Ø´'}</div>
+          <div class="info-label">طريقة استلام الراتب</div>
+          <div class="info-value">${client.salaryTransferMethod == 'bank_transfer' ? 'تحويل راتب بنكي' : 'نقدي / كاش'}</div>
         </div>
         <div class="info-item">
-          <div class="info-label">Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø±Ø§ØªØ¨ Ø§Ù„Ø´Ù‡Ø±ÙŠ</div>
-          <div class="info-value">${_formatLargeNumber(totalSalary)} Ø¬.Ù…</div>
+          <div class="info-label">إجمالي الراتب الشهري</div>
+          <div class="info-value">${_formatLargeNumber(totalSalary)} ج.م</div>
         </div>
         <div class="info-item">
-          <div class="info-label">Ø§Ù„Ø¨Ù†ÙˆÙƒ Ø§Ù„Ù…Ø­ÙˆÙ„ Ø¹Ù„ÙŠÙ‡Ø§ Ø§Ù„Ø±Ø§ØªØ¨</div>
+          <div class="info-label">البنوك المحول عليها الراتب</div>
           <div class="info-value">
             ${client.salaryBankDetails.isNotEmpty
-              ? client.salaryBankDetails.map((b) => b['bank'] ?? '').where((name) => name.isNotEmpty).join(' ØŒ ')
-              : 'Ù„Ø§ ÙŠÙˆØ¬Ø¯'}
+              ? client.salaryBankDetails.map((b) => b['bank'] ?? '').where((name) => name.isNotEmpty).join(' ، ')
+              : 'لا يوجد'}
           </div>
         </div>
         <div class="info-item">
-          <div class="info-label">Ù…Ø¨Ù„Øº Ø§Ù„ØªÙ…ÙˆÙŠÙ„ Ø§Ù„Ù…Ø·Ù„ÙˆØ¨</div>
-          <div class="info-value">${_formatLargeNumber(client.requestedAmount)} Ø¬.Ù…</div>
+          <div class="info-label">مبلغ التمويل المطلوب</div>
+          <div class="info-value">${_formatLargeNumber(client.requestedAmount)} ج.م</div>
         </div>
       </div>
 
       $idImagesHtml
 
-      <div class="section-title">Ø§Ù„ØªØ²Ø§Ù…Ø§Øª Ø§Ù„Ù‚Ø±ÙˆØ¶ Ø§Ù„Ù‚Ø§Ø¦Ù…Ø©</div>
+      <div class="section-title">التزامات القروض القائمة</div>
       <table>
         <thead>
           <tr>
-            <th>Ø§Ø³Ù… Ø§Ù„Ø¨Ù†Ùƒ</th>
-            <th>Ù‚ÙŠÙ…Ø© Ø§Ù„Ù‚Ø³Ø·</th>
-            <th>Ù…Ù„Ø§Ø­Ø¸Ø§Øª</th>
+            <th>اسم البنك</th>
+            <th>قيمة القسط</th>
+            <th>ملاحظات</th>
           </tr>
         </thead>
         <tbody>
@@ -3170,17 +3170,17 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         </tbody>
       </table>
 
-      <div class="section-title">Ø§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª Ø§Ù„Ø§Ø¦ØªÙ…Ø§Ù†ÙŠØ© ÙˆØ§Ù„Ø·Ù„Ø¨Ø§Øª</div>
+      <div class="section-title">البطاقات الائتمانية والطلبات</div>
       <table>
         <thead>
           <tr>
-            <th>Ø§Ø³Ù… Ø§Ù„Ø¨Ù†Ùƒ</th>
-            <th>Ø§Ù„Ù†ÙˆØ¹</th>
-            <th>Ø§Ù„Ù„ÙŠÙ…Øª</th>
-            <th>Ø£Ø¹Ù„Ù‰ Ù‚ÙŠÙ…Ø©</th>
-            <th>Ø§Ù„Ù‚Ø³Ø·</th>
-            <th>Ø§Ù„Ù…Ø¯Ø©</th>
-            <th>Ø¹Ø¨Ø¡ Ø§Ù„Ø¯ÙŠÙ† (5%)</th>
+            <th>اسم البنك</th>
+            <th>النوع</th>
+            <th>الليمت</th>
+            <th>أعلى قيمة</th>
+            <th>القسط</th>
+            <th>المدة</th>
+            <th>عبء الدين (5%)</th>
           </tr>
         </thead>
         <tbody>
@@ -3188,16 +3188,16 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         </tbody>
       </table>
 
-      <div class="section-title">Ù…Ù„Ø®Øµ Ø§Ù„Ø§Ù„ØªØ²Ø§Ù…Ø§Øª ÙˆÙ…Ø¤Ø´Ø±Ø§Øª Ø§Ù„Ø§Ø¦ØªÙ…Ø§Ù†</div>
+      <div class="section-title">ملخص الالتزامات ومؤشرات الائتمان</div>
       <div class="summary-card">
-        <div class="summary-title">Ø®Ù„Ø§ØµØ© Ø§Ù„Ø­Ø³Ø§Ø¨Ø§Øª Ø§Ù„Ù…Ø§Ù„ÙŠØ© (Ù…Ø¹Ø¯Ù„Ø§Øª DBR ÙˆØ§Ù„Ø§Ø³ØªØ­Ù‚Ø§Ù‚):</div>
+        <div class="summary-title">خلاصة الحسابات المالية (معدلات DBR والاستحقاق):</div>
         <div class="summary-grid">
-          <div class="summary-item">Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø§Ù„ØªØ²Ø§Ù…Ø§Øª Ø§Ù„Ø´Ù‡Ø±ÙŠØ©: <strong>${_formatLargeNumber(totalInstallments)} Ø¬.Ù…</strong></div>
-          <div class="summary-item">Ù…Ø¹Ø¯Ù„ Ø¹Ø¨Ø¡ Ø§Ù„Ø¯ÙŠÙ† Ø§Ù„ÙØ¹Ù„ÙŠ (DBR): <strong class="highlight-val">${dbrPercentage.toStringAsFixed(1)}%</strong></div>
-          <div class="summary-item">Ù†Ø³Ø¨Ø© Ø§Ù„Ù€ 45% Ø§Ù„Ù…ØªØ§Ø­Ø© Ù…Ù† Ø§Ù„Ø±Ø§ØªØ¨: <strong>${_formatLargeNumber(availableSalaryFortyFive)}.00 Ø¬.Ù…</strong></div>
-          <div class="summary-item">ØµØ§ÙÙŠ Ø§Ù„Ù‚Ø³Ø· Ø§Ù„Ù…ØªØ§Ø­ Ø§Ù„Ø¬Ø¯ÙŠØ¯: <strong>${_formatLargeNumber(netLimit)}.00 Ø¬.Ù…</strong></div>
+          <div class="summary-item">إجمالي الالتزامات الشهرية: <strong>${_formatLargeNumber(totalInstallments)} ج.م</strong></div>
+          <div class="summary-item">معدل عبء الدين الفعلي (DBR): <strong class="highlight-val">${dbrPercentage.toStringAsFixed(1)}%</strong></div>
+          <div class="summary-item">نسبة الـ 45% المتاحة من الراتب: <strong>${_formatLargeNumber(availableSalaryFortyFive)}.00 ج.م</strong></div>
+          <div class="summary-item">صافي القسط المتاح الجديد: <strong>${_formatLargeNumber(netLimit)}.00 ج.م</strong></div>
           <div class="summary-item" style="grid-column: span 2; margin-top: 10px; border-top: 1px dashed #bee3f8; padding-top: 10px;">
-            ØªÙ‚Ø¯ÙŠØ± Ø§Ù„Ø­Ø¯ Ø§Ù„Ø£Ù‚ØµÙ‰ Ù„Ù„ØªÙ…ÙˆÙŠÙ„ Ø§Ù„Ù…ØªØ§Ø­: <strong>${_formatLargeNumber(maxLoanValue)}.00 Ø¬.Ù…</strong> (ØªÙ‚Ø±ÙŠØ¨ÙŠ)
+            تقدير الحد الأقصى للتمويل المتاح: <strong>${_formatLargeNumber(maxLoanValue)}.00 ج.م</strong> (تقريبي)
           </div>
         </div>
       </div>
@@ -3278,17 +3278,17 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
 
   // === Transaction Status Steps Definition ===
   static const List<Map<String, String>> _transactionSteps = [
-    {'key': 'pending', 'label': 'Ù‚ÙŠØ¯ Ø§Ù„Ø§Ù†ØªØ¸Ø§Ø±', 'icon': 'hourglass_empty'},
-    {'key': 'iscore_inquiry', 'label': 'Ø§Ø³ØªØ¹Ù„Ø§Ù… Ø§ÙŠØ³ÙƒÙˆØ±', 'icon': 'search'},
+    {'key': 'pending', 'label': 'قيد الانتظار', 'icon': 'hourglass_empty'},
+    {'key': 'iscore_inquiry', 'label': 'استعلام ايسكور', 'icon': 'search'},
     {
       'key': 'preparing_documents',
-      'label': 'ØªØ­Ø¶ÙŠØ± Ø§Ù„Ø§ÙˆØ±Ø§Ù‚',
+      'label': 'تحضير الاوراق',
       'icon': 'description'
     },
-    {'key': 'under_review', 'label': 'Ù‚ÙŠØ¯ Ø§Ù„Ø¯Ø±Ø§Ø³Ø©', 'icon': 'rate_review'},
-    {'key': 'at_bank', 'label': 'ÙÙ‰ Ø§Ù„Ø¨Ù†Ùƒ', 'icon': 'account_balance'},
-    {'key': 'approved', 'label': 'Ù…Ù‚Ø¨ÙˆÙ„', 'icon': 'check_circle'},
-    {'key': 'rejected', 'label': 'Ù…Ø±ÙÙˆØ¶', 'icon': 'cancel'},
+    {'key': 'under_review', 'label': 'قيد الدراسة', 'icon': 'rate_review'},
+    {'key': 'at_bank', 'label': 'فى البنك', 'icon': 'account_balance'},
+    {'key': 'approved', 'label': 'مقبول', 'icon': 'check_circle'},
+    {'key': 'rejected', 'label': 'مرفوض', 'icon': 'cancel'},
   ];
 
   int _getStatusIndex(String status) {
@@ -3349,7 +3349,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             Icon(Icons.timeline, color: TfcColors.primary, size: 18),
             SizedBox(width: 8),
             Text(
-              "Ø­Ø§Ù„Ø© Ø§Ù„Ù…Ø¹Ø§Ù…Ù„Ø©",
+              "حالة المعاملة",
               style: TextStyle(
                 color: TfcColors.onSurfaceVariant,
                 fontSize: 14,
@@ -3520,7 +3520,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   color: TfcColors.primary, size: 16),
               SizedBox(width: 6),
               Text(
-                "ØªØºÙŠÙŠØ± Ø­Ø§Ù„Ø© Ø§Ù„Ù…Ø¹Ø§Ù…Ù„Ø© (Ø£Ø¯Ù…Ù† ÙÙ‚Ø·)",
+                "تغيير حالة المعاملة (أدمن فقط)",
                 style: TextStyle(
                   color: TfcColors.primary,
                   fontSize: 12,
@@ -3570,7 +3570,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         ] else ...[
           const SizedBox(height: 8),
           const Text(
-            "* ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ø­Ø§Ù„Ø© Ù…ØªØ§Ø­ Ù„Ù„Ø£Ø¯Ù…Ù† ÙÙ‚Ø·.",
+            "* تعديل الحالة متاح للأدمن فقط.",
             style: TextStyle(color: TfcColors.outline, fontSize: 10),
             textDirection: TextDirection.rtl,
           ),
@@ -3586,31 +3586,31 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     switch (status) {
       case 'approved':
         color = TfcColors.success;
-        label = "Ù…Ù‚Ø¨ÙˆÙ„";
+        label = "مقبول";
         break;
       case 'under_review':
         color = Colors.blueAccent;
-        label = "Ù‚ÙŠØ¯ Ø§Ù„Ø¯Ø±Ø§Ø³Ø©";
+        label = "قيد الدراسة";
         break;
       case 'iscore_inquiry':
         color = Colors.orangeAccent;
-        label = "Ø§Ø³ØªØ¹Ù„Ø§Ù… Ø§ÙŠØ³ÙƒÙˆØ±";
+        label = "استعلام ايسكور";
         break;
       case 'preparing_documents':
         color = Colors.cyan;
-        label = "ØªØ­Ø¶ÙŠØ± Ø§Ù„Ø§ÙˆØ±Ø§Ù‚";
+        label = "تحضير الاوراق";
         break;
       case 'at_bank':
         color = Colors.deepPurpleAccent;
-        label = "ÙÙ‰ Ø§Ù„Ø¨Ù†Ùƒ";
+        label = "فى البنك";
         break;
       case 'rejected':
         color = Colors.redAccent;
-        label = "Ù…Ø±ÙÙˆØ¶";
+        label = "مرفوض";
         break;
       default:
         color = Colors.amber;
-        label = "Ù…Ø¹Ù„Ù‚";
+        label = "معلق";
     }
 
     return Container(
@@ -3667,24 +3667,24 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           final d = b['documents'];
           if (d is Map) {
             return {
-              'Ø³Ø¬Ù„ ØªØ¬Ø§Ø±Ù‰': d['Ø³Ø¬Ù„ ØªØ¬Ø§Ø±Ù‰'] == true,
-              'Ø¨Ø·Ø§Ù‚Ø© Ø¶Ø±Ø¨ÙŠØ©': d['Ø¨Ø·Ø§Ù‚Ø© Ø¶Ø±Ø¨ÙŠØ©'] == true,
-              'ÙƒØ´Ù Ø­Ø³Ø§Ø¨': d['ÙƒØ´Ù Ø­Ø³Ø§Ø¨'] == true,
-              'Ù…ÙŠØ²Ø§Ù†ÙŠØ§Øª': d['Ù…ÙŠØ²Ø§Ù†ÙŠØ§Øª'] == true,
-              'ÙÙˆØ§ØªÙŠØ±': d['ÙÙˆØ§ØªÙŠØ±'] == true,
-              'Ø±Ø®ØµØ© Ù…Ø´Ø±ÙˆØ¹ Ø§Ùˆ ØµÙ†Ø§Ø¹ÙŠØ©': d['Ø±Ø®ØµØ© Ù…Ø´Ø±ÙˆØ¹ Ø§Ùˆ ØµÙ†Ø§Ø¹ÙŠØ©'] == true,
-              'Ø¹Ù‚Ø¯ Ø§ÙŠØ¬Ø§Ø± Ø§Ùˆ ØªÙ…Ù„ÙŠÙƒ Ù„Ù…Ù‚Ø± Ø§Ù„Ø´Ø±ÙƒØ©': d['Ø¹Ù‚Ø¯ Ø§ÙŠØ¬Ø§Ø± Ø§Ùˆ ØªÙ…Ù„ÙŠÙƒ Ù„Ù…Ù‚Ø± Ø§Ù„Ø´Ø±ÙƒØ©'] == true,
+              'سجل تجارى': d['سجل تجارى'] == true,
+              'بطاقة ضربية': d['بطاقة ضربية'] == true,
+              'كشف حساب': d['كشف حساب'] == true,
+              'ميزانيات': d['ميزانيات'] == true,
+              'فواتير': d['فواتير'] == true,
+              'رخصة مشروع او صناعية': d['رخصة مشروع او صناعية'] == true,
+              'عقد ايجار او تمليك لمقر الشركة': d['عقد ايجار او تمليك لمقر الشركة'] == true,
             };
           }
           final list = d is List ? d : <dynamic>[];
           return {
-            'Ø³Ø¬Ù„ ØªØ¬Ø§Ø±Ù‰': list.contains('Ø³Ø¬Ù„ ØªØ¬Ø§Ø±Ù‰'),
-            'Ø¨Ø·Ø§Ù‚Ø© Ø¶Ø±Ø¨ÙŠØ©': list.contains('Ø¨Ø·Ø§Ù‚Ø© Ø¶Ø±Ø¨ÙŠØ©'),
-            'ÙƒØ´Ù Ø­Ø³Ø§Ø¨': list.contains('ÙƒØ´Ù Ø­Ø³Ø§Ø¨'),
-            'Ù…ÙŠØ²Ø§Ù†ÙŠØ§Øª': list.contains('Ù…ÙŠØ²Ø§Ù†ÙŠØ§Øª'),
-            'ÙÙˆØ§ØªÙŠØ±': list.contains('ÙÙˆØ§ØªÙŠØ±'),
-            'Ø±Ø®ØµØ© Ù…Ø´Ø±ÙˆØ¹ Ø§Ùˆ ØµÙ†Ø§Ø¹ÙŠØ©': list.contains('Ø±Ø®ØµØ© Ù…Ø´Ø±ÙˆØ¹ Ø§Ùˆ ØµÙ†Ø§Ø¹ÙŠØ©'),
-            'Ø¹Ù‚Ø¯ Ø§ÙŠØ¬Ø§Ø± Ø§Ùˆ ØªÙ…Ù„ÙŠÙƒ Ù„Ù…Ù‚Ø± Ø§Ù„Ø´Ø±ÙƒØ©': list.contains('Ø¹Ù‚Ø¯ Ø§ÙŠØ¬Ø§Ø± Ø§Ùˆ ØªÙ…Ù„ÙŠÙƒ Ù„Ù…Ù‚Ø± Ø§Ù„Ø´Ø±ÙƒØ©'),
+            'سجل تجارى': list.contains('سجل تجارى'),
+            'بطاقة ضربية': list.contains('بطاقة ضربية'),
+            'كشف حساب': list.contains('كشف حساب'),
+            'ميزانيات': list.contains('ميزانيات'),
+            'فواتير': list.contains('فواتير'),
+            'رخصة مشروع او صناعية': list.contains('رخصة مشروع او صناعية'),
+            'عقد ايجار او تمليك لمقر الشركة': list.contains('عقد ايجار او تمليك لمقر الشركة'),
           };
         })(),
       };
@@ -3696,13 +3696,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         'startDate': TextEditingController(),
         'place': TextEditingController(),
         'documents': {
-          'Ø³Ø¬Ù„ ØªØ¬Ø§Ø±Ù‰': false,
-          'Ø¨Ø·Ø§Ù‚Ø© Ø¶Ø±Ø¨ÙŠØ©': false,
-          'ÙƒØ´Ù Ø­Ø³Ø§Ø¨': false,
-          'Ù…ÙŠØ²Ø§Ù†ÙŠØ§Øª': false,
-          'ÙÙˆØ§ØªÙŠØ±': false,
-          'Ø±Ø®ØµØ© Ù…Ø´Ø±ÙˆØ¹ Ø§Ùˆ ØµÙ†Ø§Ø¹ÙŠØ©': false,
-          'Ø¹Ù‚Ø¯ Ø§ÙŠØ¬Ø§Ø± Ø§Ùˆ ØªÙ…Ù„ÙŠÙƒ Ù„Ù…Ù‚Ø± Ø§Ù„Ø´Ø±ÙƒØ©': false,
+          'سجل تجارى': false,
+          'بطاقة ضربية': false,
+          'كشف حساب': false,
+          'ميزانيات': false,
+          'فواتير': false,
+          'رخصة مشروع او صناعية': false,
+          'عقد ايجار او تمليك لمقر الشركة': false,
         },
       });
     }
@@ -3714,7 +3714,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: TfcColors.surfaceDim,
-              title: const Text("Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø£Ù†Ø´Ø·Ø© Ø§Ù„ØªØ¬Ø§Ø±ÙŠØ© Ù„Ù„Ø¹Ù…ÙŠÙ„",
+              title: const Text("إدارة الأنشطة التجارية للعميل",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
               content: SizedBox(
@@ -3745,7 +3745,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   textDirection: TextDirection.rtl,
                                   children: [
-                                    Text("Ø§Ù„Ù†Ø´Ø§Ø· #${idx + 1}",
+                                    Text("النشاط #${idx + 1}",
                                         style: const TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
                                     if (uiEntries.length > 1)
                                       IconButton(
@@ -3764,22 +3764,22 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                   children: [
                                     Expanded(
                                       child: _buildDialogFormField(
-                                        label: "Ø§Ù„Ù†Ø´Ø§Ø·",
+                                        label: "النشاط",
                                         child: TextFormField(
                                           controller: b['activity'],
                                           textAlign: TextAlign.right,
-                                          decoration: const InputDecoration(hintText: "Ø§Ø³Ù… Ø§Ù„Ù†Ø´Ø§Ø·"),
+                                          decoration: const InputDecoration(hintText: "اسم النشاط"),
                                         ),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: _buildDialogFormField(
-                                        label: "ØªØ§Ø±ÙŠØ® Ø¨Ø¯Ø¡ Ø§Ù„Ù†Ø´Ø§Ø·",
+                                        label: "تاريخ بدء النشاط",
                                         child: TextFormField(
                                           controller: b['startDate'],
                                           textAlign: TextAlign.right,
-                                          decoration: const InputDecoration(hintText: "Ù…Ø«Ø§Ù„: 2020"),
+                                          decoration: const InputDecoration(hintText: "مثال: 2020"),
                                         ),
                                       ),
                                     ),
@@ -3787,16 +3787,16 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                 ),
                                 const SizedBox(height: 12),
                                 _buildDialogFormField(
-                                  label: "Ù…ÙƒØ§Ù† Ø§Ù„Ù†Ø´Ø§Ø·",
+                                  label: "مكان النشاط",
                                   child: TextFormField(
                                     controller: b['place'],
                                     textAlign: TextAlign.right,
-                                    decoration: const InputDecoration(hintText: "Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ø¨Ø§Ù„ØªÙØµÙŠÙ„"),
+                                    decoration: const InputDecoration(hintText: "العنوان بالتفصيل"),
                                   ),
                                 ),
                                 const SizedBox(height: 12),
                                 const Text(
-                                  "Ø§Ù„Ø£ÙˆØ±Ø§Ù‚ Ø§Ù„Ù…ØªØ§Ø­Ø©",
+                                  "الأوراق المتاحة",
                                   textAlign: TextAlign.right,
                                   style: TextStyle(fontSize: 12, color: TfcColors.secondary, fontWeight: FontWeight.bold),
                                 ),
@@ -3839,19 +3839,19 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                               'startDate': TextEditingController(),
                               'place': TextEditingController(),
                               'documents': {
-                                'Ø³Ø¬Ù„ ØªØ¬Ø§Ø±Ù‰': false,
-                                'Ø¨Ø·Ø§Ù‚Ø© Ø¶Ø±Ø¨ÙŠØ©': false,
-                                'ÙƒØ´Ù Ø­Ø³Ø§Ø¨': false,
-                                'Ù…ÙŠØ²Ø§Ù†ÙŠØ§Øª': false,
-                                'ÙÙˆØ§ØªÙŠØ±': false,
-                                'Ø±Ø®ØµØ© Ù…Ø´Ø±ÙˆØ¹ Ø§Ùˆ ØµÙ†Ø§Ø¹ÙŠØ©': false,
-                                'Ø¹Ù‚Ø¯ Ø§ÙŠØ¬Ø§Ø± Ø§Ùˆ ØªÙ…Ù„ÙŠÙƒ Ù„Ù…Ù‚Ø± Ø§Ù„Ø´Ø±ÙƒØ©': false,
+                                'سجل تجارى': false,
+                                'بطاقة ضربية': false,
+                                'كشف حساب': false,
+                                'ميزانيات': false,
+                                'فواتير': false,
+                                'رخصة مشروع او صناعية': false,
+                                'عقد ايجار او تمليك لمقر الشركة': false,
                               },
                             });
                           });
                         },
                         icon: const Icon(Icons.add_circle),
-                        label: const Text("Ø¥Ø¶Ø§ÙØ© Ù†Ø´Ø§Ø· Ø¢Ø®Ø±"),
+                        label: const Text("إضافة نشاط آخر"),
                       ),
                     ],
                   ),
@@ -3860,7 +3860,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Ø¥Ù„ØºØ§Ø¡"),
+                  child: const Text("إلغاء"),
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -3908,11 +3908,11 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       if (error != null) {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("ØªÙ… Ø­ÙØ¸ Ø§Ù„ØªØ¹Ø¯ÙŠÙ„Ø§Øª Ø¨Ù†Ø¬Ø§Ø­")));
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("تم حفظ التعديلات بنجاح")));
                       }
                     }
                   },
-                  child: const Text("Ø­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª"),
+                  child: const Text("حفظ التغييرات"),
                 ),
               ],
             );
@@ -3929,19 +3929,19 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     
     final List<Map<String, dynamic>> uiEntries = tempEntries.map((b) {
       final docsMap = {
-        'ØµÙˆØ±Ø© ÙƒØ§Ø±Ù†ÙŠÙ‡ Ø§Ù„Ù†Ù‚Ø§Ø¨Ø©': false,
-        'ØµÙˆØ±Ø© Ù…Ø²Ø§ÙˆÙ„Ø© Ø§Ù„Ù…Ù‡Ù†Ø©': false,
-        'ØµÙˆØ±Ø© Ø±Ø®ØµØ© Ø§Ù„Ø¹ÙŠØ§Ø¯Ø©/Ø§Ù„ØµÙŠØ¯Ù„ÙŠØ©': false,
+        'صورة كارنيه النقابة': false,
+        'صورة مزاولة المهنة': false,
+        'صورة رخصة العيادة/الصيدلية': false,
       };
       final d = b['documents'];
       if (d is Map) {
-        docsMap['ØµÙˆØ±Ø© ÙƒØ§Ø±Ù†ÙŠÙ‡ Ø§Ù„Ù†Ù‚Ø§Ø¨Ø©'] = d['ØµÙˆØ±Ø© ÙƒØ§Ø±Ù†ÙŠÙ‡ Ø§Ù„Ù†Ù‚Ø§Ø¨Ø©'] == true;
-        docsMap['ØµÙˆØ±Ø© Ù…Ø²Ø§ÙˆÙ„Ø© Ø§Ù„Ù…Ù‡Ù†Ø©'] = d['ØµÙˆØ±Ø© Ù…Ø²Ø§ÙˆÙ„Ø© Ø§Ù„Ù…Ù‡Ù†Ø©'] == true;
-        docsMap['ØµÙˆØ±Ø© Ø±Ø®ØµØ© Ø§Ù„Ø¹ÙŠØ§Ø¯Ø©/Ø§Ù„ØµÙŠØ¯Ù„ÙŠØ©'] = d['ØµÙˆØ±Ø© Ø±Ø®ØµØ© Ø§Ù„Ø¹ÙŠØ§Ø¯Ø©/Ø§Ù„ØµÙŠØ¯Ù„ÙŠØ©'] == true;
+        docsMap['صورة كارنيه النقابة'] = d['صورة كارنيه النقابة'] == true;
+        docsMap['صورة مزاولة المهنة'] = d['صورة مزاولة المهنة'] == true;
+        docsMap['صورة رخصة العيادة/الصيدلية'] = d['صورة رخصة العيادة/الصيدلية'] == true;
       } else if (d is List) {
-        docsMap['ØµÙˆØ±Ø© ÙƒØ§Ø±Ù†ÙŠÙ‡ Ø§Ù„Ù†Ù‚Ø§Ø¨Ø©'] = d.contains('ØµÙˆØ±Ø© ÙƒØ§Ø±Ù†ÙŠÙ‡ Ø§Ù„Ù†Ù‚Ø§Ø¨Ø©');
-        docsMap['ØµÙˆØ±Ø© Ù…Ø²Ø§ÙˆÙ„Ø© Ø§Ù„Ù…Ù‡Ù†Ø©'] = d.contains('ØµÙˆØ±Ø© Ù…Ø²Ø§ÙˆÙ„Ø© Ø§Ù„Ù…Ù‡Ù†Ø©');
-        docsMap['ØµÙˆØ±Ø© Ø±Ø®ØµØ© Ø§Ù„Ø¹ÙŠØ§Ø¯Ø©/Ø§Ù„ØµÙŠØ¯Ù„ÙŠØ©'] = d.contains('ØµÙˆØ±Ø© Ø±Ø®ØµØ© Ø§Ù„Ø¹ÙŠØ§Ø¯Ø©/Ø§Ù„ØµÙŠØ¯Ù„ÙŠØ©');
+        docsMap['صورة كارنيه النقابة'] = d.contains('صورة كارنيه النقابة');
+        docsMap['صورة مزاولة المهنة'] = d.contains('صورة مزاولة المهنة');
+        docsMap['صورة رخصة العيادة/الصيدلية'] = d.contains('صورة رخصة العيادة/الصيدلية');
       }
 
       return {
@@ -3958,9 +3958,9 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         'practiceStartDate': TextEditingController(),
         'licenseDate': TextEditingController(),
         'documents': {
-          'ØµÙˆØ±Ø© ÙƒØ§Ø±Ù†ÙŠÙ‡ Ø§Ù„Ù†Ù‚Ø§Ø¨Ø©': false,
-          'ØµÙˆØ±Ø© Ù…Ø²Ø§ÙˆÙ„Ø© Ø§Ù„Ù…Ù‡Ù†Ø©': false,
-          'ØµÙˆØ±Ø© Ø±Ø®ØµØ© Ø§Ù„Ø¹ÙŠØ§Ø¯Ø©/Ø§Ù„ØµÙŠØ¯Ù„ÙŠØ©': false,
+          'صورة كارنيه النقابة': false,
+          'صورة مزاولة المهنة': false,
+          'صورة رخصة العيادة/الصيدلية': false,
         },
       });
     }
@@ -3972,7 +3972,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: TfcColors.surfaceDim,
-              title: const Text("Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø£Ù†Ø´Ø·Ø© Ø§Ù„Ø·Ø¨ÙŠØ© Ù„Ù„Ø¹Ù…ÙŠÙ„",
+              title: const Text("إدارة الأنشطة الطبية للعميل",
                   textAlign: TextAlign.center,
                   style: TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
               content: SizedBox(
@@ -4003,7 +4003,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   textDirection: TextDirection.rtl,
                                   children: [
-                                    Text("Ù†Ø´Ø§Ø· Ø·Ø¨ÙŠ #${idx + 1}",
+                                    Text("نشاط طبي #${idx + 1}",
                                         style: const TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
                                     if (uiEntries.length > 1)
                                       IconButton(
@@ -4019,11 +4019,11 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                 const SizedBox(height: 12),
                                 if (['doctor_clinic', 'doctor_hospital'].contains(client.employmentType))
                                   _buildDialogFormField(
-                                    label: "Ø§Ù„ØªØ®ØµØµ",
+                                    label: "التخصص",
                                     child: TextFormField(
                                       controller: b['specialization'],
                                       textAlign: TextAlign.right,
-                                      decoration: const InputDecoration(hintText: "Ù…Ø«Ø§Ù„: Ø¨Ø§Ø·Ù†Ø©ØŒ Ø£Ø³Ù†Ø§Ù†..."),
+                                      decoration: const InputDecoration(hintText: "مثال: باطنة، أسنان..."),
                                     ),
                                   ),
                                 if (['doctor_clinic', 'doctor_hospital'].contains(client.employmentType))
@@ -4033,11 +4033,11 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                   children: [
                                     Expanded(
                                       child: _buildDialogFormField(
-                                        label: "ØªØ§Ø±ÙŠØ® Ù…Ø²Ø§ÙˆÙ„Ø© Ø§Ù„Ù…Ù‡Ù†Ø©",
+                                        label: "تاريخ مزاولة المهنة",
                                         child: TextFormField(
                                           controller: b['practiceStartDate'],
                                           textAlign: TextAlign.right,
-                                          decoration: const InputDecoration(hintText: "Ù…Ø«Ø§Ù„: 2015-05-01"),
+                                          decoration: const InputDecoration(hintText: "مثال: 2015-05-01"),
                                         ),
                                       ),
                                     ),
@@ -4045,11 +4045,11 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: _buildDialogFormField(
-                                          label: "ØªØ§Ø±ÙŠØ® Ø§Ù„ØªØ±Ø®ÙŠØµ",
+                                          label: "تاريخ الترخيص",
                                           child: TextFormField(
                                             controller: b['licenseDate'],
                                             textAlign: TextAlign.right,
-                                            decoration: const InputDecoration(hintText: "Ù…Ø«Ø§Ù„: 2018-01-01"),
+                                            decoration: const InputDecoration(hintText: "مثال: 2018-01-01"),
                                           ),
                                         ),
                                       ),
@@ -4058,7 +4058,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                 ),
                                 const SizedBox(height: 16),
                                 const Text(
-                                  "Ø§Ù„Ø£ÙˆØ±Ø§Ù‚ Ø§Ù„Ù…ØªØ§Ø­Ø©",
+                                  "الأوراق المتاحة",
                                   textAlign: TextAlign.right,
                                   style: TextStyle(fontSize: 12, color: TfcColors.secondary, fontWeight: FontWeight.bold),
                                 ),
@@ -4069,7 +4069,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                     spacing: 12,
                                     runSpacing: 6,
                                     children: docsMap.keys.map((docName) {
-                                      if (docName == 'ØµÙˆØ±Ø© Ø±Ø®ØµØ© Ø§Ù„Ø¹ÙŠØ§Ø¯Ø©/Ø§Ù„ØµÙŠØ¯Ù„ÙŠØ©' && client.employmentType == 'doctor_hospital') {
+                                      if (docName == 'صورة رخصة العيادة/الصيدلية' && client.employmentType == 'doctor_hospital') {
                                         return const SizedBox.shrink();
                                       }
                                       return Row(
@@ -4104,15 +4104,15 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                               'practiceStartDate': TextEditingController(),
                               'licenseDate': TextEditingController(),
                               'documents': {
-                                'ØµÙˆØ±Ø© ÙƒØ§Ø±Ù†ÙŠÙ‡ Ø§Ù„Ù†Ù‚Ø§Ø¨Ø©': false,
-                                'ØµÙˆØ±Ø© Ù…Ø²Ø§ÙˆÙ„Ø© Ø§Ù„Ù…Ù‡Ù†Ø©': false,
-                                'ØµÙˆØ±Ø© Ø±Ø®ØµØ© Ø§Ù„Ø¹ÙŠØ§Ø¯Ø©/Ø§Ù„ØµÙŠØ¯Ù„ÙŠØ©': false,
+                                'صورة كارنيه النقابة': false,
+                                'صورة مزاولة المهنة': false,
+                                'صورة رخصة العيادة/الصيدلية': false,
                               },
                             });
                           });
                         },
                         icon: const Icon(Icons.add_circle),
-                        label: const Text("Ø¥Ø¶Ø§ÙØ© Ù†Ø´Ø§Ø· Ø·Ø¨ÙŠ Ø¢Ø®Ø±"),
+                        label: const Text("إضافة نشاط طبي آخر"),
                       ),
                     ],
                   ),
@@ -4121,7 +4121,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Ø¥Ù„ØºØ§Ø¡"),
+                  child: const Text("إلغاء"),
                 ),
                 ElevatedButton(
                   onPressed: () async {
@@ -4165,11 +4165,11 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       if (error != null) {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("ØªÙ… Ø­ÙØ¸ Ø§Ù„ØªØ¹Ø¯ÙŠÙ„Ø§Øª Ø¨Ù†Ø¬Ø§Ø­")));
+                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("تم حفظ التعديلات بنجاح")));
                       }
                     }
                   },
-                  child: const Text("Ø­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª"),
+                  child: const Text("حفظ التغييرات"),
                 ),
               ],
             );
@@ -4254,8 +4254,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     // Fallback: parse from history logs (legacy support)
     final salaryLog = client.history.firstWhere(
       (log) =>
-          log.actionType.contains("ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ø±Ø§ØªØ¨") ||
-          log.notes.contains("Ø·Ø±ÙŠÙ‚Ø© ØªØ­ÙˆÙŠÙ„ Ø§Ù„Ø±Ø§ØªØ¨"),
+          log.actionType.contains("تفاصيل الراتب") ||
+          log.notes.contains("طريقة تحويل الراتب"),
       orElse: () => InteractionLogModel(
           id: '',
           actionType: '',
@@ -4267,14 +4267,14 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     if (salaryLog.notes.isNotEmpty) {
       final notes = salaryLog.notes;
       double totalSalary = 0.0;
-      if (notes.contains("Ø¥ÙŠØ¯Ø§Ø¹ Ù†Ù‚Ø¯ÙŠ Ø¨Ù…Ø¨Ù„Øº:")) {
-        final regExp = RegExp(r'Ø¨Ù…Ø¨Ù„Øº:\s*([\d\.]+)');
+      if (notes.contains("إيداع نقدي بمبلغ:")) {
+        final regExp = RegExp(r'بمبلغ:\s*([\d\.]+)');
         final match = regExp.firstMatch(notes);
         if (match != null) {
           totalSalary = double.tryParse(match.group(1) ?? '') ?? 0.0;
         }
-      } else if (notes.contains("ØªØ­ÙˆÙŠÙ„ Ø¨Ù†ÙƒÙŠ Ø¹Ù„Ù‰ Ø§Ù„Ø­Ø³Ø§Ø¨Ø§Øª:")) {
-        final regExp = RegExp(r'\(\s*([\d\.]+)\s*Ø¬\.Ù…\s*\)');
+      } else if (notes.contains("تحويل بنكي على الحسابات:")) {
+        final regExp = RegExp(r'\(\s*([\d\.]+)\s*ج\.م\s*\)');
         for (final m in regExp.allMatches(notes)) {
           totalSalary += double.tryParse(m.group(1) ?? '') ?? 0.0;
         }
@@ -4304,7 +4304,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               Icon(Icons.lock_outline, color: TfcColors.outline),
               SizedBox(height: 8),
               Text(
-                  "Ù…Ù„Ø®Øµ Ø§Ù„Ø§Ù„ØªØ²Ø§Ù…Ø§Øª Ø§Ù„Ø§Ø¦ØªÙ…Ø§Ù†ÙŠØ© ÙˆØ§Ù„Ù€ DBR Ù…Ø®ÙÙŠ Ù„Ø¹Ø¯Ù… ØµÙ„Ø§Ø­ÙŠØ© Ø¹Ø±Ø¶ Ø§Ù„Ø±Ø§ØªØ¨ Ø£Ùˆ Ø§Ù„Ù‚Ø±ÙˆØ¶ Ø£Ùˆ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª",
+                  "ملخص الالتزامات الائتمانية والـ DBR مخفي لعدم صلاحية عرض الراتب أو القروض أو البطاقات",
                   style: TextStyle(color: TfcColors.outline),
                   textAlign: TextAlign.center),
             ],
@@ -4356,7 +4356,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     color: TfcColors.primary, size: 20),
               ),
               const SizedBox(width: 12),
-              const Text("Ù…Ù„Ø®Øµ Ø§Ù„Ø§Ù„ØªØ²Ø§Ù…Ø§Øª Ø§Ù„Ø§Ø¦ØªÙ…Ø§Ù†ÙŠØ©",
+              const Text("ملخص الالتزامات الائتمانية",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
@@ -4367,40 +4367,40 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             alignment: WrapAlignment.center,
             children: [
               _buildSummaryTile(
-                  "Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø£Ù‚Ø³Ø§Ø· Ø§Ù„Ù‚Ø±ÙˆØ¶",
-                  "${_formatLargeNumber(loanInst)} Ø¬.Ù…",
+                  "إجمالي أقساط القروض",
+                  "${_formatLargeNumber(loanInst)} ج.م",
                   Icons.account_balance,
                   TfcColors.secondary),
               _buildSummaryTile(
-                  "Ø¥Ø¬Ù…Ø§Ù„ÙŠ 5% Ø§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª",
-                  "${_formatLargeNumber(cardFiveP)} Ø¬.Ù…",
+                  "إجمالي 5% البطاقات",
+                  "${_formatLargeNumber(cardFiveP)} ج.م",
                   Icons.credit_card,
                   const Color(0xFF7B68EE)),
               _buildSummaryTile(
-                  "Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø§Ù„ØªØ²Ø§Ù…Ø§Øª Ø¨Ù€ 5%",
-                  "${_formatLargeNumber(totalOblWithFivePercent)} Ø¬.Ù…",
+                  "إجمالي الالتزامات بـ 5%",
+                  "${_formatLargeNumber(totalOblWithFivePercent)} ج.م",
                   Icons.account_balance_wallet,
                   const Color(0xFF8E44AD)),
               _buildSummaryTile(
-                  "Ø§Ù„Ø­Ø¯ Ø§Ù„Ø£Ø¹Ù„Ù‰ Ù„Ù„Ø¨Ø·Ø§Ù‚Ø§Øª",
-                  "${_formatLargeNumber(cardHighest)} Ø¬.Ù…",
+                  "الحد الأعلى للبطاقات",
+                  "${_formatLargeNumber(cardHighest)} ج.م",
                   Icons.trending_up,
                   Colors.amberAccent),
               _buildSummaryTile(
-                  "Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø§Ù„ØªØ²Ø§Ù…Ø§Øª",
-                  "${_formatLargeNumber(totalObl)} Ø¬.Ù…",
+                  "إجمالي الالتزامات",
+                  "${_formatLargeNumber(totalObl)} ج.م",
                   Icons.payments,
                   const Color(0xFFFF6B6B)),
               _buildSummaryTile(
-                  "Ø­Ø¯ Ø§Ù„Ù€ DBR Ø§Ù„Ù…Ø³Ù…ÙˆØ­ (50%)",
-                  "${_formatLargeNumber(maxAllowed)} Ø¬.Ù…",
+                  "حد الـ DBR المسموح (50%)",
+                  "${_formatLargeNumber(maxAllowed)} ج.م",
                   Icons.monetization_on,
                   TfcColors.primary),
-              _buildSummaryTile("Ù†Ø³Ø¨Ø© Ø¹Ø¨Ø¡ Ø§Ù„Ø¯ÙŠÙ† DBR",
+              _buildSummaryTile("نسبة عبء الدين DBR",
                   "${dbr.toStringAsFixed(1)}%", Icons.speed, dbrColor),
               _buildSummaryTile(
-                  "Ø§Ù„Ù…ØªØ§Ø­ Ù„Ù‚Ø³Ø· Ø¬Ø¯ÙŠØ¯",
-                  "${_formatLargeNumber(available)} Ø¬.Ù…",
+                  "المتاح لقسط جديد",
+                  "${_formatLargeNumber(available)} ج.م",
                   Icons.savings,
                   available > 0 ? TfcColors.primary : const Color(0xFFFF6B6B)),
             ],
@@ -4411,7 +4411,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  "Ù…Ø¤Ø´Ø± Ø¹Ø¨Ø¡ Ø§Ù„Ø¯ÙŠÙ† (DBR): ${dbr.toStringAsFixed(1)}% Ù…Ù† Ø§Ù„Ø­Ø¯ Ø§Ù„Ø£Ù‚ØµÙ‰ 50%",
+                  "مؤشر عبء الدين (DBR): ${dbr.toStringAsFixed(1)}% من الحد الأقصى 50%",
                   style: TextStyle(fontSize: 12, color: dbrColor),
                 ),
                 const SizedBox(height: 8),
@@ -4485,7 +4485,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   color: Colors.redAccent, size: 56),
               const SizedBox(height: 16),
               const Text(
-                "ØªØ£ÙƒÙŠØ¯ Ø­Ø°Ù Ø§Ù„Ø¹Ù…ÙŠÙ„",
+                "تأكيد حذف العميل",
                 style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 20,
@@ -4494,7 +4494,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                "Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø­Ø°Ù Ø§Ù„Ø¹Ù…ÙŠÙ„ \"${client.fullName}\" Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹ØŸ\nØ³ÙŠØªÙ… Ø­Ø°Ù Ø¬Ù…ÙŠØ¹ Ø¨ÙŠØ§Ù†Ø§ØªÙ‡ Ø¨Ù…Ø§ ÙÙŠ Ø°Ù„Ùƒ Ø§Ù„Ù‚Ø±ÙˆØ¶ ÙˆØ§Ù„Ø¨Ø·Ø§Ù‚Ø§Øª ÙˆØ§Ù„Ù…Ø³ØªÙ†Ø¯Ø§Øª ÙˆØ³Ø¬Ù„ Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø©.\n\nÙ‡Ø°Ø§ Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡ Ù„Ø§ ÙŠÙ…ÙƒÙ† Ø§Ù„ØªØ±Ø§Ø¬Ø¹ Ø¹Ù†Ù‡.",
+                "هل أنت متأكد من حذف العميل \"${client.fullName}\" نهائياً؟\nسيتم حذف جميع بياناته بما في ذلك القروض والبطاقات والمستندات وسجل المتابعة.\n\nهذا الإجراء لا يمكن التراجع عنه.",
                 style: const TextStyle(
                     color: TfcColors.outline, fontSize: 14, height: 1.6),
                 textAlign: TextAlign.center,
@@ -4512,7 +4512,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: () => Navigator.of(ctx).pop(),
-                      child: const Text("Ø¥Ù„ØºØ§Ø¡",
+                      child: const Text("إلغاء",
                           style: TextStyle(color: TfcColors.outline)),
                     ),
                   ),
@@ -4527,7 +4527,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       ),
                       icon: const Icon(Icons.delete_forever,
                           color: Colors.white, size: 20),
-                      label: const Text("Ø­Ø°Ù Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹",
+                      label: const Text("حذف نهائياً",
                           style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold)),
@@ -4540,7 +4540,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                  "ØªÙ… Ø­Ø°Ù Ø§Ù„Ø¹Ù…ÙŠÙ„ \"${client.fullName}\" Ø¨Ù†Ø¬Ø§Ø­",
+                                  "تم حذف العميل \"${client.fullName}\" بنجاح",
                                   textAlign: TextAlign.right),
                               backgroundColor: Colors.redAccent,
                             ),
@@ -4593,38 +4593,38 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     String salaryMethod = client.salaryTransferMethod;
     bool insured = client.isInsured;
     const egyptGovernorates = [
-      "Ø§Ù„Ù‚Ø§Ù‡Ø±Ø©",
-      "Ø§Ù„Ø¬ÙŠØ²Ø©",
-      "Ø§Ù„Ø¥Ø³ÙƒÙ†Ø¯Ø±ÙŠØ©",
-      "Ø§Ù„Ø¯Ù‚Ù‡Ù„ÙŠØ©",
-      "Ø§Ù„Ø¨Ø­Ø± Ø§Ù„Ø£Ø­Ù…Ø±",
-      "Ø§Ù„Ø¨Ø­ÙŠØ±Ø©",
-      "Ø§Ù„ÙÙŠÙˆÙ…",
-      "Ø§Ù„ØºØ±Ø¨ÙŠØ©",
-      "Ø§Ù„Ø¥Ø³Ù…Ø§Ø¹ÙŠÙ„ÙŠØ©",
-      "Ø§Ù„Ù…Ù†ÙˆÙÙŠØ©",
-      "Ø§Ù„Ù…Ù†ÙŠØ§",
-      "Ø§Ù„Ù‚Ù„ÙŠÙˆØ¨ÙŠØ©",
-      "Ø§Ù„ÙˆØ§Ø¯ÙŠ Ø§Ù„Ø¬Ø¯ÙŠØ¯",
-      "Ø§Ù„Ø³ÙˆÙŠØ³",
-      "Ø£Ø³ÙˆØ§Ù†",
-      "Ø£Ø³ÙŠÙˆØ·",
-      "Ø¨Ù†ÙŠ Ø³ÙˆÙŠÙ",
-      "Ø¨ÙˆØ±Ø³Ø¹ÙŠØ¯",
-      "Ø¯Ù…ÙŠØ§Ø·",
-      "Ø§Ù„Ø´Ø±Ù‚ÙŠØ©",
-      "Ø¬Ù†ÙˆØ¨ Ø³ÙŠÙ†Ø§Ø¡",
-      "ÙƒÙØ± Ø§Ù„Ø´ÙŠØ®",
-      "Ù…Ø·Ø±ÙˆØ­",
-      "Ø§Ù„Ø£Ù‚ØµØ±",
-      "Ù‚Ù†Ø§",
-      "Ø´Ù…Ø§Ù„ Ø³ÙŠÙ†Ø§Ø¡",
-      "Ø³ÙˆÙ‡Ø§Ø¬"
+      "القاهرة",
+      "الجيزة",
+      "الإسكندرية",
+      "الدقهلية",
+      "البحر الأحمر",
+      "البحيرة",
+      "الفيوم",
+      "الغربية",
+      "الإسماعيلية",
+      "المنوفية",
+      "المنيا",
+      "القليوبية",
+      "الوادي الجديد",
+      "السويس",
+      "أسوان",
+      "أسيوط",
+      "بني سويف",
+      "بورسعيد",
+      "دمياط",
+      "الشرقية",
+      "جنوب سيناء",
+      "كفر الشيخ",
+      "مطروح",
+      "الأقصر",
+      "قنا",
+      "شمال سيناء",
+      "سوهاج"
     ];
 
     String gov = egyptGovernorates.contains(client.governorate)
         ? client.governorate
-        : "Ø§Ù„Ù‚Ø§Ù‡Ø±Ø©";
+        : "القاهرة";
     bool showSecondaryPhone = client.secondaryPhoneNumber != null &&
         client.secondaryPhoneNumber!.isNotEmpty;
 
@@ -4661,7 +4661,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 side: BorderSide(color: Colors.white.withAlpha(20)),
               ),
               title: const Text(
-                "ØªØ¹Ø¯ÙŠÙ„ Ù…Ù„Ù Ø§Ù„Ø¹Ù…ÙŠÙ„",
+                "تعديل ملف العميل",
                 style: TextStyle(
                     fontWeight: FontWeight.bold, color: TfcColors.primary),
                 textAlign: TextAlign.right,
@@ -4685,7 +4685,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                 color: TfcColors.primary, size: 18),
                             SizedBox(width: 8),
                             Text(
-                              "Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø´Ø®ØµÙŠØ© Ù„Ù„Ø¹Ù…ÙŠÙ„",
+                              "البيانات الشخصية للعميل",
                               style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -4701,21 +4701,21 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           children: [
                             Expanded(
                               child: _buildFormField(
-                                label: "Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„ (Ø«Ù„Ø§Ø«ÙŠ ÙƒÙ…Ø§ ÙÙŠ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø©)",
+                                label: "الاسم الكامل (ثلاثي كما في البطاقة)",
                                 child: TextFormField(
                                   controller: nameCtrl,
                                   textAlign: TextAlign.right,
                                   decoration: const InputDecoration(
-                                      hintText: "Ø£Ø­Ù…Ø¯ Ø¨Ù† Ø¹Ø¨Ø¯ Ø§Ù„Ù„Ù‡ Ø§Ù„Ù‚Ø­Ø·Ø§Ù†ÙŠ"),
+                                      hintText: "أحمد بن عبد الله القحطاني"),
                                   validator: (v) =>
-                                      v!.trim().isEmpty ? "Ù…Ø·Ù„ÙˆØ¨" : null,
+                                      v!.trim().isEmpty ? "مطلوب" : null,
                                 ),
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildFormField(
-                                label: "Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ Ø§Ù„Ù…Ø­Ù…ÙˆÙ„",
+                                label: "رقم الهاتف المحمول",
                                 child: TextFormField(
                                   controller: phoneCtrl,
                                   textAlign: TextAlign.right,
@@ -4723,7 +4723,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                   decoration: const InputDecoration(
                                       hintText: "05XXXXXXXX"),
                                   validator: (v) =>
-                                      v!.trim().isEmpty ? "Ù…Ø·Ù„ÙˆØ¨" : null,
+                                      v!.trim().isEmpty ? "مطلوب" : null,
                                 ),
                               ),
                             ),
@@ -4741,7 +4741,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                   children: [
                                     Expanded(
                                       child: _buildFormField(
-                                        label: "Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ Ø§Ù„Ø¥Ø¶Ø§ÙÙŠ",
+                                        label: "رقم الهاتف الإضافي",
                                         child: TextFormField(
                                           controller: secPhoneCtrl,
                                           textAlign: TextAlign.right,
@@ -4753,7 +4753,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                                   Icons.remove_circle,
                                                   color: Colors.redAccent,
                                                   size: 20),
-                                              tooltip: "Ø¥Ø²Ø§Ù„Ø© Ø§Ù„Ø±Ù‚Ù… Ø§Ù„Ø¥Ø¶Ø§ÙÙŠ",
+                                              tooltip: "إزالة الرقم الإضافي",
                                               onPressed: () {
                                                 setState(() {
                                                   showSecondaryPhone = false;
@@ -4783,7 +4783,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                     },
                                     icon: const Icon(Icons.add_circle_outline,
                                         size: 18),
-                                    label: const Text("Ø¥Ø¶Ø§ÙØ© Ø±Ù‚Ù… Ù‡Ø§ØªÙ Ø¢Ø®Ø±",
+                                    label: const Text("إضافة رقم هاتف آخر",
                                         style: TextStyle(fontSize: 13)),
                                   ),
                                 ),
@@ -4796,7 +4796,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           children: [
                             Expanded(
                               child: _buildFormField(
-                                label: "Ø§Ù„Ø±Ù‚Ù… Ø§Ù„Ù‚ÙˆÙ…ÙŠ (14 Ø±Ù‚Ù…)",
+                                label: "الرقم القومي (14 رقم)",
                                 child: TextFormField(
                                   controller: nationalIdCtrl,
                                   textAlign: TextAlign.right,
@@ -4808,7 +4808,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                       return null;
                                     }
                                     if (v.trim().length < 10) {
-                                      return "ÙŠØ±Ø¬Ù‰ ÙƒØªØ§Ø¨Ø© Ø±Ù‚Ù… ØµØ­ÙŠØ­";
+                                      return "يرجى كتابة رقم صحيح";
                                     }
                                     return null;
                                   },
@@ -4818,14 +4818,14 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildFormField(
-                                label: "ØªØ§Ø±ÙŠØ® Ø§Ù„Ù…ÙŠÙ„Ø§Ø¯",
+                                label: "تاريخ الميلاد",
                                 child: TextFormField(
                                   controller: birthDateCtrl,
                                   textAlign: TextAlign.right,
                                   decoration: const InputDecoration(
                                       hintText: "YYYY-MM-DD"),
                                   validator: (v) =>
-                                      v!.trim().isEmpty ? "Ù…Ø·Ù„ÙˆØ¨" : null,
+                                      v!.trim().isEmpty ? "مطلوب" : null,
                                 ),
                               ),
                             ),
@@ -4839,7 +4839,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           children: [
                             Expanded(
                               child: _buildFormField(
-                                label: "Ù†ÙˆØ¹ Ø§Ù„ØªÙˆØ¸ÙŠÙ",
+                                label: "نوع التوظيف",
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 12),
@@ -4856,67 +4856,67 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                       items: const [
                                         DropdownMenuItem(
                                             value: "government_employee",
-                                            child: Text("Ù…ÙˆØ¸Ù Ø­ÙƒÙˆÙ…Ù‰",
+                                            child: Text("موظف حكومى",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
                                             value: "private_sector",
-                                            child: Text("Ù…ÙˆØ¸Ù Ù‚Ø·Ø§Ø¹ Ø®Ø§Øµ",
+                                            child: Text("موظف قطاع خاص",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
                                             value: "business_owner",
-                                            child: Text("ØµØ§Ø­Ø¨ Ø¹Ù…Ù„",
+                                            child: Text("صاحب عمل",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
                                             value: "doctor_clinic",
-                                            child: Text("Ø¯ÙƒØªÙˆØ± Ø¹ÙŠØ§Ø¯Ø©",
+                                            child: Text("دكتور عيادة",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
                                             value: "doctor_hospital",
-                                            child: Text("Ø¯ÙƒØªÙˆØ± Ù…Ø³ØªØ´ÙÙ‰",
+                                            child: Text("دكتور مستشفى",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
                                             value: "pharmacist",
-                                            child: Text("ØµÙŠØ¯Ù„Ù‰",
+                                            child: Text("صيدلى",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
                                             value: "pharmacist_owner",
-                                            child: Text("ØµÙŠØ¯Ù„Ù‰ ØµØ§Ø­Ø¨ ØµÙŠØ¯Ù„ÙŠØ©",
+                                            child: Text("صيدلى صاحب صيدلية",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
                                             value: "military",
-                                            child: Text("Ù‚ÙˆØ§Øª Ù…Ø³Ù„Ø­Ø©",
+                                            child: Text("قوات مسلحة",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
                                             value: "faculty",
-                                            child: Text("Ù‡ÙŠØ¦Ø© ØªØ¯Ø±ÙŠØ³",
+                                            child: Text("هيئة تدريس",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
                                             value: "teacher",
-                                            child: Text("Ù…Ø¯Ø±Ø³",
+                                            child: Text("مدرس",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
                                             value: "freelance",
-                                            child: Text("ÙØ±ÙŠÙ„Ø§Ù†Ø³",
+                                            child: Text("فريلانس",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
                                             value: "retired",
-                                            child: Text("Ù…Ø¹Ø§Ø´",
+                                            child: Text("معاش",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
                                             value: "other",
-                                            child: Text("Ø£Ø®Ø±Ù‰",
+                                            child: Text("أخرى",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                       ],
@@ -4933,12 +4933,12 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildFormField(
-                                label: "Ø§Ø³Ù… Ø¬Ù‡Ø© Ø§Ù„Ø¹Ù…Ù„ / Ø§Ù„Ø´Ø±ÙƒØ©",
+                                label: "اسم جهة العمل / الشركة",
                                 child: TextFormField(
                                   controller: companyCtrl,
                                   textAlign: TextAlign.right,
                                   decoration: const InputDecoration(
-                                      hintText: "Ù…Ø«Ø§Ù„: Ø£Ø±Ø§Ù…ÙƒÙˆ Ù„Ù„Ø®Ø¯Ù…Ø§Øª"),
+                                      hintText: "مثال: أرامكو للخدمات"),
                                 ),
                               ),
                             ),
@@ -4952,19 +4952,19 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           children: [
                             Expanded(
                               child: _buildFormField(
-                                label: "Ø§Ù„Ù…Ø³Ù…Ù‰ Ø§Ù„ÙˆØ¸ÙŠÙÙŠ Ø§Ù„Ø­Ø§Ù„ÙŠ",
+                                label: "المسمى الوظيفي الحالي",
                                 child: TextFormField(
                                   controller: jobCtrl,
                                   textAlign: TextAlign.right,
                                   decoration: const InputDecoration(
-                                      hintText: "Ù…Ø«Ø§Ù„: Ù…Ù‡Ù†Ø¯Ø³ Ø¨Ø±Ù…Ø¬ÙŠØ§Øª Ø±Ø¦ÙŠØ³ÙŠ"),
+                                      hintText: "مثال: مهندس برمجيات رئيسي"),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildFormField(
-                                label: "Ø­Ø§Ù„Ø© Ø§Ù„ØªØ£Ù…ÙŠÙ† Ø§Ù„Ø§Ø¬ØªÙ…Ø§Ø¹ÙŠ",
+                                label: "حالة التأمين الاجتماعي",
                                 child: Row(
                                   textDirection: TextDirection.rtl,
                                   children: [
@@ -4980,7 +4980,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                         }
                                       },
                                     ),
-                                    const Text("Ù…Ø¤Ù…Ù† Ø¹Ù„ÙŠÙ‡",
+                                    const Text("مؤمن عليه",
                                         style: TextStyle(fontSize: 13)),
                                     const SizedBox(width: 8),
                                     Radio<bool>(
@@ -4995,7 +4995,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                         }
                                       },
                                     ),
-                                    const Text("ØºÙŠØ± Ù…Ø¤Ù…Ù†",
+                                    const Text("غير مؤمن",
                                         style: TextStyle(fontSize: 13)),
                                   ],
                                 ),
@@ -5007,7 +5007,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
 
                         // 5. Salary Transfer Method (Radios)
                         _buildFormField(
-                          label: "Ø·Ø±ÙŠÙ‚Ø© ØªØ­ÙˆÙŠÙ„ Ø§Ù„Ø±Ø§ØªØ¨",
+                          label: "طريقة تحويل الراتب",
                           child: Row(
                             textDirection: TextDirection.rtl,
                             children: [
@@ -5023,7 +5023,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                   }
                                 },
                               ),
-                              const Text("ØªØ­ÙˆÙŠÙ„ Ø±Ø§ØªØ¨ Ù„Ù„Ø¨Ù†Ùƒ",
+                              const Text("تحويل راتب للبنك",
                                   style: TextStyle(fontSize: 13)),
                               const SizedBox(width: 24),
                               Radio<String>(
@@ -5038,7 +5038,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                   }
                                 },
                               ),
-                              const Text("Ø¥ÙŠØ¯Ø§Ø¹ Ù†Ù‚Ø¯ÙŠ / Ø´ÙŠÙƒ",
+                              const Text("إيداع نقدي / شيك",
                                   style: TextStyle(fontSize: 13)),
                             ],
                           ),
@@ -5059,7 +5059,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                       textDirection: TextDirection.rtl,
                                       children: [
                                         const Text(
-                                          "ØªÙØ§ØµÙŠÙ„ Ø§Ù„Ø­Ø³Ø§Ø¨Ø§Øª Ø§Ù„Ø¨Ù†ÙƒÙŠØ© Ø§Ù„Ù…Ø­ÙˆÙ„ Ø¹Ù„ÙŠÙ‡Ø§ Ø§Ù„Ø±Ø§ØªØ¨",
+                                          "تفاصيل الحسابات البنكية المحول عليها الراتب",
                                           style: TextStyle(
                                               fontSize: 13,
                                               fontWeight: FontWeight.bold,
@@ -5080,7 +5080,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                           },
                                           icon: const Icon(Icons.add_circle,
                                               size: 16),
-                                          label: const Text("Ø¥Ø¶Ø§ÙØ© Ø­Ø³Ø§Ø¨ Ø¨Ù†ÙƒÙŠ",
+                                          label: const Text("إضافة حساب بنكي",
                                               style: TextStyle(fontSize: 12)),
                                         ),
                                       ],
@@ -5097,7 +5097,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                             Expanded(
                                               flex: 3,
                                               child: _buildFormField(
-                                                label: "Ø§Ø³Ù… Ø§Ù„Ø¨Ù†Ùƒ",
+                                                label: "اسم البنك",
                                                 child: TextFormField(
                                                   controller:
                                                       salaryBankEntries[idx]
@@ -5106,9 +5106,9 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                                   decoration:
                                                       const InputDecoration(
                                                           hintText:
-                                                              "Ø§Ø³Ù… Ø§Ù„Ø¨Ù†Ùƒ"),
+                                                              "اسم البنك"),
                                                   validator: (v) => v!.isEmpty
-                                                      ? "Ù…Ø·Ù„ÙˆØ¨"
+                                                      ? "مطلوب"
                                                       : null,
                                                 ),
                                               ),
@@ -5117,7 +5117,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                             Expanded(
                                               flex: 2,
                                               child: _buildFormField(
-                                                label: "Ø§Ù„Ù…Ø¨Ù„Øº (Ø¬.Ù…)",
+                                                label: "المبلغ (ج.م)",
                                                 child: TextFormField(
                                                   controller:
                                                       salaryBankEntries[idx]
@@ -5129,7 +5129,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                                       const InputDecoration(
                                                           hintText: "0.00"),
                                                   validator: (v) => v!.isEmpty
-                                                      ? "Ù…Ø·Ù„ÙˆØ¨"
+                                                      ? "مطلوب"
                                                       : null,
                                                 ),
                                               ),
@@ -5161,15 +5161,15 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                   ],
                                 )
                               : _buildFormField(
-                                  label: "Ù‚ÙŠÙ…Ø© Ø§Ù„Ø±Ø§ØªØ¨ Ø§Ù„Ù†Ù‚Ø¯ÙŠ (Ø¬.Ù…)",
+                                  label: "قيمة الراتب النقدي (ج.م)",
                                   child: TextFormField(
                                     controller: cashSalaryCtrl,
                                     textAlign: TextAlign.right,
                                     keyboardType: TextInputType.number,
                                     decoration: const InputDecoration(
-                                        hintText: "Ù‚ÙŠÙ…Ø© Ø§Ù„Ø±Ø§ØªØ¨ Ø§Ù„Ù†Ù‚Ø¯ÙŠ"),
+                                        hintText: "قيمة الراتب النقدي"),
                                     validator: (v) =>
-                                        v!.isEmpty ? "Ù…Ø·Ù„ÙˆØ¨" : null,
+                                        v!.isEmpty ? "مطلوب" : null,
                                   ),
                                 ),
                         ),
@@ -5185,7 +5185,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                 color: TfcColors.primary, size: 18),
                             SizedBox(width: 8),
                             Text(
-                              "Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø·Ù„Ø¨ ÙˆØ§Ù„ØªÙ…ÙˆÙŠÙ„",
+                              "بيانات الطلب والتمويل",
                               style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
@@ -5201,7 +5201,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           children: [
                             Expanded(
                               child: _buildFormField(
-                                label: "Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø©",
+                                label: "المحافظة",
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 12),
@@ -5235,14 +5235,14 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildFormField(
-                                label: "Ù…Ø¨Ù„Øº Ø§Ù„ØªÙ…ÙˆÙŠÙ„ Ø§Ù„Ù…Ø·Ù„ÙˆØ¨ (Ø¬.Ù…)",
+                                label: "مبلغ التمويل المطلوب (ج.م)",
                                 child: TextFormField(
                                   controller: amountCtrl,
                                   textAlign: TextAlign.right,
                                   keyboardType: TextInputType.number,
                                   validator: (v) =>
                                       double.tryParse(v ?? '') == null
-                                          ? "Ø£Ø¯Ø®Ù„ Ø±Ù‚Ù… ØµØ­ÙŠØ­"
+                                          ? "أدخل رقم صحيح"
                                           : null,
                                 ),
                               ),
@@ -5257,7 +5257,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           children: [
                             Expanded(
                               child: _buildFormField(
-                                label: "ØªÙ‚ÙŠÙŠÙ… Ø¢ÙŠ Ø³ÙƒÙˆØ± (300-850)",
+                                label: "تقييم آي سكور (300-850)",
                                 child: TextFormField(
                                   controller: scoreCtrl,
                                   textAlign: TextAlign.right,
@@ -5265,7 +5265,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                   validator: (v) {
                                     final val = int.tryParse(v ?? '');
                                     if (val == null || val < 300 || val > 850) {
-                                      return "Ø§Ù„ØªÙ‚ÙŠÙŠÙ… Ø¨ÙŠÙ† 300 Ùˆ 850";
+                                      return "التقييم بين 300 و 850";
                                     }
                                     return null;
                                   },
@@ -5275,7 +5275,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: _buildFormField(
-                                label: "Ø§Ù„Ù…Ù†Ø¯ÙˆØ¨ Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„",
+                                label: "المندوب المسؤول",
                                 child: Builder(
                                   builder: (context) {
                                     final empState =
@@ -5295,7 +5295,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                       dropdownColor: TfcColors.surfaceContainer,
                                       isExpanded: true,
                                       decoration: const InputDecoration(
-                                        hintText: "Ø§Ø®ØªØ± Ø§Ù„Ù…Ù†Ø¯ÙˆØ¨ Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„",
+                                        hintText: "اختر المندوب المسؤول",
                                         prefixIcon: Icon(Icons.person_search,
                                             color: TfcColors.outline),
                                       ),
@@ -5328,7 +5328,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Ø¥Ù„ØºØ§Ø¡",
+                  child: const Text("إلغاء",
                       style: TextStyle(color: Colors.white70)),
                 ),
                 ElevatedButton(
@@ -5385,7 +5385,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                         Navigator.pop(context);
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text("ØªÙ… ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¹Ù…ÙŠÙ„ Ø¨Ù†Ø¬Ø§Ø­",
+                            content: Text("تم تحديث بيانات العميل بنجاح",
                                 textAlign: TextAlign.right),
                             backgroundColor: TfcColors.primary,
                           ),
@@ -5396,14 +5396,14 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
-                            title: const Text("Ø®Ø·Ø£ ÙÙŠ ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª",
+                            title: const Text("خطأ في تحديث البيانات",
                                 textAlign: TextAlign.right,
                                 style: TextStyle(fontWeight: FontWeight.bold)),
                             content: Text(errorMsg, textAlign: TextAlign.right),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: const Text("Ø­Ø³Ù†Ø§Ù‹"),
+                                child: const Text("حسناً"),
                               ),
                             ],
                           ),
@@ -5411,7 +5411,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       }
                     }
                   },
-                  child: const Text("Ø­ÙØ¸ Ø§Ù„ØªØ¹Ø¯ÙŠÙ„Ø§Øª"),
+                  child: const Text("حفظ التعديلات"),
                 ),
               ],
             );
@@ -5443,7 +5443,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             side: BorderSide(color: Colors.white.withAlpha(20)),
           ),
           title: Text(
-            loan == null ? "Ø¥Ø¶Ø§ÙØ© Ù‚Ø³Ø· Ù‚Ø±Ø¶ Ù‚Ø§Ø¦Ù…" : "ØªØ¹Ø¯ÙŠÙ„ Ù‚Ø³Ø· Ù‚Ø±Ø¶ Ù‚Ø§Ø¦Ù…",
+            loan == null ? "إضافة قسط قرض قائم" : "تعديل قسط قرض قائم",
             style: const TextStyle(
                 fontWeight: FontWeight.bold, color: TfcColors.primary),
             textAlign: TextAlign.right,
@@ -5457,29 +5457,29 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   _buildFormField(
-                    label: "Ø§Ø³Ù… Ø§Ù„Ø¨Ù†Ùƒ / Ø§Ù„Ø¬Ù‡Ø© Ø§Ù„ØªÙ…ÙˆÙŠÙ„ÙŠØ©",
+                    label: "اسم البنك / الجهة التمويلية",
                     child: TextFormField(
                       controller: bankCtrl,
                       textAlign: TextAlign.right,
                       validator: (v) =>
-                          v!.trim().isEmpty ? "Ø§Ø³Ù… Ø§Ù„Ø¨Ù†Ùƒ Ù…Ø·Ù„ÙˆØ¨" : null,
+                          v!.trim().isEmpty ? "اسم البنك مطلوب" : null,
                     ),
                   ),
                   const SizedBox(height: 16),
                   _buildFormField(
-                    label: "Ù‚ÙŠÙ…Ø© Ø§Ù„Ù‚Ø³Ø· Ø§Ù„Ø´Ù‡Ø±ÙŠ (Ø¬.Ù…)",
+                    label: "قيمة القسط الشهري (ج.م)",
                     child: TextFormField(
                       controller: instCtrl,
                       textAlign: TextAlign.right,
                       keyboardType: TextInputType.number,
                       validator: (v) => double.tryParse(v ?? '') == null
-                          ? "Ø§Ù„Ø±Ø¬Ø§Ø¡ Ø¥Ø¯Ø®Ø§Ù„ Ø±Ù‚Ù… ØµØ­ÙŠØ­"
+                          ? "الرجاء إدخال رقم صحيح"
                           : null,
                     ),
                   ),
                   const SizedBox(height: 16),
                   _buildFormField(
-                    label: "Ù…Ù„Ø§Ø­Ø¸Ø§Øª",
+                    label: "ملاحظات",
                     child: TextFormField(
                       controller: notesCtrl,
                       textAlign: TextAlign.right,
@@ -5493,7 +5493,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             TextButton(
               onPressed: () => Navigator.pop(context),
               child:
-                  const Text("Ø¥Ù„ØºØ§Ø¡", style: TextStyle(color: Colors.white70)),
+                  const Text("إلغاء", style: TextStyle(color: Colors.white70)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -5539,14 +5539,14 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text("ØªÙ… Ø­ÙØ¸ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù‚Ø±Ø¶ Ø¨Ù†Ø¬Ø§Ø­",
+                      content: Text("تم حفظ بيانات القرض بنجاح",
                           textAlign: TextAlign.right),
                       backgroundColor: TfcColors.primary,
                     ),
                   );
                 }
               },
-              child: const Text("Ø­ÙØ¸"),
+              child: const Text("حفظ"),
             ),
           ],
         );
@@ -5573,7 +5573,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             : '0.00');
     final notesCtrl = TextEditingController(text: card?.notes ?? '');
     final durationCtrl =
-        TextEditingController(text: card?.duration ?? '12 Ø´Ù‡Ø±');
+        TextEditingController(text: card?.duration ?? '12 شهر');
 
     String type = card?.type ?? 'card';
 
@@ -5605,8 +5605,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               ),
               title: Text(
                 card == null
-                    ? "ØªÙ‚Ø¯ÙŠÙ… Ø¨Ø·Ø§Ù‚Ø© / Ø·Ù„Ø¨ Ø¬Ø¯ÙŠØ¯"
-                    : "ØªØ¹Ø¯ÙŠÙ„ Ø¨Ø·Ø§Ù‚Ø© / Ø·Ù„Ø¨ Ø§Ø¦ØªÙ…Ø§Ù†ÙŠ",
+                    ? "تقديم بطاقة / طلب جديد"
+                    : "تعديل بطاقة / طلب ائتماني",
                 style: const TextStyle(
                     fontWeight: FontWeight.bold, color: TfcColors.primary),
                 textAlign: TextAlign.right,
@@ -5627,12 +5627,12 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             Expanded(
                               flex: 3,
                               child: _buildFormField(
-                                label: "Ø§Ø³Ù… Ø§Ù„Ø¨Ù†Ùƒ",
+                                label: "اسم البنك",
                                 child: TextFormField(
                                   controller: bankCtrl,
                                   textAlign: TextAlign.right,
                                   validator: (v) => v!.trim().isEmpty
-                                      ? "Ø§Ø³Ù… Ø§Ù„Ø¨Ù†Ùƒ Ù…Ø·Ù„ÙˆØ¨"
+                                      ? "اسم البنك مطلوب"
                                       : null,
                                 ),
                               ),
@@ -5641,14 +5641,14 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             Expanded(
                               flex: 2,
                               child: _buildFormField(
-                                label: "Ù‚ÙŠÙ…Ø© Ø§Ù„Ù„ÙŠÙ…Øª",
+                                label: "قيمة الليمت",
                                 child: TextFormField(
                                   controller: valCtrl,
                                   textAlign: TextAlign.right,
                                   keyboardType: TextInputType.number,
                                   validator: (v) =>
                                       double.tryParse(v ?? '') == null
-                                          ? "Ø§Ù„Ø±Ø¬Ø§Ø¡ Ø¥Ø¯Ø®Ø§Ù„ Ø±Ù‚Ù… ØµØ­ÙŠØ­"
+                                          ? "الرجاء إدخال رقم صحيح"
                                           : null,
                                   onChanged: (v) => setState(recalculate),
                                 ),
@@ -5658,7 +5658,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             Expanded(
                               flex: 2,
                               child: _buildFormField(
-                                label: "Ù‚ÙŠÙ…Ø© Ø§Ù„Ù€ 5%",
+                                label: "قيمة الـ 5%",
                                 child: TextFormField(
                                   controller: fivePercentCtrl,
                                   textAlign: TextAlign.right,
@@ -5682,7 +5682,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             Expanded(
                               flex: 2,
                               child: _buildFormField(
-                                label: "Ø§Ù„Ù†ÙˆØ¹",
+                                label: "النوع",
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 12),
@@ -5699,12 +5699,12 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                       items: const [
                                         DropdownMenuItem(
                                             value: "card",
-                                            child: Text("Ø¨Ø·Ø§Ù‚Ø©",
+                                            child: Text("بطاقة",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                         DropdownMenuItem(
                                             value: "request",
-                                            child: Text("Ø£Ø¨Ù„ÙƒÙŠØ´Ù†",
+                                            child: Text("أبلكيشن",
                                                 textDirection:
                                                     TextDirection.rtl)),
                                       ],
@@ -5725,7 +5725,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             Expanded(
                               flex: 2,
                               child: _buildFormField(
-                                label: "Ø§Ù„Ù…Ø¯Ø©",
+                                label: "المدة",
                                 child: TextFormField(
                                   controller: durationCtrl,
                                   textAlign: TextAlign.right,
@@ -5737,7 +5737,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                               Expanded(
                                 flex: 2,
                                 child: _buildFormField(
-                                  label: "Ù‚ÙŠÙ…Ø© Ø§Ù„Ù‚Ø³Ø·",
+                                  label: "قيمة القسط",
                                   child: TextFormField(
                                     controller: instCtrl,
                                     textAlign: TextAlign.right,
@@ -5747,7 +5747,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                         return null;
                                       }
                                       return double.tryParse(v) == null
-                                          ? "Ø§Ù„Ø±Ø¬Ø§Ø¡ Ø¥Ø¯Ø®Ø§Ù„ Ø±Ù‚Ù… ØµØ­ÙŠØ­"
+                                          ? "الرجاء إدخال رقم صحيح"
                                           : null;
                                     },
                                     onChanged: (v) => setState(recalculate),
@@ -5759,7 +5759,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             Expanded(
                               flex: 2,
                               child: _buildFormField(
-                                label: "Ø§Ù„Ø­Ø¯ Ø§Ù„Ø£Ø¹Ù„Ù‰",
+                                label: "الحد الأعلى",
                                 child: TextFormField(
                                   controller: highestCtrl,
                                   textAlign: TextAlign.right,
@@ -5778,13 +5778,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                         const SizedBox(height: 16),
                         // Row 3: Notes
                         _buildFormField(
-                          label: "Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø¥Ø¶Ø§ÙÙŠØ©",
+                          label: "ملاحظات إضافية",
                           child: TextFormField(
                             controller: notesCtrl,
                             textAlign: TextAlign.right,
                             decoration: const InputDecoration(
                               hintText:
-                                  "ØªÙØ§ØµÙŠÙ„ Ø£Ùˆ Ù…Ù„Ø§Ø­Ø¸Ø§Øª Ø¥Ø¶Ø§ÙÙŠØ© Ø¨Ø®ØµÙˆØµ Ø§Ù„Ø¨Ø·Ø§Ù‚Ø© Ø£Ùˆ Ø§Ù„Ø·Ù„Ø¨...",
+                                  "تفاصيل أو ملاحظات إضافية بخصوص البطاقة أو الطلب...",
                             ),
                           ),
                         ),
@@ -5796,7 +5796,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text("Ø¥Ù„ØºØ§Ø¡",
+                  child: const Text("إلغاء",
                       style: TextStyle(color: Colors.white70)),
                 ),
                 ElevatedButton(
@@ -5860,14 +5860,14 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       Navigator.pop(context);
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text("ØªÙ… Ø­ÙØ¸ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø¨Ø·Ø§Ù‚Ø© Ø¨Ù†Ø¬Ø§Ø­",
+                          content: Text("تم حفظ بيانات البطاقة بنجاح",
                               textAlign: TextAlign.right),
                           backgroundColor: TfcColors.primary,
                         ),
                       );
                     }
                   },
-                  child: const Text("Ø­ÙØ¸"),
+                  child: const Text("حفظ"),
                 ),
               ],
             );
@@ -5887,17 +5887,17 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: TfcColors.surfaceDim,
-          title: const Text("ØªØ£ÙƒÙŠØ¯ Ø§Ù„Ø­Ø°Ù",
+          title: const Text("تأكيد الحذف",
               style: TextStyle(fontWeight: FontWeight.bold),
               textAlign: TextAlign.right),
           content: const Text(
-              "Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø±ØºØ¨ØªÙƒ ÙÙŠ Ø­Ø°Ù Ù‡Ø°Ø§ Ø§Ù„Ø¨Ù†Ø¯ Ù…Ù† Ø§Ù„ØªØ²Ø§Ù…Ø§Øª Ø§Ù„Ø¹Ù…ÙŠÙ„ØŸ",
+              "هل أنت متأكد من رغبتك في حذف هذا البند من التزامات العميل؟",
               textAlign: TextAlign.right),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
               child:
-                  const Text("Ø¥Ù„ØºØ§Ø¡", style: TextStyle(color: Colors.white70)),
+                  const Text("إلغاء", style: TextStyle(color: Colors.white70)),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -5916,14 +5916,14 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text("ØªÙ… Ø­Ø°Ù Ø§Ù„Ø¨Ù†Ø¯ Ø¨Ù†Ø¬Ø§Ø­",
+                      content: Text("تم حذف البند بنجاح",
                           textAlign: TextAlign.right),
                       backgroundColor: TfcColors.primary,
                     ),
                   );
                 }
               },
-              child: const Text("Ø­Ø°Ù"),
+              child: const Text("حذف"),
             ),
           ],
         );
@@ -5970,7 +5970,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 const Icon(Icons.table_rows, color: TfcColors.primary, size: 20),
                 const SizedBox(width: 8),
                 const Text(
-                  "Ø¬Ø¯ÙˆÙ„ Ø·Ù„Ø¨Ø§Øª Ø§Ù„Ø¹Ù…Ù„Ø§Ø¡ Ø§Ù„Ø­Ø§Ù„ÙŠÙŠÙ†",
+                  "جدول طلبات العملاء الحاليين",
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -5979,7 +5979,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 ),
                 const Spacer(),
                 Text(
-                  "Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø·Ù„Ø¨Ø§Øª: ${clients.length}",
+                  "إجمالي الطلبات: ${clients.length}",
                   style: const TextStyle(color: TfcColors.outline, fontSize: 13),
                 ),
               ],
@@ -5991,7 +5991,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               padding: EdgeInsets.all(40),
               child: Center(
                 child: Text(
-                  "Ù„Ø§ ØªÙˆØ¬Ø¯ Ø·Ù„Ø¨Ø§Øª Ø¹Ù…Ù„Ø§Ø¡ Ù…Ø·Ø§Ø¨Ù‚Ø© Ù„Ù„Ø¨Ø­Ø« Ø­Ø§Ù„ÙŠØ§Ù‹.",
+                  "لا توجد طلبات عملاء مطابقة للبحث حالياً.",
                   style: TextStyle(color: TfcColors.outline, fontSize: 14),
                 ),
               ),
@@ -6012,44 +6012,44 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     columns: const [
                       DataColumn(
                         label: Text(
-                          "Ø§Ø³Ù… Ø§Ù„Ø¹Ù…ÙŠÙ„",
+                          "اسم العميل",
                           style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold),
                           textAlign: TextAlign.right,
                         ),
                       ),
                       DataColumn(
                         label: Text(
-                          "Ø§Ù„Ø±Ù‚Ù… Ø§Ù„Ù‚ÙˆÙ…ÙŠ",
+                          "الرقم القومي",
                           style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold),
                         ),
                       ),
                       DataColumn(
                         label: Text(
-                          "Ø§Ù„ØªÙ…ÙˆÙŠÙ„ Ø§Ù„Ù…Ø·Ù„ÙˆØ¨",
+                          "التمويل المطلوب",
                           style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold),
                         ),
                       ),
                       DataColumn(
                         label: Text(
-                          "Ø³ÙƒÙˆØ± Ø§Ù„Ø§Ø¦ØªÙ…Ø§Ù†",
+                          "سكور الائتمان",
                           style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold),
                         ),
                       ),
                       DataColumn(
                         label: Text(
-                          "Ø§Ù„Ø­Ø§Ù„Ø©",
+                          "الحالة",
                           style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold),
                         ),
                       ),
                       DataColumn(
                         label: Text(
-                          "Ø§Ù„Ù…Ù†Ø¯ÙˆØ¨",
+                          "المندوب",
                           style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold),
                         ),
                       ),
                       DataColumn(
                         label: Text(
-                          "Ø§Ù„Ø¥Ø¬Ø±Ø§Ø¡Ø§Øª",
+                          "الإجراءات",
                           style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -6076,7 +6076,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           ),
                           DataCell(
                             Text(
-                              showNationalId ? client.nationalId : "â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢",
+                              showNationalId ? client.nationalId : "••••••••••••••",
                               style: TextStyle(
                                 color: showNationalId ? TfcColors.onSurface : Colors.orangeAccent.withValues(alpha: 0.6),
                                 fontStyle: showNationalId ? FontStyle.normal : FontStyle.italic,
@@ -6085,7 +6085,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           ),
                           DataCell(
                             Text(
-                              "${_formatLargeNumber(client.requestedAmount)} Ø¬.Ù…",
+                              "${_formatLargeNumber(client.requestedAmount)} ج.م",
                               style: const TextStyle(color: Colors.white),
                             ),
                           ),
@@ -6110,7 +6110,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                     ),
                                   )
                                 : Text(
-                                    "Ù…Ø®ÙÙŠ ðŸ”’",
+                                    "مخفي 🔒",
                                     style: TextStyle(
                                       color: Colors.orangeAccent.withValues(alpha: 0.6),
                                       fontSize: 12,
@@ -6123,7 +6123,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           DataCell(
                             IconButton(
                               icon: const Icon(Icons.arrow_forward_ios, color: TfcColors.primary, size: 14),
-                              tooltip: "Ø¹Ø±Ø¶ Ø§Ù„ØªÙØ§ØµÙŠÙ„",
+                              tooltip: "عرض التفاصيل",
                               onPressed: () {
                                 // No onClientSelected in VirtualIncomeBento; no action
                                 // placeholder for navigation if needed
@@ -6178,7 +6178,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         }
         return StatefulBuilder(builder: (ctx2, setDialogState) {
           return AlertDialog(
-            title: const Text("Ø¥Ø¯Ø§Ø±Ø© ÙˆØ­Ø¯Ø§Øª Ø§Ù„ÙƒÙ…Ø¨ÙˆÙ†Ø¯", textAlign: TextAlign.right),
+            title: const Text("إدارة وحدات الكمبوند", textAlign: TextAlign.right),
             content: SizedBox(
               width: double.maxFinite,
               child: SingleChildScrollView(
@@ -6199,43 +6199,43 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(8)),
                       child: Column(children: [
                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, textDirection: TextDirection.rtl, children: [
-                          Text("Ø§Ù„ÙˆØ­Ø¯Ø© #${idx + 1}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text("الوحدة #${idx + 1}", style: const TextStyle(fontWeight: FontWeight.bold)),
                           if (uiEntries.length > 1) IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18), onPressed: () => setDialogState(() => uiEntries.removeAt(idx))),
                         ]),
                         const SizedBox(height: 8),
-                        _buildDialogRow("Ø§Ø³Ù… Ø§Ù„ÙƒÙ…Ø¨ÙˆÙ†Ø¯", u['compoundName'], "Ø§Ø³Ù… Ø§Ù„Ù…Ø·ÙˆØ±", u['developerName']),
+                        _buildDialogRow("اسم الكمبوند", u['compoundName'], "اسم المطور", u['developerName']),
                         const SizedBox(height: 8),
-                        _buildDialogRow("ØªØ§Ø±ÙŠØ® Ø§Ù„ØªØ¹Ø§Ù‚Ø¯", u['contractDate'], "Ù‚ÙŠÙ…Ø© Ø§Ù„ÙˆØ­Ø¯Ø©", u['unitValue'], isNumber2: true),
+                        _buildDialogRow("تاريخ التعاقد", u['contractDate'], "قيمة الوحدة", u['unitValue'], isNumber2: true),
                         const SizedBox(height: 8),
                         Row(textDirection: TextDirection.rtl, children: [
-                          Expanded(child: _buildDialogFormField(label: "Ø§Ù„Ù…Ù‚Ø¯Ù… Ø§Ù„Ù…Ø¯ÙÙˆØ¹", child: TextFormField(controller: downCtrl, textAlign: TextAlign.right, keyboardType: TextInputType.number, onChanged: (_) => setDialogState(() {})))),
+                          Expanded(child: _buildDialogFormField(label: "المقدم المدفوع", child: TextFormField(controller: downCtrl, textAlign: TextAlign.right, keyboardType: TextInputType.number, onChanged: (_) => setDialogState(() {})))),
                           const SizedBox(width: 12),
-                          Expanded(child: _buildDialogFormField(label: "Ù†Ø³Ø¨Ø© Ø§Ù„Ù…Ù‚Ø¯Ù…", child: Container(
+                          Expanded(child: _buildDialogFormField(label: "نسبة المقدم", child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                             decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.04), borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.white.withValues(alpha: 0.08))),
                             child: Text("${pct.toStringAsFixed(1)}%", textAlign: TextAlign.right, style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold)),
                           ))),
                         ]),
                         const SizedBox(height: 8),
-                        _buildDialogRow("Ø¹Ø¯Ø¯ Ø§Ù„Ø£Ù‚Ø³Ø§Ø· Ø§Ù„Ù…Ø¯ÙÙˆØ¹Ø©", u['paidInstallmentsCount'], "Ù‚ÙŠÙ…Ø© Ù…Ø§ ØªÙ… Ø¯ÙØ¹Ù‡", u['paidAmount'], isNumber1: true, isNumber2: true),
+                        _buildDialogRow("عدد الأقساط المدفوعة", u['paidInstallmentsCount'], "قيمة ما تم دفعه", u['paidAmount'], isNumber1: true, isNumber2: true),
                         const SizedBox(height: 8),
                         Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                          const Text("ØµÙˆØ±Ø© Ø¹Ù‚Ø¯ Ø§Ù„ÙˆØ­Ø¯Ø©", textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: TfcColors.secondary)),
+                          const Text("صورة عقد الوحدة", textAlign: TextAlign.right, style: TextStyle(fontSize: 12, color: TfcColors.secondary)),
                           const SizedBox(height: 6),
                           ElevatedButton.icon(
                             onPressed: () {
                               DocumentUploadHelper.showUploadDialog(ctx2, onUploadComplete: (name, url) {
-                                setDialogState(() { files.add(ClientDocumentModel(id: "unit-doc-${DateTime.now().millisecondsSinceEpoch}", documentName: "Ø¹Ù‚Ø¯ ÙˆØ­Ø¯Ø©: $name", documentUrl: url, status: "pending")); });
+                                setDialogState(() { files.add(ClientDocumentModel(id: "unit-doc-${DateTime.now().millisecondsSinceEpoch}", documentName: "عقد وحدة: $name", documentUrl: url, status: "pending")); });
                               });
                             },
                             style: ElevatedButton.styleFrom(backgroundColor: TfcColors.primary.withValues(alpha: 0.1), foregroundColor: TfcColors.primary),
                             icon: const Icon(Icons.upload_file, size: 14),
-                            label: const Text("Ø±ÙØ¹ Ù…Ù„Ù Ø§Ù„Ø¹Ù‚Ø¯", style: TextStyle(fontSize: 12)),
+                            label: const Text("رفع ملف العقد", style: TextStyle(fontSize: 12)),
                           ),
                           if (files.isNotEmpty) ...[
                             const SizedBox(height: 6),
                             ...files.map((file) => Row(textDirection: TextDirection.rtl, children: [
-                              Expanded(child: Text(file.documentName.replaceAll("Ø¹Ù‚Ø¯ ÙˆØ­Ø¯Ø©: ", ""), style: const TextStyle(fontSize: 11, color: Colors.white70), overflow: TextOverflow.ellipsis)),
+                              Expanded(child: Text(file.documentName.replaceAll("عقد وحدة: ", ""), style: const TextStyle(fontSize: 11, color: Colors.white70), overflow: TextOverflow.ellipsis)),
                               IconButton(icon: const Icon(Icons.close, size: 14, color: Colors.redAccent), onPressed: () => setDialogState(() => files.remove(file))),
                             ])),
                           ],
@@ -6251,13 +6251,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       'downPayment': TextEditingController(), 'paidInstallmentsCount': TextEditingController(),
                       'paidAmount': TextEditingController(), 'unitContractFiles': <ClientDocumentModel>[],
                     })),
-                    icon: const Icon(Icons.add_circle), label: const Text("Ø¥Ø¶Ø§ÙØ© ÙˆØ­Ø¯Ø© Ø£Ø®Ø±Ù‰"),
+                    icon: const Icon(Icons.add_circle), label: const Text("إضافة وحدة أخرى"),
                   ),
                 ]),
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx2), child: const Text("Ø¥Ù„ØºØ§Ø¡")),
+              TextButton(onPressed: () => Navigator.pop(ctx2), child: const Text("إلغاء")),
               ElevatedButton(
                 onPressed: () async {
                   final list = uiEntries.map((u) => {
@@ -6274,10 +6274,10 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   final error = await ref.read(clientProvider.notifier).updateClient(updated, staffName: staffName);
                   if (ctx2.mounted) {
                     Navigator.pop(ctx2);
-                    ScaffoldMessenger.of(ctx2).showSnackBar(SnackBar(content: Text(error ?? "ØªÙ… Ø­ÙØ¸ Ø§Ù„ØªØ¹Ø¯ÙŠÙ„Ø§Øª Ø¨Ù†Ø¬Ø§Ø­")));
+                    ScaffoldMessenger.of(ctx2).showSnackBar(SnackBar(content: Text(error ?? "تم حفظ التعديلات بنجاح")));
                   }
                 },
-                child: const Text("Ø­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª"),
+                child: const Text("حفظ التغييرات"),
               ),
             ],
           );
@@ -6299,18 +6299,18 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             'carType': TextEditingController(text: c['carType']?.toString() ?? ''),
             'carModel': TextEditingController(text: c['carModel']?.toString() ?? ''),
             'carTodayValue': TextEditingController(text: c['carTodayValue']?.toString() ?? ''),
-            'licenseStatus': c['licenseStatus']?.toString() ?? 'Ø¨Ø¯ÙˆÙ† Ø­Ø¸Ø±',
+            'licenseStatus': c['licenseStatus']?.toString() ?? 'بدون حظر',
           });
         }
         if (uiEntries.isEmpty) {
           uiEntries.add({
             'carType': TextEditingController(), 'carModel': TextEditingController(),
-            'carTodayValue': TextEditingController(), 'licenseStatus': 'Ø¨Ø¯ÙˆÙ† Ø­Ø¸Ø±',
+            'carTodayValue': TextEditingController(), 'licenseStatus': 'بدون حظر',
           });
         }
         return StatefulBuilder(builder: (ctx2, setDialogState) {
           return AlertDialog(
-            title: const Text("Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ø³ÙŠØ§Ø±Ø§Øª Ø§Ù„Ø­Ø¯ÙŠØ«Ø©", textAlign: TextAlign.right),
+            title: const Text("إدارة السيارات الحديثة", textAlign: TextAlign.right),
             content: SizedBox(
               width: double.maxFinite,
               child: SingleChildScrollView(
@@ -6324,21 +6324,21 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(8)),
                       child: Column(children: [
                         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, textDirection: TextDirection.rtl, children: [
-                          Text("Ø§Ù„Ø³ÙŠØ§Ø±Ø© #${idx + 1}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                          Text("السيارة #${idx + 1}", style: const TextStyle(fontWeight: FontWeight.bold)),
                           if (uiEntries.length > 1) IconButton(icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18), onPressed: () => setDialogState(() => uiEntries.removeAt(idx))),
                         ]),
                         const SizedBox(height: 8),
-                        _buildDialogRow("Ù†ÙˆØ¹ Ø§Ù„Ø³ÙŠØ§Ø±Ø©", c['carType'], "Ù…ÙˆØ¯ÙŠÙ„ ÙƒØ§Ù…", c['carModel']),
+                        _buildDialogRow("نوع السيارة", c['carType'], "موديل كام", c['carModel']),
                         const SizedBox(height: 8),
                         Row(textDirection: TextDirection.rtl, children: [
-                          Expanded(child: _buildDialogFormField(label: "Ù‚ÙŠÙ…Ø© Ø³Ø¹Ø± Ø§Ù„Ø³ÙŠØ§Ø±Ø© Ø§Ù„ÙŠÙˆÙ…", child: TextFormField(controller: c['carTodayValue'] as TextEditingController, textAlign: TextAlign.right, keyboardType: TextInputType.number))),
+                          Expanded(child: _buildDialogFormField(label: "قيمة سعر السيارة اليوم", child: TextFormField(controller: c['carTodayValue'] as TextEditingController, textAlign: TextAlign.right, keyboardType: TextInputType.number))),
                           const SizedBox(width: 12),
-                          Expanded(child: _buildDialogFormField(label: "Ø§Ù„Ø±Ø®ØµØ©", child: Container(
+                          Expanded(child: _buildDialogFormField(label: "الرخصة", child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12),
                             decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.04), borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.white.withValues(alpha: 0.08))),
                             child: DropdownButtonHideUnderline(child: DropdownButton<String>(
                               value: c['licenseStatus'] as String, dropdownColor: TfcColors.surfaceDim, isExpanded: true,
-                              items: const [DropdownMenuItem(value: 'Ø¹Ù„ÙŠÙ‡Ø§ Ø­Ø¸Ø±', child: Text("Ø¹Ù„ÙŠÙ‡Ø§ Ø­Ø¸Ø±")), DropdownMenuItem(value: 'Ø¨Ø¯ÙˆÙ† Ø­Ø¸Ø±', child: Text("Ø¨Ø¯ÙˆÙ† Ø­Ø¸Ø±"))],
+                              items: const [DropdownMenuItem(value: 'عليها حظر', child: Text("عليها حظر")), DropdownMenuItem(value: 'بدون حظر', child: Text("بدون حظر"))],
                               onChanged: (val) { if (val != null) setDialogState(() => c['licenseStatus'] = val); },
                             )),
                           ))),
@@ -6350,15 +6350,15 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   TextButton.icon(
                     onPressed: () => setDialogState(() => uiEntries.add({
                       'carType': TextEditingController(), 'carModel': TextEditingController(),
-                      'carTodayValue': TextEditingController(), 'licenseStatus': 'Ø¨Ø¯ÙˆÙ† Ø­Ø¸Ø±',
+                      'carTodayValue': TextEditingController(), 'licenseStatus': 'بدون حظر',
                     })),
-                    icon: const Icon(Icons.add_circle), label: const Text("Ø¥Ø¶Ø§ÙØ© Ø³ÙŠØ§Ø±Ø© Ø£Ø®Ø±Ù‰"),
+                    icon: const Icon(Icons.add_circle), label: const Text("إضافة سيارة أخرى"),
                   ),
                 ]),
               ),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx2), child: const Text("Ø¥Ù„ØºØ§Ø¡")),
+              TextButton(onPressed: () => Navigator.pop(ctx2), child: const Text("إلغاء")),
               ElevatedButton(
                 onPressed: () async {
                   final list = uiEntries.map((c) => {
@@ -6371,10 +6371,10 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   final error = await ref.read(clientProvider.notifier).updateClient(updated, staffName: staffName);
                   if (ctx2.mounted) {
                     Navigator.pop(ctx2);
-                    ScaffoldMessenger.of(ctx2).showSnackBar(SnackBar(content: Text(error ?? "ØªÙ… Ø­ÙØ¸ Ø§Ù„ØªØ¹Ø¯ÙŠÙ„Ø§Øª Ø¨Ù†Ø¬Ø§Ø­")));
+                    ScaffoldMessenger.of(ctx2).showSnackBar(SnackBar(content: Text(error ?? "تم حفظ التعديلات بنجاح")));
                   }
                 },
-                child: const Text("Ø­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª"),
+                child: const Text("حفظ التغييرات"),
               ),
             ],
           );
@@ -6414,10 +6414,10 @@ class _VirtualIncomeBentoState extends ConsumerState<VirtualIncomeBento> {
   Widget _buildSimpleStatusChip(String status) {
     Color chipColor;
     switch (status) {
-      case 'Ù…Ù‚Ø¨ÙˆÙ„':
+      case 'مقبول':
         chipColor = Colors.green;
         break;
-      case 'Ù…Ø±ÙÙˆØ¶':
+      case 'مرفوض':
         chipColor = Colors.redAccent;
         break;
       default:
@@ -6461,7 +6461,7 @@ class _VirtualIncomeBentoState extends ConsumerState<VirtualIncomeBento> {
             children: [
               Icon(Icons.lock_outline, color: TfcColors.outline),
               SizedBox(height: 8),
-              Text("Ø­Ø³Ø§Ø¨Ø§Øª Ø§Ù„Ø¯Ø®Ù„ Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠ Ù…Ø®ÙÙŠØ© Ù„Ø¹Ø¯Ù… ØµÙ„Ø§Ø­ÙŠØ© Ø¹Ø±Ø¶ Ø§Ù„Ø±Ø§ØªØ¨",
+              Text("حسابات الدخل الافتراضي مخفية لعدم صلاحية عرض الراتب",
                   style: TextStyle(color: TfcColors.outline),
                   textAlign: TextAlign.center),
             ],
@@ -6516,7 +6516,7 @@ class _VirtualIncomeBentoState extends ConsumerState<VirtualIncomeBento> {
                     color: TfcColors.primary, size: 20),
               ),
               const SizedBox(width: 12),
-              const Text("Ø§Ù„Ø¯Ø®Ù„ Ø§Ù„Ø§ÙØªØ±Ø§Ø¶ÙŠ",
+              const Text("الدخل الافتراضي",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             ],
           ),
@@ -6539,7 +6539,7 @@ class _VirtualIncomeBentoState extends ConsumerState<VirtualIncomeBento> {
                   }
                 },
               ),
-              const Text("Ø¨Ø·Ø§Ù‚Ø©"),
+              const Text("بطاقة"),
               const SizedBox(width: 16),
               Radio<String>(
                 value: 'valu',
@@ -6556,7 +6556,7 @@ class _VirtualIncomeBentoState extends ConsumerState<VirtualIncomeBento> {
                   }
                 },
               ),
-              const Text("ÙØ§Ù„ÙŠÙˆ"),
+              const Text("فاليو"),
             ],
           ),
           const SizedBox(height: 16),
@@ -6567,7 +6567,7 @@ class _VirtualIncomeBentoState extends ConsumerState<VirtualIncomeBento> {
                 flex: 2,
                 child: itemsList.isEmpty
                     ? Text(
-                        "Ù„Ø§ ØªÙˆØ¬Ø¯ ${_incomeType == 'card' ? 'Ø¨Ø·Ø§Ù‚Ø§Øª' : 'Ø·Ù„Ø¨Ø§Øª'} Ù…Ø³Ø¬Ù„Ø©",
+                        "لا توجد ${_incomeType == 'card' ? 'بطاقات' : 'طلبات'} مسجلة",
                         textDirection: TextDirection.rtl,
                         style: const TextStyle(color: Colors.redAccent))
                     : Container(
@@ -6585,13 +6585,13 @@ class _VirtualIncomeBentoState extends ConsumerState<VirtualIncomeBento> {
                             dropdownColor: TfcColors.surfaceDim,
                             isExpanded: true,
                             hint: Text(
-                                "Ø§Ø®ØªØ± ${_incomeType == 'card' ? 'Ø§Ù„Ø¨Ø·Ø§Ù‚Ø©' : 'Ø§Ù„Ø·Ù„Ø¨'}",
+                                "اختر ${_incomeType == 'card' ? 'البطاقة' : 'الطلب'}",
                                 textDirection: TextDirection.rtl),
                             items: itemsList.map((c) {
                               return DropdownMenuItem<double>(
                                 value: c.value,
                                 child: Text(
-                                    "${c.bankName} - Ø§Ù„Ù‚ÙŠÙ…Ø©: ${_formatLargeNumber(c.value)}",
+                                    "${c.bankName} - القيمة: ${_formatLargeNumber(c.value)}",
                                     textDirection: TextDirection.rtl),
                               );
                             }).toList(),
@@ -6610,7 +6610,7 @@ class _VirtualIncomeBentoState extends ConsumerState<VirtualIncomeBento> {
                   textAlign: TextAlign.right,
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
-                    hintText: "Ø§Ù„Ù†Ø³Ø¨Ø©",
+                    hintText: "النسبة",
                     filled: true,
                     fillColor: Colors.white.withAlpha((0.05 * 255).toInt()),
                     border: OutlineInputBorder(
@@ -6629,18 +6629,18 @@ class _VirtualIncomeBentoState extends ConsumerState<VirtualIncomeBento> {
             textDirection: TextDirection.rtl,
             children: [
               _buildResultBox(
-                  "Ù‚ÙŠÙ…Ø© ${_incomeType == 'card' ? 'Ø§Ù„Ø¨Ø·Ø§Ù‚Ø©' : 'ÙØ§Ù„ÙŠÙˆ'}",
-                  "${_formatLargeNumber(currentValue)} Ø¬.Ù…",
+                  "قيمة ${_incomeType == 'card' ? 'البطاقة' : 'فاليو'}",
+                  "${_formatLargeNumber(currentValue)} ج.م",
                   Colors.blueAccent),
-              _buildResultBox("Ø­Ø¯ Ø§Ù„Ù€ DBR", "${_formatLargeNumber(dbr)} Ø¬.Ù…",
+              _buildResultBox("حد الـ DBR", "${_formatLargeNumber(dbr)} ج.م",
                   Colors.purpleAccent),
               _buildResultBox(
-                  "Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø§Ù„ØªØ²Ø§Ù…Ø§Øª",
-                  "${_formatLargeNumber(totalObl)} Ø¬.Ù…",
+                  "إجمالي الالتزامات",
+                  "${_formatLargeNumber(totalObl)} ج.م",
                   const Color(0xFFFF6B6B)),
               _buildResultBox(
-                  "Ø§Ù„Ù…ØªØ§Ø­ Ù„Ù‚Ø³Ø· Ø¬Ø¯ÙŠØ¯",
-                  "${_formatLargeNumber(available)} Ø¬.Ù…",
+                  "المتاح لقسط جديد",
+                  "${_formatLargeNumber(available)} ج.م",
                   available > 0 ? TfcColors.primary : Colors.redAccent),
             ],
           ),
@@ -6655,7 +6655,7 @@ class _VirtualIncomeBentoState extends ConsumerState<VirtualIncomeBento> {
               ),
             ),
             onPressed: () async {
-              final typeStr = _incomeType == 'card' ? 'Ø¨Ø·Ø§Ù‚Ø©' : 'ÙØ§Ù„ÙŠÙˆ';
+              final typeStr = _incomeType == 'card' ? 'بطاقة' : 'فاليو';
               final limitStr = _formatLargeNumber(currentValue);
               final dbrStr = _formatLargeNumber(dbr);
               final totalOblStr = _formatLargeNumber(totalObl);
@@ -6664,16 +6664,16 @@ class _VirtualIncomeBentoState extends ConsumerState<VirtualIncomeBento> {
                   ? '0'
                   : _ratioController.text.trim();
 
-              final notes = "Ø­Ø³Ø§Ø¨ Ø¯Ø®Ù„ Ø§ÙØªØ±Ø§Ø¶ÙŠ ($typeStr):\n"
-                  "- Ø§Ù„Ù‚ÙŠÙ…Ø©: $limitStr Ø¬.Ù…\n"
-                  "- Ø§Ù„Ù†Ø³Ø¨Ø©: $ratioStr\n"
-                  "- Ø­Ø¯ Ø§Ù„Ù€ DBR Ø§Ù„Ù…Ø­Ø³ÙˆØ¨: $dbrStr Ø¬.Ù…\n"
-                  "- Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ø§Ù„ØªØ²Ø§Ù…Ø§Øª: $totalOblStr Ø¬.Ù…\n"
-                  "- Ø§Ù„Ù…ØªØ§Ø­ Ù„Ù‚Ø³Ø· Ø¬Ø¯ÙŠØ¯: $availableStr Ø¬.Ù…";
+              final notes = "حساب دخل افتراضي ($typeStr):\n"
+                  "- القيمة: $limitStr ج.م\n"
+                  "- النسبة: $ratioStr\n"
+                  "- حد الـ DBR المحسوب: $dbrStr ج.م\n"
+                  "- إجمالي الالتزامات: $totalOblStr ج.م\n"
+                  "- المتاح لقسط جديد: $availableStr ج.م";
 
               await ref.read(clientProvider.notifier).addInteractionLog(
                     widget.client.id,
-                    "Ø­Ø³Ø§Ø¨ Ø¯Ø®Ù„ Ø§ÙØªØ±Ø§Ø¶ÙŠ",
+                    "حساب دخل افتراضي",
                     notes,
                     widget.staffName,
                   );
@@ -6681,7 +6681,7 @@ class _VirtualIncomeBentoState extends ConsumerState<VirtualIncomeBento> {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text("ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø­Ø³Ø§Ø¨ ÙÙŠ Ø³Ø¬Ù„ Ø§Ù„ØªÙØ§Ø¹Ù„Ø§Øª Ø¨Ù†Ø¬Ø§Ø­",
+                    content: Text("تم تسجيل الحساب في سجل التفاعلات بنجاح",
                         textAlign: TextAlign.right),
                     backgroundColor: TfcColors.primary,
                   ),
@@ -6690,7 +6690,7 @@ class _VirtualIncomeBentoState extends ConsumerState<VirtualIncomeBento> {
             },
             icon: const Icon(Icons.save, size: 18),
             label: const Text(
-              "Ø­ÙØ¸ Ø§Ù„Ù†ØªØ§Ø¦Ø¬ ÙÙŠ Ø³Ø¬Ù„ Ø§Ù„ØªÙØ§Ø¹Ù„Ø§Øª ÙˆØ§Ù„Ù†Ø´Ø§Ø·",
+              "حفظ النتائج في سجل التفاعلات والنشاط",
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -6832,7 +6832,7 @@ class _TotalFeesWidgetState extends ConsumerState<_TotalFeesWidget> {
             Icon(Icons.receipt_long_outlined, color: TfcColors.outline.withValues(alpha: 0.3), size: 40),
             const SizedBox(height: 10),
             const Text(
-              "Ù„Ø§ ØªÙˆØ¬Ø¯ ÙÙˆØ§ØªÙŠØ± Ø£ØªØ¹Ø§Ø¨ Ù…Ø³Ø¬Ù„Ø© Ù„Ù‡Ø°Ø§ Ø§Ù„Ø¹Ù…ÙŠÙ„",
+              "لا توجد فواتير أتعاب مسجلة لهذا العميل",
               style: TextStyle(color: TfcColors.outline, fontSize: 13),
               textDirection: TextDirection.rtl,
             ),
@@ -6877,10 +6877,10 @@ class _TotalFeesWidgetState extends ConsumerState<_TotalFeesWidget> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text("Ø¥Ø¬Ù…Ø§Ù„Ù‰ Ø§Ù„Ø£ØªØ¹Ø§Ø¨ Ø§Ù„Ù…Ø³ØªØ­Ù‚Ø©", style: TextStyle(color: TfcColors.outline, fontSize: 12)),
+                          const Text("إجمالى الأتعاب المستحقة", style: TextStyle(color: TfcColors.outline, fontSize: 12)),
                           const SizedBox(height: 4),
                           Text(
-                            "${_fmt(_totalFees)} Ø¬.Ù…",
+                            "${_fmt(_totalFees)} ج.م",
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 22,
@@ -6897,7 +6897,7 @@ class _TotalFeesWidgetState extends ConsumerState<_TotalFeesWidget> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        "$_invoiceCount ÙØ§ØªÙˆØ±Ø©",
+                        "$_invoiceCount فاتورة",
                         style: const TextStyle(color: TfcColors.outline, fontSize: 11),
                       ),
                     ),
@@ -6927,12 +6927,12 @@ class _TotalFeesWidgetState extends ConsumerState<_TotalFeesWidget> {
                         children: [
                           Icon(Icons.check_circle_outline, color: TfcColors.success.withValues(alpha: 0.7), size: 16),
                           const SizedBox(width: 6),
-                          const Text("ØªÙ… Ø§Ù„ØªØ­ØµÙŠÙ„", style: TextStyle(color: TfcColors.success, fontSize: 11, fontWeight: FontWeight.bold)),
+                          const Text("تم التحصيل", style: TextStyle(color: TfcColors.success, fontSize: 11, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        "${_fmt(_collectedFees)} Ø¬.Ù…",
+                        "${_fmt(_collectedFees)} ج.م",
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: TfcColors.success),
                       ),
                     ],
@@ -6956,12 +6956,12 @@ class _TotalFeesWidgetState extends ConsumerState<_TotalFeesWidget> {
                         children: [
                           Icon(Icons.cancel_outlined, color: TfcColors.error.withValues(alpha: 0.7), size: 16),
                           const SizedBox(width: 6),
-                          const Text("Ù„Ù… ÙŠØªÙ… Ø§Ù„ØªØ­ØµÙŠÙ„", style: TextStyle(color: TfcColors.error, fontSize: 11, fontWeight: FontWeight.bold)),
+                          const Text("لم يتم التحصيل", style: TextStyle(color: TfcColors.error, fontSize: 11, fontWeight: FontWeight.bold)),
                         ],
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        "${_fmt(_uncollectedFees)} Ø¬.Ù…",
+                        "${_fmt(_uncollectedFees)} ج.م",
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: TfcColors.error),
                       ),
                     ],
