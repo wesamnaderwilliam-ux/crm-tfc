@@ -4,6 +4,8 @@ import '../../core/theme.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../providers/ai_provider.dart';
+import '../../providers/prospects_provider.dart';
+import '../../models/google_sheet_config_model.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -771,7 +773,7 @@ class _AiSettingsCardState extends ConsumerState<_AiSettingsCard> {
             // ─────────────────────────────────────────────
             // 7. Google Sheets Settings Card (Admin Only)
             // ─────────────────────────────────────────────
-            if (authState.isAdmin) ...[
+            if (ref.watch(authProvider).role == 'admin') ...[
               const SizedBox(height: 24),
               const _GoogleSheetsSettingsCard(),
             ],
