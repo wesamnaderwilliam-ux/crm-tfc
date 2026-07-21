@@ -192,10 +192,12 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                               items: [
                                 const DropdownMenuItem(value: 'all', child: Text('كل الموظفين')),
                                 const DropdownMenuItem(value: 'unassigned', child: Text('غير مسند لموظف')),
-                                ...employeesState.employees.map((emp) => DropdownMenuItem(
-                                      value: emp.id,
-                                      child: Text(emp.fullName),
-                                    )),
+                                ...employeesState.employees
+                                    .where((emp) => emp.role != 'bank_employee')
+                                    .map((emp) => DropdownMenuItem(
+                                          value: emp.id,
+                                          child: Text(emp.fullName),
+                                        )),
                               ],
                               onChanged: (val) {
                                 if (val != null) setState(() => _selectedEmployeeFilter = val);
@@ -351,6 +353,15 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                             final isSelected = _selectedProspectIds.contains(prospect.id);
                             return DataRow(
                               selected: isSelected,
+                              onSelectChanged: (val) {
+                                setState(() {
+                                  if (val == true) {
+                                    _selectedProspectIds.add(prospect.id);
+                                  } else {
+                                    _selectedProspectIds.remove(prospect.id);
+                                  }
+                                });
+                              },
                               cells: [
                                 DataCell(
                                   Checkbox(
@@ -368,14 +379,35 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                   ),
                                 ),
                                 DataCell(
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Text(prospect.fullName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                                      if (prospect.isConverted)
-                                        const Text('تم التحويل لعميل رسمياً', style: TextStyle(color: Colors.greenAccent, fontSize: 11)),
-                                    ],
+                                  InkWell(
+                                    onTap: () => _showProspectDetailsDialog(context, prospect),
+                                    borderRadius: BorderRadius.circular(6),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Text(
+                                                prospect.fullName,
+                                                style: const TextStyle(
+                                                  color: TfcColors.primary,
+                                                  fontWeight: FontWeight.bold,
+                                                  decoration: TextDecoration.underline,
+                                                ),
+                                              ),
+                                              if (prospect.isConverted)
+                                                const Text('تم التحويل لعميل رسمياً', style: TextStyle(color: Colors.greenAccent, fontSize: 11)),
+                                            ],
+                                          ),
+                                          const SizedBox(width: 6),
+                                          const Icon(Icons.open_in_new, size: 14, color: TfcColors.primary),
+                                        ],
+                                      ),
+                                    ),
                                   ),
                                 ),
                                 DataCell(Text(prospect.phoneNumber ?? 'غير محدد', style: const TextStyle(color: Colors.white70))),
@@ -408,7 +440,13 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                 DataCell(
                                   Row(
                                     children: [
-                                      // Edit Action (Available for all)
+                                      // View Details Popup
+                                      IconButton(
+                                        icon: const Icon(Icons.visibility_outlined, color: TfcColors.primary, size: 20),
+                                        tooltip: 'عرض تفاصيل العميل',
+                                        onPressed: () => _showProspectDetailsDialog(context, prospect),
+                                      ),
+                                      // Edit Action
                                       IconButton(
                                         icon: const Icon(Icons.edit_outlined, color: Colors.white70, size: 20),
                                         tooltip: 'تعديل البيانات',
@@ -582,6 +620,7 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
   // Bulk assignment dialog for selected prospects
   void _showBulkAssignDialog(BuildContext context) {
     final employeesState = ref.watch(employeesProvider);
+    final companyEmployees = employeesState.employees.where((e) => e.role != 'bank_employee').toList();
     String? selectedEmpId;
     String? selectedEmpName;
 
@@ -595,15 +634,15 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
             dropdownColor: const Color(0xFF1E2430),
             style: const TextStyle(color: Colors.white),
             decoration: const InputDecoration(
-              labelText: 'اختر الموظف',
+              labelText: 'اختر الموظف (موظفي الشركة)',
               labelStyle: TextStyle(color: Colors.white70),
             ),
-            items: employeesState.employees.map((emp) => DropdownMenuItem(
+            items: companyEmployees.map((emp) => DropdownMenuItem(
               value: emp.id,
               child: Text(emp.fullName),
             )).toList(),
             onChanged: (val) {
-              final emp = employeesState.employees.firstWhere((e) => e.id == val);
+              final emp = companyEmployees.firstWhere((e) => e.id == val);
               setDialogState(() {
                 selectedEmpId = emp.id;
                 selectedEmpName = emp.fullName;
@@ -637,6 +676,185 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // Prospect details modal popup displaying all Google Sheet fields
+  void _showProspectDetailsDialog(BuildContext context, ProspectModel prospect) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF161B26),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.badge_outlined, color: TfcColors.primary, size: 28),
+                const SizedBox(width: 10),
+                Text(
+                  'تفاصيل العميل المحتمل: ${prospect.fullName}',
+                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.white70),
+              onPressed: () => Navigator.pop(ctx),
+            ),
+          ],
+        ),
+        content: SizedBox(
+          width: 650,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Highlight Status Banner
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: TfcColors.primary.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          const Text('الحالة الحالية: ', style: TextStyle(color: Colors.white70)),
+                          _buildStatusBadge(prospect.status),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          const Text('الموظف المسند إليه: ', style: TextStyle(color: Colors.white70)),
+                          Text(
+                            prospect.assignedToName ?? 'غير مسند',
+                            style: const TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // Main Parsed Fields Section
+                const Text(
+                  '📊 البيانات الأساسية المحددة:',
+                  style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    _buildDetailInfoTile('👤 الاسم الكامل', prospect.fullName),
+                    _buildDetailInfoTile('📞 رقم الهاتف الأساسي', prospect.phoneNumber ?? 'غير متوفر'),
+                    if (prospect.secondaryPhoneNumber != null)
+                      _buildDetailInfoTile('📱 رقم الهاتف الإضافي', prospect.secondaryPhoneNumber!),
+                    if (prospect.nationalId != null)
+                      _buildDetailInfoTile('🆔 الرقم القومي', prospect.nationalId!),
+                    _buildDetailInfoTile('🏢 جهة العمل / الشركة', prospect.companyName ?? 'غير محدد'),
+                    _buildDetailInfoTile('💼 المسمى الوظيفي', prospect.jobTitle ?? 'غير محدد'),
+                    _buildDetailInfoTile('📍 المحافظة', prospect.governorate ?? 'غير محدد'),
+                    if (prospect.salaryAmount != null)
+                      _buildDetailInfoTile('💰 صافي الدخل الشهري', '${prospect.salaryAmount} ج.م'),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Raw Data from Google Sheet Section
+                if (prospect.rawData.isNotEmpty) ...[
+                  const Divider(color: Colors.white24),
+                  const SizedBox(height: 10),
+                  const Text(
+                    '📄 كافة الحقول الواردة من شيت جوجل (Raw Sheet Data):',
+                    style: TextStyle(color: Colors.lightBlueAccent, fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  const SizedBox(height: 10),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: prospect.rawData.entries.map((entry) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${entry.key}: ',
+                                style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 13),
+                              ),
+                              Expanded(
+                                child: Text(
+                                  entry.value?.toString() ?? '',
+                                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إغلاق', style: TextStyle(color: Colors.white70)),
+          ),
+          if (!prospect.isConverted)
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(ctx);
+                _handleConvertToClient(context, prospect);
+              },
+              icon: const Icon(Icons.transform, color: Colors.white),
+              label: const Text('جاهز للتحويل لعميل رسمياً', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.green,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailInfoTile(String title, String value) {
+    return Container(
+      width: 280,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12)),
+          const SizedBox(height: 4),
+          Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
+        ],
       ),
     );
   }
