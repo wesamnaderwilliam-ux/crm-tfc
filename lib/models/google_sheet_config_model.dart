@@ -26,11 +26,15 @@ class GoogleSheetConfigModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
+    final map = <String, dynamic>{
       'sheet_url': sheetUrl,
       'field_mappings': fieldMappings,
       'auto_sync': autoSync,
       'last_synced_at': lastSyncedAt?.toIso8601String(),
     };
+    if (id.isNotEmpty) {
+      map['id'] = id;
+    }
+    return map;
   }
 }

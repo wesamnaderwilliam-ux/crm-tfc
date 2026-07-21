@@ -166,28 +166,44 @@ class GoogleSheetConfigNotifier extends StateNotifier<AsyncValue<GoogleSheetConf
 
   Future<bool> saveConfig(GoogleSheetConfigModel config) async {
     try {
-      // 1. Save locally
+      final existing = state.value;
+      final configToSave = (existing != null && existing.id.isNotEmpty)
+          ? GoogleSheetConfigModel(
+              id: existing.id,
+              sheetUrl: config.sheetUrl,
+              fieldMappings: config.fieldMappings,
+              autoSync: config.autoSync,
+              lastSyncedAt: config.lastSyncedAt,
+            )
+          : config;
+
+      // 1. Save locally (SharedPreferences)
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('saved_google_sheets_config', jsonEncode(config.toJson()));
+      await prefs.setString('saved_google_sheets_config', jsonEncode(configToSave.toJson()));
 
       // 2. Try DB if available
       if (SupabaseConfig.isInitialized) {
-        final existing = state.value;
         if (existing != null && existing.id.isNotEmpty) {
           await SupabaseConfig.client
               .from('google_sheets_config')
-              .update(config.toJson())
+              .update(configToSave.toJson())
               .eq('id', existing.id);
         } else {
-          await SupabaseConfig.client
+          final res = await SupabaseConfig.client
               .from('google_sheets_config')
-              .insert(config.toJson());
+              .insert(configToSave.toJson())
+              .select()
+              .maybeSingle();
+          if (res != null) {
+            state = AsyncValue.data(GoogleSheetConfigModel.fromJson(res));
+            return true;
+          }
         }
       }
-      state = AsyncValue.data(config);
+      state = AsyncValue.data(configToSave);
       return true;
     } catch (e) {
-      // Local save already succeeded
+      // Local save already succeeded as fallback
       state = AsyncValue.data(config);
       return true;
     }
