@@ -10,6 +10,7 @@ import '../client/client_details_screen.dart';
 import '../client/all_distributions_screen.dart';
 import '../client/all_operations_screen.dart';
 import '../client/invoices_screen.dart';
+import '../prospects/prospects_screen.dart';
 import '../accounts/accounts_screen.dart';
 import '../banks/banks_screen.dart';
 import '../settings/settings_screen.dart';
@@ -104,6 +105,23 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
         label: 'طلب تمويل جديد',
         icon: Icons.add_circle,
         screen: NewClientScreen(onComplete: () => navigateToTab(0)),
+      ));
+    }
+
+    // Prospects Tab (العملاء المحتملين)
+    final bool showProspects = isAdmin || (perms[EmployeePermissionKeys.viewClients] ?? true);
+    if (showProspects) {
+      navItems.add(_NavItem(
+        label: 'العملاء المحتملين',
+        icon: Icons.recent_actors,
+        screen: ProspectsScreen(
+          onNavigateToNewClient: (clientDraft) {
+            final newClientIdx = navItems.indexWhere((i) => i.label == 'طلب تمويل جديد');
+            if (newClientIdx != -1) {
+              navigateToTab(newClientIdx);
+            }
+          },
+        ),
       ));
     }
 

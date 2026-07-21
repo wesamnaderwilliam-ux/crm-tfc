@@ -768,10 +768,265 @@ class _AiSettingsCardState extends ConsumerState<_AiSettingsCard> {
                   ),
               ],
             ),
+            // ─────────────────────────────────────────────
+            // 7. Google Sheets Settings Card (Admin Only)
+            // ─────────────────────────────────────────────
+            if (authState.isAdmin) ...[
+              const SizedBox(height: 24),
+              const _GoogleSheetsSettingsCard(),
+            ],
           ],
         ),
       ),
     );
   }
 }
+
+// ─────────────────────────────────────────────
+// Google Sheets Integration Settings Card (Admin Only)
+// ─────────────────────────────────────────────
+class _GoogleSheetsSettingsCard extends ConsumerStatefulWidget {
+  const _GoogleSheetsSettingsCard();
+
+  @override
+  ConsumerState<_GoogleSheetsSettingsCard> createState() => __GoogleSheetsSettingsCardState();
+}
+
+class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSettingsCard> {
+  late TextEditingController _urlController;
+  List<String> _detectedHeaders = [];
+  Map<String, String> _mappings = {};
+  bool _isLoadingHeaders = false;
+
+  final Map<String, String> _targetClientFields = {
+    'full_name': 'الاسم الكامل (full_name)',
+    'phone_number': 'رقم الهاتف (phone_number)',
+    'secondary_phone_number': 'رقم الهاتف الإضافي',
+    'national_id': 'الرقم القومي (national_id)',
+    'company_name': 'جهة العمل / الشركة (company_name)',
+    'job_title': 'المسمى الوظيفي (job_title)',
+    'governorate': 'المحافظة (governorate)',
+    'salary_amount': 'الدخل / المربوط المالي (salary_amount)',
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _urlController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _urlController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final configState = ref.watch(googleSheetConfigProvider);
+    final config = configState.value;
+
+    if (_urlController.text.isEmpty && config != null) {
+      _urlController.text = config.sheetUrl;
+      _mappings = Map.from(config.fieldMappings);
+    }
+
+    return GlassCard(
+      borderColor: TfcColors.primary.withValues(alpha: 0.3),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Row(
+            textDirection: TextDirection.rtl,
+            children: [
+              Icon(Icons.table_chart, color: TfcColors.primary),
+              SizedBox(width: 12),
+              Text(
+                "ربط وتعيين حقول Google Sheet بالعملاء (خاص بالمسؤول)",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            "ضع رابط شيت جوجل (Google Sheet Public/Shared URL)، وقم بربط كل عمود من الشيت بالحقل المناسب له في جدول العملاء:",
+            style: TextStyle(color: TfcColors.outline, fontSize: 13),
+            textDirection: TextDirection.rtl,
+          ),
+          const SizedBox(height: 20),
+
+          // URL Input & Fetch Headers Button
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _urlController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    labelText: "رابط Google Sheet (أو رابط النشر كـ CSV)",
+                    hintText: "https://docs.google.com/spreadsheets/d/...",
+                    prefixIcon: Icon(Icons.link, size: 18, color: TfcColors.primary),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton.icon(
+                onPressed: _isLoadingHeaders ? null : _fetchHeaders,
+                icon: _isLoadingHeaders
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.download, size: 18),
+                label: const Text("جلب الحقول"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: TfcColors.primary,
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // Field Mappings Table
+          if (_detectedHeaders.isNotEmpty || _mappings.isNotEmpty) ...[
+            const Text(
+              "تعيين حقول الشيت بأعمدة جدول العملاء:",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: TfcColors.primary),
+              textDirection: TextDirection.rtl,
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              ),
+              child: Column(
+                children: (_detectedHeaders.isNotEmpty ? _detectedHeaders : _mappings.keys).map((header) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            header,
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const Icon(Icons.arrow_forward, color: TfcColors.primary, size: 16),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 3,
+                          child: DropdownButtonFormField<String>(
+                            value: _mappings[header],
+                            dropdownColor: const Color(0xFF1E2430),
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            items: [
+                              const DropdownMenuItem(value: null, child: Text('-- عدم الربط (تجاهل) --', style: TextStyle(color: Colors.white38))),
+                              ..._targetClientFields.entries.map((e) => DropdownMenuItem(
+                                    value: e.key,
+                                    child: Text(e.value),
+                                  )),
+                            ],
+                            onChanged: (val) {
+                              setState(() {
+                                if (val == null) {
+                                  _mappings.remove(header);
+                                } else {
+                                  _mappings[header] = val;
+                                }
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Save Config Button
+          Align(
+            alignment: Alignment.centerRight,
+            child: ElevatedButton.icon(
+              onPressed: _saveGoogleSheetConfig,
+              icon: const Icon(Icons.save_rounded, size: 18),
+              label: const Text("حفظ إعدادات ورابط Google Sheet"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: TfcColors.primary,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _fetchHeaders() async {
+    final url = _urlController.text.trim();
+    if (url.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("يرجى إدخال رابط Google Sheet أولاً")),
+      );
+      return;
+    }
+
+    setState(() => _isLoadingHeaders = true);
+    final headers = await ref.read(googleSheetConfigProvider.notifier).fetchSheetHeaders(url);
+    setState(() {
+      _isLoadingHeaders = false;
+      _detectedHeaders = headers;
+      // Auto match defaults
+      for (final h in headers) {
+        final lower = h.toLowerCase();
+        if (lower.contains('اسم') || lower.contains('name')) _mappings[h] = 'full_name';
+        if (lower.contains('هاتف') || lower.contains('موبايل') || lower.contains('phone')) _mappings[h] = 'phone_number';
+        if (lower.contains('شركة') || lower.contains('جهة') || lower.contains('company')) _mappings[h] = 'company_name';
+        if (lower.contains('وظيفة') || lower.contains('job') || lower.contains('title')) _mappings[h] = 'job_title';
+        if (lower.contains('محافظة') || lower.contains('gov')) _mappings[h] = 'governorate';
+        if (lower.contains('مرتب') || lower.contains('دخل') || lower.contains('salary')) _mappings[h] = 'salary_amount';
+      }
+    });
+
+    if (headers.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("لم نتمكن من قراءة الحقول. تأكد أن الشيت منشور ومتاح للوصول العامة (Public/Anyone with link)")),
+      );
+    }
+  }
+
+  Future<void> _saveGoogleSheetConfig() async {
+    final url = _urlController.text.trim();
+    if (url.isEmpty) return;
+
+    final config = GoogleSheetConfigModel(
+      sheetUrl: url,
+      fieldMappings: _mappings,
+      lastSyncedAt: DateTime.now(),
+    );
+
+    final success = await ref.read(googleSheetConfigProvider.notifier).saveConfig(config);
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(success ? "✅ تم حفظ إعدادات ربط Google Sheet بنجاح" : "حدث خطأ أثناء الحفظ"),
+          backgroundColor: success ? TfcColors.success : Colors.red,
+        ),
+      );
+    }
+  }
+}
+
 
