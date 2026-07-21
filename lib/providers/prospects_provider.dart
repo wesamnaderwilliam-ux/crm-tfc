@@ -113,7 +113,8 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
         state = AsyncValue.data([...newProspects, ...current]);
       }
     } catch (e) {
-      // Log or handle
+      final current = state.value ?? [];
+      state = AsyncValue.data([...newProspects, ...current]);
     }
   }
 }
@@ -213,12 +214,11 @@ class GoogleSheetConfigNotifier extends StateNotifier<AsyncValue<GoogleSheetConf
   Future<List<String>> fetchSheetHeaders(String url) async {
     try {
       final csvUrl = _convertGoogleSheetToCsvUrl(url);
-      final response = await http.get(Uri.parse(csvUrl));
-      if (response.statusCode == 200) {
-        final lines = const LineSplitter().convert(response.body);
+      final body = await _fetchCsvWithCorsFallback(csvUrl);
+      if (body != null && body.isNotEmpty) {
+        final lines = const LineSplitter().convert(body);
         if (lines.isNotEmpty) {
-          final firstLine = lines.first;
-          return _parseCsvLine(firstLine);
+          return _parseCsvLine(lines.first);
         }
       }
     } catch (e) {
@@ -230,15 +230,15 @@ class GoogleSheetConfigNotifier extends StateNotifier<AsyncValue<GoogleSheetConf
   Future<List<Map<String, String>>> syncRowsFromSheet(String url) async {
     try {
       final csvUrl = _convertGoogleSheetToCsvUrl(url);
-      final response = await http.get(Uri.parse(csvUrl));
-      if (response.statusCode == 200) {
-        final lines = const LineSplitter().convert(response.body);
+      final body = await _fetchCsvWithCorsFallback(csvUrl);
+      if (body != null && body.isNotEmpty) {
+        final lines = const LineSplitter().convert(body);
         if (lines.length > 1) {
           final headers = _parseCsvLine(lines.first);
           final rows = <Map<String, String>>[];
           for (var i = 1; i < lines.length; i++) {
             final values = _parseCsvLine(lines[i]);
-            if (values.isNotEmpty) {
+            if (values.isNotEmpty && values.any((v) => v.isNotEmpty)) {
               final rowMap = <String, String>{};
               for (var j = 0; j < headers.length; j++) {
                 rowMap[headers[j]] = j < values.length ? values[j] : '';
@@ -253,6 +253,36 @@ class GoogleSheetConfigNotifier extends StateNotifier<AsyncValue<GoogleSheetConf
       // Sync error
     }
     return [];
+  }
+
+  Future<String?> _fetchCsvWithCorsFallback(String csvUrl) async {
+    // 1. Try direct fetch
+    try {
+      final response = await http.get(Uri.parse(csvUrl)).timeout(const Duration(seconds: 8));
+      if (response.statusCode == 200 && response.body.trim().isNotEmpty) {
+        return response.body;
+      }
+    } catch (_) {}
+
+    // 2. Try via corsproxy
+    try {
+      final proxyUrl = 'https://corsproxy.io/?${Uri.encodeComponent(csvUrl)}';
+      final response = await http.get(Uri.parse(proxyUrl)).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200 && response.body.trim().isNotEmpty) {
+        return response.body;
+      }
+    } catch (_) {}
+
+    // 3. Try via allorigins
+    try {
+      final proxyUrl = 'https://api.allorigins.win/raw?url=${Uri.encodeComponent(csvUrl)}';
+      final response = await http.get(Uri.parse(proxyUrl)).timeout(const Duration(seconds: 10));
+      if (response.statusCode == 200 && response.body.trim().isNotEmpty) {
+        return response.body;
+      }
+    } catch (_) {}
+
+    return null;
   }
 
   String _convertGoogleSheetToCsvUrl(String inputUrl) {
