@@ -59,30 +59,26 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       _analysisStep = "جاري تحميل وتصنيف برامج التمويل المتاحة بالبنوك...";
     });
 
-    // Load available banks/programs
+    // Load available banks/programs - fetch ALL banks and flatten their programs
     List<Map<String, dynamic>> allPrograms = [];
     try {
       if (SupabaseConfig.isInitialized) {
         final repo = ref.read(banksRepositoryProvider);
-        allPrograms = await repo.getBanksByProgram(""); // Fetch all program links
-        if (allPrograms.isEmpty) {
-          // Fallback fetch all banks and flatten details
-          final banks = await repo.getAllBanks();
-          for (var b in banks) {
-            final progs = b['bank_programs_details'] as List?;
-            if (progs != null) {
-              for (var p in progs) {
-                allPrograms.add({
-                  'id': p['id'],
-                  'bank_id': b['id'],
-                  'program_id': p['program_id'],
-                  'description': p['description'],
-                  'interest_rate': p['interest_rate'],
-                  'max_loan_amount': p['max_loan_amount'],
-                  'banks': {'id': b['id'], 'bank_name': b['bank_name']},
-                  'core_programs': p['core_programs'],
-                });
-              }
+        final banks = await repo.getAllBanks();
+        for (var b in banks) {
+          final progs = b['bank_programs_details'] as List?;
+          if (progs != null) {
+            for (var p in progs) {
+              allPrograms.add({
+                'id': p['id']?.toString() ?? '',
+                'bank_id': b['id']?.toString() ?? '',
+                'program_id': p['program_id']?.toString() ?? '',
+                'description': p['description'] ?? '',
+                'interest_rate': p['interest_rate'] ?? 0.0,
+                'max_loan_amount': p['max_loan_amount'] ?? 0.0,
+                'banks': {'id': b['id']?.toString() ?? '', 'bank_name': b['bank_name'] ?? ''},
+                'core_programs': p['core_programs'] ?? {'program_name': 'برنامج عام'},
+              });
             }
           }
         }
@@ -110,10 +106,18 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       // Resolve details for matching programs to render interactively
       final List<Map<String, dynamic>> matchedDetails = [];
       for (var id in result.recommendedProgramIds) {
-        final prog = allPrograms.firstWhereOrNull((p) => p['id'].toString() == id);
+        final prog = allPrograms.firstWhereOrNull(
+          (p) => p['id'].toString().trim() == id.toString().trim(),
+        );
         if (prog != null) {
           matchedDetails.add(prog);
         }
+      }
+
+      // If AI/simulation returned IDs but none matched, show all programs as fallback
+      if (matchedDetails.isEmpty && allPrograms.isNotEmpty) {
+        // Take up to 3 programs as recommendations
+        matchedDetails.addAll(allPrograms.take(3));
       }
 
       if (mounted) {

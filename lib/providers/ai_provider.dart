@@ -348,8 +348,9 @@ AiAnalysisResult _generateSimulatedAnalysis(
     final programName = (coreProg?['program_name'] ?? '').toString();
     final bank = p['banks'] as Map<String, dynamic>?;
     final bankName = (bank?['bank_name'] ?? '').toString();
-    final rate = p['interest_rate'] ?? 20.0;
-    final maxAmount = p['max_loan_amount'] ?? 1000000.0;
+    final description = (p['description'] ?? '').toString();
+    final rate = (p['interest_rate'] is num) ? (p['interest_rate'] as num).toDouble() : 20.0;
+    final maxAmount = (p['max_loan_amount'] is num) ? (p['max_loan_amount'] as num).toDouble() : 1000000.0;
 
     bool isMatch = true;
 
@@ -374,25 +375,30 @@ AiAnalysisResult _generateSimulatedAnalysis(
     }
 
     if (isMatch && recommendedIds.length < 3) {
-      recommendedIds.add(p['id']);
+      recommendedIds.add(p['id'].toString());
       matchingReasons.add(
-          '* **برنامج ($programName) بـ ($bankName)**: مناسب جداً نظراً لأن فائدته الفعالة تعادل ($rate%) والحد الأقصى للتمويل فيه يصل لـ (${maxAmount.toStringAsFixed(0)} ج.م)، ويتطابق مع نوع قطاع عملك وطريقة تحويل الراتب.');
+          '* **برنامج ($programName) بـ ($bankName)**: مناسب جداً نظراً لأن فائدته الفعالة تعادل ($rate%) والحد الأقصى للتمويل فيه يصل لـ (${maxAmount.toStringAsFixed(0)} ج.م)، ويتطابق مع نوع قطاع عملك وطريقة تحويل الراتب.${description.isNotEmpty ? "\n  > **وصف البرنامج:** $description" : ""}');
     }
   }
 
-  // If no program matched, recommend the first one or two with highest interest rate (flexible criteria)
+  // If no program matched, recommend the first ones with highest interest rate (flexible criteria)
   if (recommendedIds.isEmpty && availablePrograms.isNotEmpty) {
     // Sort by interest rate descending (typically more flexible)
     final sorted = List<Map<String, dynamic>>.from(availablePrograms)
-      ..sort((a, b) => (b['interest_rate'] ?? 20.0).compareTo(a['interest_rate'] ?? 20.0));
+      ..sort((a, b) {
+        final rateA = (a['interest_rate'] is num) ? (a['interest_rate'] as num).toDouble() : 20.0;
+        final rateB = (b['interest_rate'] is num) ? (b['interest_rate'] as num).toDouble() : 20.0;
+        return rateB.compareTo(rateA);
+      });
     final count = sorted.length > 2 ? 2 : sorted.length;
     for (int i = 0; i < count; i++) {
       final p = sorted[i];
       final coreProg = p['core_programs'] as Map<String, dynamic>?;
       final bank = p['banks'] as Map<String, dynamic>?;
-      recommendedIds.add(p['id']);
+      final description = (p['description'] ?? '').toString();
+      recommendedIds.add(p['id'].toString());
       matchingReasons.add(
-          '* **برنامج (${coreProg?['program_name']}) بـ (${bank?['bank_name']})**: مرشح كخيار بديل بفائدة (${p['interest_rate']}%) لأنه يقبل شروطاً ائتمانية أكثر مرونة.');
+          '* **برنامج (${coreProg?['program_name']}) بـ (${bank?['bank_name']})**: مرشح كخيار بديل بفائدة (${p['interest_rate']}%) لأنه يقبل شروطاً ائتمانية أكثر مرونة.${description.isNotEmpty ? "\n  > **وصف البرنامج:** $description" : ""}');
     }
   }
 
