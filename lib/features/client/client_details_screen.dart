@@ -2070,97 +2070,195 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   statusLabel = "مرفوض";
                 }
 
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    textDirection: TextDirection.rtl,
+                final urlLower = d.documentUrl.toLowerCase();
+                final nameLower = d.documentName.toLowerCase();
+                final bool isImage = urlLower.contains('.jpg') ||
+                    urlLower.contains('.jpeg') ||
+                    urlLower.contains('.png') ||
+                    urlLower.contains('.webp') ||
+                    nameLower.contains('.jpg') ||
+                    nameLower.contains('.jpeg') ||
+                    nameLower.contains('.png') ||
+                    nameLower.contains('.webp') ||
+                    urlLower.contains('supabase.co/storage');
+
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 14.0),
+                  padding: const EdgeInsets.all(12.0),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: () => _showDocumentPreview(d),
-                          child: Row(
-                            textDirection: TextDirection.rtl,
-                            children: [
-                              Icon(
-                                d.documentName.toLowerCase().contains('.pdf') ? Icons.picture_as_pdf :
-                                d.documentName.toLowerCase().contains('.jpg') || d.documentName.toLowerCase().contains('.png') || d.documentName.toLowerCase().contains('.jpeg') ? Icons.image :
-                                Icons.insert_drive_file,
-                                color: d.documentName.toLowerCase().contains('.pdf') ? Colors.redAccent :
-                                       d.documentName.toLowerCase().contains('.jpg') || d.documentName.toLowerCase().contains('.png') ? Colors.blueAccent :
-                                       TfcColors.primary,
-                                size: 18),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(d.documentName,
-                                    style: const TextStyle(
-                                        fontSize: 13,
-                                        decoration: TextDecoration.underline,
-                                        color: Colors.blueAccent),
-                                    overflow: TextOverflow.ellipsis,
-                                    textDirection: TextDirection.rtl),
-                              ),
-                              const SizedBox(width: 4),
-                              const Icon(Icons.visibility, color: Colors.white38, size: 14),
-                            ],
-                          ),
-                        ),
-                      ),
+                      // Header Row: Document Name + Status + Controls
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        textDirection: TextDirection.rtl,
                         children: [
-                          if (isAdmin && d.status == 'pending') ...[
-                            IconButton(
-                              icon: const Icon(Icons.check_circle, color: TfcColors.success, size: 18),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              tooltip: "موافقة",
-                              onPressed: () => _updateDocumentStatus(client, d, 'verified'),
-                            ),
-                            const SizedBox(width: 8),
-                            IconButton(
-                              icon: const Icon(Icons.cancel, color: Colors.redAccent, size: 18),
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
-                              tooltip: "رفض",
-                              onPressed: () => _updateDocumentStatus(client, d, 'rejected'),
-                            ),
-                            const SizedBox(width: 8),
-                          ],
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: statusColor.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                  color: statusColor.withValues(alpha: 0.3)),
-                            ),
-                            child: Text(
-                              statusLabel,
-                              style: TextStyle(
-                                  color: statusColor,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold),
+                          Expanded(
+                            child: Row(
+                              textDirection: TextDirection.rtl,
+                              children: [
+                                Icon(
+                                  isImage ? Icons.image : Icons.picture_as_pdf,
+                                  color: isImage ? Colors.blueAccent : Colors.redAccent,
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    d.documentName,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                    textDirection: TextDirection.rtl,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: TfcColors.secondary, size: 16),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            tooltip: "تعديل",
-                            onPressed: () => _editDocument(client, d),
-                          ),
-                          const SizedBox(width: 8),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.redAccent, size: 16),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                            tooltip: "حذف",
-                            onPressed: () => _deleteDocument(client, d),
+                          Row(
+                            children: [
+                              if (isAdmin && d.status == 'pending') ...[
+                                IconButton(
+                                  icon: const Icon(Icons.check_circle, color: TfcColors.success, size: 20),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  tooltip: "موافقة",
+                                  onPressed: () => _updateDocumentStatus(client, d, 'verified'),
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  icon: const Icon(Icons.cancel, color: Colors.redAccent, size: 20),
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  tooltip: "رفض",
+                                  onPressed: () => _updateDocumentStatus(client, d, 'rejected'),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: statusColor.withValues(alpha: 0.4)),
+                                ),
+                                child: Text(
+                                  statusLabel,
+                                  style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.edit, color: TfcColors.secondary, size: 18),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                tooltip: "تعديل",
+                                onPressed: () => _editDocument(client, d),
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.redAccent, size: 18),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                tooltip: "حذف",
+                                onPressed: () => _deleteDocument(client, d),
+                              ),
+                            ],
                           ),
                         ],
                       ),
+                      const SizedBox(height: 10),
+
+                      // Image / File Content Display Area
+                      if (isImage && d.documentUrl.isNotEmpty) ...[
+                        GestureDetector(
+                          onTap: () => _showDocumentPreview(d),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              constraints: const BoxConstraints(maxHeight: 280),
+                              width: double.infinity,
+                              color: Colors.black26,
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Image.network(
+                                    d.documentUrl,
+                                    fit: BoxFit.contain,
+                                    loadingBuilder: (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return const Padding(
+                                        padding: EdgeInsets.all(24.0),
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        padding: const EdgeInsets.all(16),
+                                        color: Colors.white10,
+                                        child: const Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Icon(Icons.broken_image, color: Colors.amber),
+                                            SizedBox(width: 8),
+                                            Text("تعذر تحميل المعاينة المباشرة للمستند", style: TextStyle(fontSize: 12, color: Colors.white70)),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  Positioned(
+                                    bottom: 8,
+                                    left: 8,
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.black.withValues(alpha: 0.6),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                      child: const Row(
+                                        children: [
+                                          Icon(Icons.fullscreen, color: Colors.white, size: 14),
+                                          SizedBox(width: 4),
+                                          Text("عرض بالكامل", style: TextStyle(color: Colors.white, fontSize: 10)),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ] else ...[
+                        InkWell(
+                          onTap: () => _showDocumentPreview(d),
+                          borderRadius: BorderRadius.circular(8),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white10,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.picture_as_pdf, color: Colors.redAccent, size: 22),
+                                SizedBox(width: 8),
+                                Text("اضغط هنا للفتح والتنزيل والمعاينة الحية", style: TextStyle(fontSize: 12, color: Colors.blueAccent, decoration: TextDecoration.underline)),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 );
