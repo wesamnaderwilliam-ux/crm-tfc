@@ -24,6 +24,9 @@ dependencies:
   url_launcher: ^6.2.5
   http: ^1.2.0
   flutter_markdown: ^0.7.3
+  pdf: ^3.10.8
+  printing: ^5.13.1
+  share_plus: ^10.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

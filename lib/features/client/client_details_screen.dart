@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
 import '../../core/theme.dart';
@@ -11,6 +11,7 @@ import '../../providers/employees_provider.dart';
 import 'distribution_widget.dart';
 import 'operations_widget.dart';
 import 'document_upload_helper.dart';
+import '../../core/utils/client_pdf_generator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:html' as html;
 
@@ -308,6 +309,11 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               centerTitle: false,
               actions: [
                 if (client != null) ...[
+                  IconButton(
+                    icon: const Icon(Icons.share, color: Colors.greenAccent),
+                    tooltip: "مشاركة ملف العميل PDF (واتساب / ماسنجر...)",
+                    onPressed: () => ClientPdfGenerator.shareClientPdf(client),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.print, color: TfcColors.primary),
                     tooltip: "طباعة ملف العميل PDF",
@@ -724,6 +730,11 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             ),
             actions: [
               IconButton(
+                icon: const Icon(Icons.share, color: Colors.greenAccent),
+                tooltip: "مشاركة ملف العميل PDF (واتساب / ماسنجر...)",
+                onPressed: () => ClientPdfGenerator.shareClientPdf(client),
+              ),
+              IconButton(
                 icon: const Icon(Icons.print, color: TfcColors.primary),
                 tooltip: "طباعة ملف العميل PDF",
                 onPressed: () => _printClientProfile(client),
@@ -1025,6 +1036,11 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               const Text("المعلومات الأساسية والوظيفية",
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.share, size: 18, color: Colors.greenAccent),
+                tooltip: "مشاركة ملف العميل PDF عبر التطبيقات",
+                onPressed: () => ClientPdfGenerator.shareClientPdf(client),
+              ),
               if (permissions.canEditClients)
                 IconButton(
                   icon: const Icon(Icons.edit,
