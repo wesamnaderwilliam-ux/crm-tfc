@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -26,6 +27,33 @@ class ClientPdfGenerator {
     double totalCardsFivePercent = client.creditCardsRequests.fold(0.0, (prev, c) => prev + c.fivePercentCalc);
     double totalMonthlyObligations = totalLoansInstallments + totalCardsFivePercent;
     double dtiPercent = totalSalary > 0 ? (totalMonthlyObligations / totalSalary) * 100 : 0.0;
+
+    // Fetch and download documents images if available
+    final List<Map<String, dynamic>> downloadedDocs = [];
+    for (var doc in client.documents) {
+      Uint8List? imageBytes;
+      if (doc.documentUrl.isNotEmpty) {
+        final urlLower = doc.documentUrl.toLowerCase();
+        final isImage = urlLower.contains('.jpg') ||
+            urlLower.contains('.jpeg') ||
+            urlLower.contains('.png') ||
+            urlLower.contains('.webp') ||
+            urlLower.contains('supabase.co/storage');
+        if (isImage) {
+          try {
+            final response = await http.get(Uri.parse(doc.documentUrl)).timeout(const Duration(seconds: 8));
+            if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+              imageBytes = response.bodyBytes;
+            }
+          } catch (_) {}
+        }
+      }
+      downloadedDocs.add({
+        'name': doc.documentName,
+        'url': doc.documentUrl,
+        'imageBytes': imageBytes,
+      });
+    }
 
     pdf.addPage(
       pw.MultiPage(
@@ -91,7 +119,7 @@ class ClientPdfGenerator {
             ),
             pw.SizedBox(height: 14),
 
-            // 2. SECTION: Complete Tables for Loans & Credit Cards
+            // 2. SECTION: Complete Detailed Tables for Loans & Credit Cards
             pw.Container(
               padding: const pw.EdgeInsets.all(10),
               decoration: pw.BoxDecoration(
@@ -129,26 +157,30 @@ class ClientPdfGenerator {
                         ),
                   pw.SizedBox(height: 12),
 
-                  // Credit Cards Complete Table
+                  // Credit Cards Complete Table with ALL details
                   pw.Text('• بطاقات الائتمان والطلبات (${client.creditCardsRequests.length}):', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
                   pw.SizedBox(height: 4),
                   client.creditCardsRequests.isEmpty
                       ? pw.Text('لا توجد بطاقات ائتمان مسجلة.', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700))
                       : pw.TableHelper.fromTextArray(
                           border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
-                          headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.white),
+                          headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8, color: PdfColors.white),
                           headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey700),
-                          cellStyle: const pw.TextStyle(fontSize: 9),
-                          cellPadding: const pw.EdgeInsets.all(5),
-                          headers: ['م', 'البنك / الجهة', 'نوع البند', 'الحد الائتماني / القيمة', 'استقطاع الـ DTI (5%)'],
+                          cellStyle: const pw.TextStyle(fontSize: 8),
+                          cellPadding: const pw.EdgeInsets.all(4),
+                          headers: ['م', 'البنك / الجهة', 'النوع', 'الحد الائتماني (الليمت)', 'أعلى قيمة', 'القسط', 'المدة', 'عبء الدين (5%)', 'ملاحظات'],
                           data: List.generate(client.creditCardsRequests.length, (index) {
                             final c = client.creditCardsRequests[index];
                             return [
                               '${index + 1}',
                               c.bankName,
-                              c.type == 'card' ? 'بطاقة قائمة' : 'طلب جديد',
+                              c.type == 'card' ? 'بطاقة' : 'أبلكيشن',
                               '${c.value.toStringAsFixed(0)} ج.م',
+                              c.highestValue > 0 ? '${c.highestValue.toStringAsFixed(0)} ج.م' : '-',
+                              c.installment > 0 ? '${c.installment.toStringAsFixed(0)} ج.م' : '-',
+                              c.duration.isNotEmpty ? c.duration : '-',
                               '${c.fivePercentCalc.toStringAsFixed(0)} ج.م',
+                              (c.notes != null && c.notes!.isNotEmpty) ? c.notes! : '-',
                             ];
                           }),
                         ),
@@ -187,7 +219,7 @@ class ClientPdfGenerator {
             ),
             pw.SizedBox(height: 14),
 
-            // 4. SECTION: Uploaded Documents List (EXCLUDING document status)
+            // 4. SECTION: Uploaded Documents with Full Embedded Image Preview
             pw.Container(
               padding: const pw.EdgeInsets.all(10),
               decoration: pw.BoxDecoration(
@@ -200,14 +232,40 @@ class ClientPdfGenerator {
                   pw.Text('📁 المستندات والوثائق المرفقة', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800)),
                   pw.Divider(color: PdfColors.grey300),
                   pw.SizedBox(height: 6),
-                  client.documents.isEmpty
+                  downloadedDocs.isEmpty
                       ? pw.Text('لم يتم رفع مستندات حتى الآن.', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700))
                       : pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: client.documents.map((d) {
-                            return pw.Padding(
-                              padding: const pw.EdgeInsets.symmetric(vertical: 2),
-                              child: pw.Text('• ${d.documentName}', style: const pw.TextStyle(fontSize: 10, color: PdfColors.black)),
+                          children: downloadedDocs.map((item) {
+                            final String name = item['name'] ?? '';
+                            final Uint8List? imgBytes = item['imageBytes'];
+
+                            return pw.Container(
+                              margin: const pw.EdgeInsets.only(bottom: 12),
+                              padding: const pw.EdgeInsets.all(8),
+                              decoration: pw.BoxDecoration(
+                                border: pw.Border.all(color: PdfColors.grey300),
+                                borderRadius: pw.BorderRadius.circular(4),
+                              ),
+                              child: pw.Column(
+                                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                children: [
+                                  pw.Text('📄 مستند: $name', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                                  pw.SizedBox(height: 6),
+                                  if (imgBytes != null)
+                                    pw.Center(
+                                      child: pw.Container(
+                                        height: 250,
+                                        child: pw.Image(
+                                          pw.MemoryImage(imgBytes),
+                                          fit: pw.BoxFit.contain,
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    pw.Text('• $name (مستند مرفق)', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+                                ],
+                              ),
                             );
                           }).toList(),
                         ),
