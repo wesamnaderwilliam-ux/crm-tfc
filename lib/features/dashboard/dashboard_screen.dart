@@ -11,6 +11,8 @@ import '../../providers/employees_provider.dart';
 import '../../models/profile.dart';
 import '../accounts/accounts_screen.dart';
 import '../employees/employee_targets_panel.dart';
+import '../../core/widgets/interactive_hover_card.dart';
+import '../client/credit_calculator_screen.dart';
 import '../../models/client_model.dart';
 
 
@@ -141,15 +143,62 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      "مرحباً بك، ${authState.fullName} - تابع طلبات التمويل والقروض المفتوحة",
+                      "مرحباً بك، ${authState.fullName} - تابع طلبات التمويل والقروض",
                       style: const TextStyle(color: TfcColors.outline),
                     ),
                   ],
                 ),
-                IconButton(
-                  icon: const Icon(Icons.refresh, color: TfcColors.primary),
-                  onPressed: () =>
-                      ref.read(clientProvider.notifier).fetchClients(),
+                Row(
+                  children: [
+                    InteractiveHoverCard(
+                      onTap: () {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: const Color(0xFF16162A),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                          ),
+                          builder: (ctx) => DraggableScrollableSheet(
+                            initialChildSize: 0.85,
+                            minChildSize: 0.5,
+                            maxChildSize: 0.95,
+                            expand: false,
+                            builder: (_, scrollController) => SingleChildScrollView(
+                              controller: scrollController,
+                              padding: const EdgeInsets.all(16),
+                              child: const CreditCalculatorScreen(),
+                            ),
+                          ),
+                        );
+                      },
+                      glowColor: Colors.amberAccent,
+                      backgroundColor: Colors.amber.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.calculate_rounded, color: Colors.amberAccent, size: 20),
+                          SizedBox(width: 6),
+                          Text(
+                            "فتح حاسبة الائتمان 🧮",
+                            style: TextStyle(
+                              color: Colors.amberAccent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.refresh, color: TfcColors.primary),
+                      onPressed: () =>
+                          ref.read(clientProvider.notifier).fetchClients(),
+                    ),
+                  ],
                 ),
               ],
             ),
