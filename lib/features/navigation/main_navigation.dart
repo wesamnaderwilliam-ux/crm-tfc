@@ -560,6 +560,56 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                     ),
                   ),
 
+                  // Prominent Credit Calculator Quick Access Button
+                  InteractiveHoverCard(
+                    onTap: () {
+                      final calcIdx = navItems.indexWhere((item) => item.label == 'حاسبة الدخل الائتماني');
+                      if (calcIdx != -1) {
+                        navigateToTab(calcIdx);
+                      } else {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: const Color(0xFF16162A),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                          ),
+                          builder: (ctx) => DraggableScrollableSheet(
+                            initialChildSize: 0.85,
+                            minChildSize: 0.5,
+                            maxChildSize: 0.95,
+                            expand: false,
+                            builder: (_, scrollController) => SingleChildScrollView(
+                              controller: scrollController,
+                              padding: const EdgeInsets.all(16),
+                              child: const CreditCalculatorScreen(),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    glowColor: Colors.amberAccent,
+                    backgroundColor: Colors.amber.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.calculate_rounded, color: Colors.amberAccent, size: 18),
+                        SizedBox(width: 6),
+                        Text(
+                          "حاسبة الائتمان 🧮",
+                          style: TextStyle(
+                            color: Colors.amberAccent,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+
                   // Logout & User Info
                   IconButton(
                     icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
