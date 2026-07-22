@@ -203,6 +203,63 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                 ),
               ),
               const Divider(color: Colors.white12, height: 1),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                child: InteractiveHoverCard(
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: const Color(0xFF16162A),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                      ),
+                      builder: (bCtx) => DraggableScrollableSheet(
+                        initialChildSize: 0.85,
+                        minChildSize: 0.5,
+                        maxChildSize: 0.95,
+                        expand: false,
+                        builder: (_, scrollController) => SingleChildScrollView(
+                          controller: scrollController,
+                          padding: const EdgeInsets.all(16),
+                          child: const CreditCalculatorScreen(),
+                        ),
+                      ),
+                    );
+                  },
+                  glowColor: Colors.amberAccent,
+                  backgroundColor: Colors.amber.withValues(alpha: 0.2),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  borderRadius: BorderRadius.circular(14),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.calculate_rounded, color: Colors.amberAccent, size: 24),
+                      SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "حاسبة الدخل الائتماني 🧮",
+                              style: TextStyle(
+                                color: Colors.amberAccent,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                            Text(
+                              "احسب السعة والالتزامات للعميل بشكل افتراضي",
+                              style: TextStyle(color: Colors.white54, fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.arrow_forward_ios_rounded, color: Colors.amberAccent, size: 14),
+                    ],
+                  ),
+                ),
+              ),
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
