@@ -17,20 +17,14 @@ final supabaseProvider = Provider<SupabaseClient>((ref) {
   // `await dotenv.load()` beforehand, but this guard makes the provider
   // safe to be used elsewhere as well.
   if (!dotenv.isInitialized) {
-    // ignore: avoid_print
-    print('Loading .env inside Supabase provider');
-    // This is a synchronous call; it will load the file if present.
-    // In production you should load it once in `main()`.
-    dotenv.load(fileName: '.env');
+    try {
+      dotenv.load(fileName: '.env');
+    } catch (_) {}
   }
 
-  final supabaseUrl = dotenv.env['SUPABASE_URL'];
-  final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'];
+  final supabaseUrl = dotenv.env['SUPABASE_URL'] ?? 'https://placeholder.supabase.co';
+  final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'] ?? 'placeholder';
   final mcpEndpoint = dotenv.env['MCP_SUPABASE_ENDPOINT'];
-
-  if (supabaseUrl == null || supabaseAnonKey == null) {
-    throw Exception('Supabase URL or anon key missing in .env');
-  }
   if (mcpEndpoint == null) {
     _log.w('MCP endpoint not set – requests will go directly to Supabase');
   }

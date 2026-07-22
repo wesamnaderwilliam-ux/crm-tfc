@@ -14,8 +14,17 @@ class SupabaseConfig {
   static bool get isInitialized => _initialized;
 
   static Future<void> initialize() async {
-    await dotenv.load(fileName: '.env');
-    if (url.contains("placeholder")) {
+    try {
+      await dotenv.load(fileName: '.env');
+    } catch (e) {
+      if (kDebugMode) {
+        print("Dotenv load error on web: $e");
+      }
+    }
+    final supabaseUrl = dotenv.env['SUPABASE_URL'] ?? '';
+    final supabaseAnonKey = dotenv.env['SUPABASE_ANON_KEY'] ?? '';
+
+    if (supabaseUrl.isEmpty || supabaseUrl.contains("placeholder")) {
       if (kDebugMode) {
         print(
           "Supabase Config: Running in simulation mode (Placeholder URL detected).",
