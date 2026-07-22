@@ -120,26 +120,29 @@ final aiAnalysisProvider = Provider((ref) {
 
       final systemPrompt = '''
 أنت خبير ائتمان مالي ومستشار تمويلي ذكي لشركة "The Future Club" للاستشارات التمويلية.
-مهمتك هي تحليل البيانات المالية للعميل ومطابقتها مع برامج التمويل المتاحة في البنوك لدينا بناءً على معايير وقواعد محددة.
-
-القواعد المعتمدة للمكتب:
-\${settings.matchingRules}
+مهمتك هي تحليل البيانات المالية والائتمانية والأصول للعميل بدقة وحرفية عالية، ومطابقتها مع وصف وشروط برامج التمويل المتاحة في دليل البنوك لدينا بذكاء وخبرة.
 
 المطلوب منك:
-1. قراءة بيانات العميل الأساسية والمالية كاملة بتمعن.
-2. مراجعة وتحليل تفاصيل القروض والبطاقات القائمة (اسم البنك، قيمة القسط، الملاحظات) والتحقق من التزام العميل.
-3. مراجعة ملخص التزامات العميل المالية الكلية ونسبة العبء الائتماني DTI لمطابقتها مع الحدود الائتمانية المسموحة بالبنوك.
-4. مراجعة المستندات المرفقة للعميل (أسمائها وحالتها سواء معتمدة verified أو معلقة pending أو مرفوضة) وتحديد مدى كفايتها ومطابقتها للمطلوب.
-5. مطابقة وضع العميل الائتماني والمالي والمستندات مع البرامج البنكية المتاحة بدقة، وترشيح أفضل 1 إلى 3 برامج بنكية مناسبة له.
-6. كتابة تقرير ائتماني مفصل باللغة العربية ومنسق بأسلوب Markdown جميل ومقروء يحتوي على:
-   - **ملخص التقرير المالي للعميل**: نقاط القوة والضعف (مثل الراتب، التقييم الائتماني، تفاصيل الالتزامات والـ DTI، وحالة المستندات المرفقة ومدى كفايتها).
-   - **ترشيح البنوك والبرامج المتاحة**: شرح أسباب ترشيح كل برنامج بالتفصيل وكيف يطابق معطيات العميل ومستنداته المرفقة.
-   - **التوصيات الاستشارية والخطوات اللاحقة**: التوجيهات اللازمة لتحسين موقف العميل أو إكمال المستندات الناقصة والمرفوضة لضمان موافقة البنك المقترح.
+1. **دراسة طبيعة وقطاع الوظيفة**: (قطاع حكومي، خاص مؤمن عليه، خاص غير مؤمن عليه، أعمال حرة، مهن حرة) والتحقق من الاستقرار الوظيفي والتأمينات.
+2. **تحليل العبء الائتماني المتبقي (Remaining DBR Margin)**:
+   - الحد الأقصى المسموح به للعبء الائتماني (DBR / DTI) هو 50% من إجمالي الراتب.
+   - حساب إجمالي الالتزامات الشهرية القائمة (أقساط القروض القائمة + 5% من حدود جميع البطاقات والطلبات).
+   - حساب المتبقي من الميزانية الشهرية المتاحة للتمويل الجديد: `(الراتب × 50%) - إجمالي الأقساط والالتزامات الحالية`.
+3. **تحليل الأصول الضامنة والتمويلية الخاصة**:
+   - التحقق إذا كان العميل يملك **وحدة في كمبوند** (اسم الكمبوند، الشركة المكونة، قيمة القسط/الوحدة) ومطابقته مع برامج البنوك المخصصة لملاك الكمبوندات أو أصحاب العقارات.
+   - التحقق إذا كان العميل يملك **سيارة حديثة** (ماركة السيارة، الموديل، القيمة السوقية) ومطابقته مع برامج البنوك الخاصة بمالكي السيارات الحديثة أو أصحاب المركبات.
+4. **مطابقة البيانات مع وصف برامج البنوك بدقة وخبرة**:
+   - مراجعة وصف كل برنامج (`description`) والشروط الخاصة بكل بنك في القائمة المتاحة.
+   - ترشيح أفضل 1 إلى 3 برامج بنكية مناسبة للعميل من قائمة دليل البنوك بناءً على المطابقة الدقيقة.
+5. **كتابة تقرير ائتماني تحليلي مفصل** باللغة العربية ومنسق بأسلوب Markdown جميل ومقروء يحتوي على:
+   - **ملخص التقرير المالي للعميل**: نقاط القوة والضعف (طبيعة الوظيفة، الراتب، I-Score، الـ DTI الحالية، **المتبقي المتاح من الـ DBR والقسط الشهري المسموح**، وجود وحدات كمبوند أو سيارات حديثة).
+   - **ترشيح البنوك والبرامج المتاحة من دليل البنوك**: ذكر أسباب ترشيح كل برنامج بالتفصيل وكيف يطابق الوصف المذكور في دليل البنوك ومعطيات العميل.
+   - **التوصيات الاستشارية والخطوات اللاحقة**: التوجيهات الخبيرة اللازمة لرفع فرصة الموافقة الائتمانية.
 
 تنسيق الاستجابة:
 يجب أن ترجع استجابة JSON تحتوي على حقلين:
 - `report`: التقرير النهائي المنسق بصيغة Markdown باللغة العربية.
-- `recommended_program_ids`: مصفوفة تحتوي على معرفات البرامج (id الخاص بكل برنامج مطابق من القائمة المتاحة).
+- `recommended_program_ids`: مصفوفة تحتوي على معرفات البرامج (`id` الخاص بكل برنامج مطابق من القائمة المتاحة).
 
 تنسيق الـ JSON المطلوب إرجاعه:
 ```json
@@ -159,7 +162,7 @@ final aiAnalysisProvider = Provider((ref) {
         final bankName = bank?['bank_name'] ?? 'بنك غير معروف';
         
         return {
-          'id': p['id'],
+          'id': p['id']?.toString() ?? '',
           'bank_name': bankName,
           'program_name': progName,
           'description': p['description'] ?? '',
@@ -171,6 +174,15 @@ final aiAnalysisProvider = Provider((ref) {
       // Format client details for prompt context
       final clientDti = _calculateDti(client);
       final clientAge = _calculateAge(client.birthDate);
+      
+      double totalSalary = 0.0;
+      if (client.salaryTransferMethod == 'bank_transfer') {
+        for (var b in client.salaryBankDetails) {
+          totalSalary += double.tryParse(b['amount'] ?? '0') ?? 0.0;
+        }
+      } else {
+        totalSalary = client.cashSalaryAmount ?? 0.0;
+      }
 
       // Calculate sum totals for obligations summary
       double totalExistingLoansInstallments = client.existingLoans.fold(0.0, (prev, l) => prev + l.installmentValue);
@@ -178,6 +190,13 @@ final aiAnalysisProvider = Provider((ref) {
       double totalCardsInstallments = client.creditCardsRequests.where((c) => c.type == 'card').fold(0.0, (prev, c) => prev + c.installment);
       double totalCardRequestsLimits = client.creditCardsRequests.where((c) => c.type == 'request').fold(0.0, (prev, c) => prev + c.value);
       double totalCardsFivePercentCalc = client.creditCardsRequests.fold(0.0, (prev, c) => prev + c.fivePercentCalc);
+
+      double totalMonthlyObligations = totalExistingLoansInstallments + totalCardsFivePercentCalc;
+      double maxAllowedDbrObligation = totalSalary * 0.50; // 50% max DBR rule
+      double remainingAvailableInstallmentBudget = maxAllowedDbrObligation - totalMonthlyObligations;
+      if (remainingAvailableInstallmentBudget < 0) remainingAvailableInstallmentBudget = 0;
+      double remainingDbrMarginPercent = 50.0 - clientDti;
+      if (remainingDbrMarginPercent < 0) remainingDbrMarginPercent = 0;
 
       final clientData = {
         'fullName': client.fullName,
@@ -189,10 +208,20 @@ final aiAnalysisProvider = Provider((ref) {
         'salaryTransferMethod': client.salaryTransferMethod,
         'cashSalaryAmount': client.cashSalaryAmount ?? 0.0,
         'salaryBankDetails': client.salaryBankDetails,
+        'totalVerifiedSalary': totalSalary,
         'creditScore': client.creditScore,
         'requestedAmount': client.requestedAmount,
         'governorate': client.governorate,
-        'dtiPercent': clientDti,
+        
+        // DTI & DBR Detailed Calculations
+        'dtiAnalysis': {
+          'currentDtiPercent': clientDti,
+          'maxAllowedDbrPercent': 50.0,
+          'remainingDbrMarginPercent': remainingDbrMarginPercent,
+          'totalMonthlyObligations': totalMonthlyObligations,
+          'maxAllowedMonthlyObligationBudget': maxAllowedDbrObligation,
+          'remainingAvailableInstallmentBudgetForNewLoan': remainingAvailableInstallmentBudget,
+        },
         
         // Detailed list of existing loans
         'existingLoans': client.existingLoans.map((l) => {
@@ -213,14 +242,13 @@ final aiAnalysisProvider = Provider((ref) {
           'notes': c.notes ?? '',
         }).toList(),
         
-        // Obligations summary
-        'obligationsSummary': {
-          'totalExistingLoansInstallments': totalExistingLoansInstallments,
-          'totalCreditCardsLimits': totalCardsLimits,
-          'totalCreditCardsInstallments': totalCardsInstallments,
-          'totalCreditCardRequestsLimits': totalCardRequestsLimits,
-          'totalCreditCardsFivePercentObligation': totalCardsFivePercentCalc,
-          'totalMonthlyObligations': totalExistingLoansInstallments + totalCardsFivePercentCalc,
+        // Assets & Special Programs Eligibility
+        'assetsData': {
+          'hasCompoundUnit': client.hasCompoundUnit,
+          'compoundUnits': client.compoundUnitsData,
+          'hasModernCar': client.hasModernCar,
+          'modernCars': client.modernCarsData,
+          'businessData': client.businessData,
         },
         
         // Detailed list of uploaded documents
@@ -231,11 +259,11 @@ final aiAnalysisProvider = Provider((ref) {
       };
 
       final prompt = '''
-بيانات العميل:
-\${const JsonEncoder.withIndent('  ').convert(clientData)}
+بيانات العميل المالية والائتمانية والأصول الكاملة:
+${const JsonEncoder.withIndent('  ').convert(clientData)}
 
-البرامج المتاحة بالبنوك:
-\${const JsonEncoder.withIndent('  ').convert(formattedPrograms)}
+دليل برامج البنوك المتاحة للتطابق:
+${const JsonEncoder.withIndent('  ').convert(formattedPrograms)}
 ''';
 
       final response = await http.post(
@@ -275,9 +303,9 @@ final aiAnalysisProvider = Provider((ref) {
           }
         }
       }
-      throw Exception('Failed response code: \${response.statusCode} - \${response.body}');
+      throw Exception('Failed response code: ${response.statusCode} - ${response.body}');
     } catch (e) {
-      _logger.e('Gemini API Error, falling back to simulated matching: \$e');
+      _logger.e('Gemini API Error, falling back to simulated matching: $e');
       return _generateSimulatedAnalysis(client, availablePrograms, settings.matchingRules);
     }
   }
@@ -322,7 +350,7 @@ int _calculateAge(String birthDateStr) {
   }
 }
 
-// Simulated local rule-based matching engine
+// Simulated local rule-based matching engine with deep analytical criteria
 AiAnalysisResult _generateSimulatedAnalysis(
   ClientModel client,
   List<Map<String, dynamic>> availablePrograms,
@@ -330,6 +358,7 @@ AiAnalysisResult _generateSimulatedAnalysis(
 ) {
   final clientDti = _calculateDti(client);
   final clientAge = _calculateAge(client.birthDate);
+  
   double totalSalary = 0.0;
   if (client.salaryTransferMethod == 'bank_transfer') {
     for (var b in client.salaryBankDetails) {
@@ -339,9 +368,20 @@ AiAnalysisResult _generateSimulatedAnalysis(
     totalSalary = client.cashSalaryAmount ?? 0.0;
   }
 
-  // Filter programs based on basic criteria locally
+  double totalExistingLoansInstallments = client.existingLoans.fold(0.0, (prev, l) => prev + l.installmentValue);
+  double totalCardsFivePercentCalc = client.creditCardsRequests.fold(0.0, (prev, c) => prev + c.fivePercentCalc);
+  double totalMonthlyObligations = totalExistingLoansInstallments + totalCardsFivePercentCalc;
+  double maxAllowedDbrObligation = totalSalary * 0.50; // 50% max DBR limit
+  double remainingAvailableInstallmentBudget = maxAllowedDbrObligation - totalMonthlyObligations;
+  if (remainingAvailableInstallmentBudget < 0) remainingAvailableInstallmentBudget = 0;
+  double remainingDbrMarginPercent = 50.0 - clientDti;
+  if (remainingDbrMarginPercent < 0) remainingDbrMarginPercent = 0;
+
   final List<String> recommendedIds = [];
   final List<String> matchingReasons = [];
+
+  // Analytical scoring per program
+  final List<Map<String, dynamic>> scoredPrograms = [];
 
   for (var p in availablePrograms) {
     final coreProg = p['core_programs'] as Map<String, dynamic>?;
@@ -352,76 +392,132 @@ AiAnalysisResult _generateSimulatedAnalysis(
     final rate = (p['interest_rate'] is num) ? (p['interest_rate'] as num).toDouble() : 20.0;
     final maxAmount = (p['max_loan_amount'] is num) ? (p['max_loan_amount'] as num).toDouble() : 1000000.0;
 
-    bool isMatch = true;
+    int matchScore = 100;
+    final List<String> reasons = [];
 
-    // Rule 1: Requested amount within limits
-    if (client.requestedAmount > maxAmount) {
-      isMatch = false;
+    // 1. DBR & Remaining Installment Budget Match
+    if (clientDti >= 50.0) {
+      matchScore -= 40;
+      reasons.add("تجاوز نسبة الـ DBR المسموحة (50%).");
+    } else {
+      reasons.add("المتبقي المتاح من الـ DBR يعادل (${remainingDbrMarginPercent.toStringAsFixed(1)}%) بميزانية قسط متبقية (${remainingAvailableInstallmentBudget.toStringAsFixed(0)} ج.م/شهرياً).");
     }
 
-    // Rule 2: Cash transfer limit check
-    if (client.salaryTransferMethod == 'cash' && rate < 18.0) {
-      isMatch = false; // premium rate program requires bank transfer
+    // 2. Requested Amount Match
+    if (client.requestedAmount <= maxAmount) {
+      matchScore += 20;
+      reasons.add("المبلغ المطلوب (${client.requestedAmount.toStringAsFixed(0)} ج.م) يقع ضمن الحد الأقصى للبرنامج (${maxAmount.toStringAsFixed(0)} ج.م).");
+    } else {
+      matchScore -= 30;
+      reasons.add("المبلغ المطلوب يتدعدى الحد الأقصى للبرنامج.");
     }
 
-    // Rule 3: Credit score check
-    if (client.creditScore < 580 && rate < 22.0) {
-      isMatch = false; // weak score can't get low interest rates
+    // 3. Employment Type & Insurance Match
+    final descLower = description.toLowerCase();
+    final progLower = programName.toLowerCase();
+
+    if (client.employmentType == 'government_sector' || (client.employmentType == 'private_sector' && client.isInsured)) {
+      matchScore += 25;
+      reasons.add("العميل ينتمي لقطاع مستقر ومؤمن عليه مما يمنحه أولوية قبول بالبنك.");
+    } else if (client.employmentType == 'freelance' || !client.isInsured) {
+      if (descLower.contains('أعمال حرة') || descLower.contains('مهن حرة') || descLower.contains('بدون إثبات') || descLower.contains('سجل تجاري')) {
+        matchScore += 30;
+        reasons.add("البرنامج يطابق شروط الأعمال الحرة والقطاع غير المؤمن بمرونة.");
+      } else {
+        matchScore -= 15;
+      }
     }
 
-    // Rule 4: Salary limit
-    if (totalSalary < 5000 && rate < 18.0) {
-      isMatch = false; // low salary doesn't qualify for elite programs
+    // 4. Compound Units & Assets Match
+    if (client.hasCompoundUnit) {
+      if (descLower.contains('كمبوند') || descLower.contains('عقار') || descLower.contains('ملاك') || progLower.contains('عقاري') || progLower.contains('كمبوند')) {
+        matchScore += 35;
+        reasons.add("العميل يملك وحدة في كمبوند مما يطابق برنامج البنك الخاص بملاك العقارات والكمبوندات.");
+      }
     }
 
-    if (isMatch && recommendedIds.length < 3) {
-      recommendedIds.add(p['id'].toString());
-      matchingReasons.add(
-          '* **برنامج ($programName) بـ ($bankName)**: مناسب جداً نظراً لأن فائدته الفعالة تعادل ($rate%) والحد الأقصى للتمويل فيه يصل لـ (${maxAmount.toStringAsFixed(0)} ج.م)، ويتطابق مع نوع قطاع عملك وطريقة تحويل الراتب.${description.isNotEmpty ? "\n  > **وصف البرنامج:** $description" : ""}');
+    // 5. Modern Cars Match
+    if (client.hasModernCar) {
+      if (descLower.contains('سيارة') || descLower.contains('سيارات') || descLower.contains('مركبات') || progLower.contains('سيارات')) {
+        matchScore += 35;
+        reasons.add("العميل يملك سيارة حديثة مما يطابق برنامج البنك المخصص لمالكي السيارات.");
+      }
     }
+
+    // 6. Salary Transfer Method
+    if (client.salaryTransferMethod == 'bank_transfer') {
+      matchScore += 15;
+      reasons.add("طريقة تحويل الراتب بنكية مما يتيح فائدة تنافسية قدرها ($rate%).");
+    }
+
+    scoredPrograms.add({
+      'program': p,
+      'score': matchScore,
+      'reasons': reasons,
+      'description': description,
+      'programName': programName,
+      'bankName': bankName,
+      'rate': rate,
+      'maxAmount': maxAmount,
+    });
   }
 
-  // If no program matched, recommend the first ones with highest interest rate (flexible criteria)
-  if (recommendedIds.isEmpty && availablePrograms.isNotEmpty) {
-    // Sort by interest rate descending (typically more flexible)
-    final sorted = List<Map<String, dynamic>>.from(availablePrograms)
-      ..sort((a, b) {
-        final rateA = (a['interest_rate'] is num) ? (a['interest_rate'] as num).toDouble() : 20.0;
-        final rateB = (b['interest_rate'] is num) ? (b['interest_rate'] as num).toDouble() : 20.0;
-        return rateB.compareTo(rateA);
-      });
-    final count = sorted.length > 2 ? 2 : sorted.length;
-    for (int i = 0; i < count; i++) {
-      final p = sorted[i];
-      final coreProg = p['core_programs'] as Map<String, dynamic>?;
-      final bank = p['banks'] as Map<String, dynamic>?;
-      final description = (p['description'] ?? '').toString();
-      recommendedIds.add(p['id'].toString());
-      matchingReasons.add(
-          '* **برنامج (${coreProg?['program_name']}) بـ (${bank?['bank_name']})**: مرشح كخيار بديل بفائدة (${p['interest_rate']}%) لأنه يقبل شروطاً ائتمانية أكثر مرونة.${description.isNotEmpty ? "\n  > **وصف البرنامج:** $description" : ""}');
-    }
+  // Sort by matchScore descending
+  scoredPrograms.sort((a, b) => (b['score'] as int).compareTo(a['score'] as int));
+
+  final topPrograms = scoredPrograms.take(3).toList();
+  for (var item in topPrograms) {
+    final p = item['program'] as Map<String, dynamic>;
+    recommendedIds.add(p['id'].toString());
+
+    final pName = item['programName'];
+    final bName = item['bankName'];
+    final rate = item['rate'];
+    final desc = item['description'];
+    final List<String> rList = item['reasons'] as List<String>;
+
+    final reasonStr = rList.map((r) => "   - $r").join("\n");
+
+    matchingReasons.add(
+      '* **برنامج ($pName) بـ ($bName)** (فائدة $rate% - أقصى مبلغ ${item['maxAmount']} ج.م):\n'
+      '$reasonStr'
+      '${desc.toString().isNotEmpty ? "\n  > **وصف واشتراطات البرنامج في دليل البنوك:** $desc" : ""}'
+    );
   }
 
-  // Generate Report Markdown
+  // Generate Analytical Report Markdown
   final dtiColor = clientDti > 45 ? '🔴' : '🟢';
   final scoreColor = client.creditScore >= 700 ? '🟢' : (client.creditScore >= 600 ? '🟡' : '🔴');
   
   final buffer = StringBuffer();
-  buffer.writeln('# 📋 تقرير التحليل الائتماني المساعد');
-  buffer.writeln('**تاريخ التحليل:** ${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}');
+  buffer.writeln('# 📋 تقرير التحليل الائتماني والترشيح البنكي الخبير');
+  buffer.writeln('**تاريخ الفحص:** ${DateTime.now().year}-${DateTime.now().month.toString().padLeft(2, '0')}-${DateTime.now().day.toString().padLeft(2, '0')}');
   buffer.writeln('**اسم العميل:** ${client.fullName}');
-  buffer.writeln('**المندوب المسؤول:** ${client.representativeName ?? "غير محدد"}');
+  buffer.writeln('**جهة العمل:** ${client.companyName ?? "غير محدد"} (${client.jobTitle ?? "غير محدد"})');
   buffer.writeln('\n---');
-  buffer.writeln('## 🔍 أولاً: ملخص تحليل الملف المالي للعميل');
-  buffer.writeln('* **السن التقريبي:** $clientAge عاماً.');
-  buffer.writeln('* **طريقة استلام الراتب:** ${client.salaryTransferMethod == 'bank_transfer' ? 'تحويل بنكي' : 'نقدي/كاش'} (إجمالي الراتب: ${totalSalary.toStringAsFixed(0)} ج.م).');
-  buffer.writeln('* **القطاع الوظيفي:** ${client.employmentType == 'government_sector' ? 'قطاع حكومي' : (client.employmentType == 'private_sector' ? 'قطاع خاص' : 'أعمال حرة / freelance')}.');
-  buffer.writeln('* **التقييم الائتماني (I-Score):** $scoreColor **${client.creditScore}** (${client.creditScore >= 700 ? 'ممتاز ومثالي للمطابقة' : (client.creditScore >= 600 ? 'مقبول وشبه مستقر' : 'ضعيف ويحتوي على خطورة رفض')}).');
-  buffer.writeln('* **معدل العبء الائتماني (DTI):** $dtiColor **${clientDti.toStringAsFixed(1)}%** (إجمالي الأقساط القائمة والتزامات البطاقات: ${client.existingLoans.fold(0.0, (double prev, element) => prev + element.installmentValue).toStringAsFixed(0)} ج.م).');
-  buffer.writeln('* **نسبة عبء التمويل الجديد المطلوب:** تم تحديد طلب لتمويل قيمته (${client.requestedAmount.toStringAsFixed(0)} ج.م).');
+  
+  buffer.writeln('## 📊 أولاً: تحليل طبيعة الوظيفة ومؤشرات الـ DBR والالتزامات');
+  buffer.writeln('* **طبيعة الوظيفة والقطاع:** ${client.employmentType == 'government_sector' ? 'قطاع حكومي' : (client.employmentType == 'private_sector' ? 'قطاع خاص' : 'أعمال حرة')} (${client.isInsured ? "مؤمن عليه" : "غير مؤمن عليه"}).');
+  buffer.writeln('* **إجمالي الراتب الموثق:** ${totalSalary.toStringAsFixed(0)} ج.م (${client.salaryTransferMethod == 'bank_transfer' ? 'تحويل بنكي' : 'كاش / نقدي'}).');
+  buffer.writeln('* **التقييم الائتماني (I-Score):** $scoreColor **${client.creditScore}** نقطة.');
+  buffer.writeln('* **إجمالي الالتزامات الشهرية القائمة:** ${totalMonthlyObligations.toStringAsFixed(0)} ج.م (أقساط قروض: ${totalExistingLoansInstallments.toStringAsFixed(0)} ج.م + استقطاع 5% بطاقات: ${totalCardsFivePercentCalc.toStringAsFixed(0)} ج.م).');
+  buffer.writeln('* **نسبة العبء الائتماني الحالية (DTI):** $dtiColor **${clientDti.toStringAsFixed(1)}%** من أصل الحد الأقصى 50%.');
+  buffer.writeln('* **المتبقي المتاح من الـ DBR:** **${remainingDbrMarginPercent.toStringAsFixed(1)}%**.');
+  buffer.writeln('* **ميزانية القسط الشهري المتاح للتمويل الجديد:** 🟢 **${remainingAvailableInstallmentBudget.toStringAsFixed(0)} ج.م / شهرياً**.');
+  
+  if (client.hasCompoundUnit || client.hasModernCar) {
+    buffer.writeln('\n---');
+    buffer.writeln('## 🏡🚗 ثانياً: تحليل الأصول الضامنة والتمويلية الخاصة');
+    if (client.hasCompoundUnit) {
+      buffer.writeln('* **وحدة في كمبوند:** نعم (عدد الوحدات: ${client.compoundUnitsData.length}) - تمنح ميزة التقديم في برامج ملاك العقارات والكمبوندات.');
+    }
+    if (client.hasModernCar) {
+      buffer.writeln('* **سيارة حديثة:** نعم (عدد السيارات: ${client.modernCarsData.length}) - تمنح ميزة التقديم في برامج أصحاب السيارات الحديثة.');
+    }
+  }
 
   buffer.writeln('\n---');
-  buffer.writeln('## 💡 ثانياً: البرامج الائتمانية الموصى بها ومطابقة البنوك');
+  buffer.writeln('## 💡 ثالثاً: البرامج الائتمانية للبنوك الموصى بها من دليل البنوك');
   if (matchingReasons.isEmpty) {
     buffer.writeln('⚠️ لم نجد برامج تتوافق مع بيانات العميل الائتمانية بشكل كامل حالياً. يرجى مراجعة معايير المطابقة في الإعدادات أو إضافة برامج جديدة بقاعدة البيانات.');
   } else {
