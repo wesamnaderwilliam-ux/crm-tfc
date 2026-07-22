@@ -14,6 +14,10 @@ import 'document_upload_helper.dart';
 import '../../core/utils/client_pdf_generator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/utils/web_helper.dart';
+import '../../core/widgets/interactive_hover_card.dart';
+import '../../core/widgets/toggleable_filter_panel.dart';
+import '../../core/widgets/phone_action_widget.dart';
+import 'estimated_credit_calculator_widget.dart';
 
 
 class ClientDetailsScreen extends ConsumerStatefulWidget {
@@ -21,6 +25,7 @@ class ClientDetailsScreen extends ConsumerStatefulWidget {
   final VoidCallback onBack;
   final Function(String)? onClientSelected;
   final Function(String)? onViewAiAnalysis;
+  final VoidCallback? onOpenNewClientForm;
 
   const ClientDetailsScreen({
     super.key,
@@ -28,6 +33,7 @@ class ClientDetailsScreen extends ConsumerStatefulWidget {
     required this.onBack,
     this.onClientSelected,
     this.onViewAiAnalysis,
+    this.onOpenNewClientForm,
   });
 
   @override
@@ -85,39 +91,38 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
       margin: const EdgeInsets.only(bottom: 16),
       child: Column(
         children: [
-          InkWell(
+          InteractiveHoverCard(
             onTap: () {
               setState(() {
                 _expandedSections[key] = !isExpanded;
               });
             },
+            glowColor: isExpanded ? const Color(0xFF6C5CE7) : Colors.cyan,
+            backgroundColor: const Color(0xFF1E1E38).withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(16),
-            child: GlassCard(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              borderColor: Colors.white.withValues(alpha: isExpanded ? 0.15 : 0.05),
-              child: Row(
-                textDirection: TextDirection.rtl,
-                children: [
-                  Icon(icon, color: TfcColors.primary, size: 22),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: Colors.white,
-                      ),
-                      textDirection: TextDirection.rtl,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Row(
+              textDirection: TextDirection.rtl,
+              children: [
+                Icon(icon, color: isExpanded ? const Color(0xFF00CEC9) : TfcColors.primary, size: 22),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: isExpanded ? Colors.white : Colors.white70,
                     ),
+                    textDirection: TextDirection.rtl,
                   ),
-                  Icon(
-                    isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                    color: Colors.white70,
-                    size: 24,
-                  ),
-                ],
-              ),
+                ),
+                Icon(
+                  isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                  color: isExpanded ? const Color(0xFF00CEC9) : Colors.white70,
+                  size: 24,
+                ),
+              ],
             ),
           ),
           AnimatedCrossFade(
@@ -357,12 +362,12 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          const Row(
+                          Row(
                             textDirection: TextDirection.rtl,
                             children: [
-                              Icon(Icons.people_alt, color: TfcColors.primary, size: 20),
-                              SizedBox(width: 8),
-                              Text(
+                              const Icon(Icons.people_alt, color: TfcColors.primary, size: 20),
+                              const SizedBox(width: 8),
+                              const Text(
                                 "دليل العملاء",
                                 style: TextStyle(
                                   fontSize: 16,
@@ -370,6 +375,30 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                   color: TfcColors.primary,
                                 ),
                               ),
+                              const Spacer(),
+                              if (widget.onOpenNewClientForm != null)
+                                InteractiveHoverCard(
+                                  onTap: widget.onOpenNewClientForm,
+                                  glowColor: Colors.greenAccent,
+                                  backgroundColor: Colors.green.withValues(alpha: 0.25),
+                                  borderRadius: BorderRadius.circular(8),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.add_circle_outline, color: Colors.greenAccent, size: 16),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        "طلب تمويل جديد",
+                                        style: TextStyle(
+                                          color: Colors.greenAccent,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                             ],
                           ),
                           const SizedBox(height: 12),
@@ -542,7 +571,16 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                               showDocuments,
                             ),
                           )
-                        : _buildClientsTable(filteredClients, showNationalId, showCreditScore),
+                        : SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _buildClientsTable(filteredClients, showNationalId, showCreditScore),
+                                const SizedBox(height: 20),
+                                const EstimatedCreditCalculatorWidget(),
+                              ],
+                            ),
+                          ),
                   ),
                 ],
               ),
@@ -562,6 +600,34 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 onPressed: widget.onBack,
               ),
               title: const Text("دليل تفاصيل العملاء", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              actions: [
+                if (widget.onOpenNewClientForm != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                    child: InteractiveHoverCard(
+                      onTap: widget.onOpenNewClientForm,
+                      glowColor: Colors.greenAccent,
+                      backgroundColor: Colors.green.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(8),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.add_circle_outline, color: Colors.greenAccent, size: 16),
+                          SizedBox(width: 4),
+                          Text(
+                            "طلب تمويل جديد",
+                            style: TextStyle(
+                              color: Colors.greenAccent,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
             body: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -709,6 +775,39 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 ],
               ),
             ),
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: const Color(0xFF1A1A2E),
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                  ),
+                  builder: (ctx) => DraggableScrollableSheet(
+                    initialChildSize: 0.85,
+                    minChildSize: 0.5,
+                    maxChildSize: 0.95,
+                    expand: false,
+                    builder: (_, scrollController) => SingleChildScrollView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.all(16),
+                      child: const EstimatedCreditCalculatorWidget(),
+                    ),
+                  ),
+                );
+              },
+              backgroundColor: Colors.amber.withValues(alpha: 0.9),
+              icon: const Icon(Icons.calculate_rounded, color: Color(0xFF1A1A2E)),
+              label: const Text(
+                "حاسبة الائتمان",
+                style: TextStyle(
+                  color: Color(0xFF1A1A2E),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                ),
+              ),
+            ),
           );
         }
 
@@ -729,6 +828,32 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             actions: [
+              if (widget.onOpenNewClientForm != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 8.0),
+                  child: InteractiveHoverCard(
+                    onTap: widget.onOpenNewClientForm,
+                    glowColor: Colors.greenAccent,
+                    backgroundColor: Colors.green.withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(8),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.add_circle_outline, color: Colors.greenAccent, size: 14),
+                        SizedBox(width: 2),
+                        Text(
+                          "طلب تمويل",
+                          style: TextStyle(
+                            color: Colors.greenAccent,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               IconButton(
                 icon: const Icon(Icons.share, color: Colors.greenAccent),
                 tooltip: "مشاركة ملف العميل PDF (واتساب / ماسنجر...)",
@@ -777,27 +902,16 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   }
 
   Widget _buildClientListTile(ClientModel item, bool isSelected) {
-    return Container(
+    return InteractiveHoverCard(
       margin: const EdgeInsets.only(bottom: 8),
-      child: TextButton(
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          backgroundColor: isSelected
-              ? TfcColors.primary.withValues(alpha: 0.1)
-              : Colors.white.withValues(alpha: 0.02),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: isSelected
-                  ? TfcColors.primary.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.04),
-            ),
-          ),
-        ),
-        onPressed: () {
-          widget.onClientSelected?.call(item.id);
-        },
-        child: Row(
+      onTap: () => widget.onClientSelected?.call(item.id),
+      glowColor: isSelected ? const Color(0xFF6C5CE7) : Colors.cyan,
+      backgroundColor: isSelected
+          ? TfcColors.primary.withValues(alpha: 0.15)
+          : Colors.white.withValues(alpha: 0.02),
+      borderRadius: BorderRadius.circular(12),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      child: Row(
           textDirection: TextDirection.rtl,
           children: [
             Container(
@@ -862,7 +976,6 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             ),
           ],
         ),
-      ),
     );
   }
 
@@ -1028,27 +1141,42 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
             textDirection: TextDirection.rtl,
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              const Icon(Icons.badge, color: TfcColors.primary, size: 20),
-              const SizedBox(width: 8),
-              const Text("المعلومات الأساسية والوظيفية",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.share, size: 18, color: Colors.greenAccent),
-                tooltip: "مشاركة ملف العميل PDF عبر التطبيقات",
-                onPressed: () => ClientPdfGenerator.shareClientPdf(client),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                textDirection: TextDirection.rtl,
+                children: [
+                  const Icon(Icons.badge, color: TfcColors.primary, size: 20),
+                  const SizedBox(width: 8),
+                  const Text("المعلومات الأساسية والوظيفية",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                ],
               ),
-              if (permissions.canEditClients)
-                IconButton(
-                  icon: const Icon(Icons.edit,
-                      size: 18, color: TfcColors.primary),
-                  onPressed: () =>
-                      _showEditClientDialog(context, client, staffName),
-                ),
-              _buildSimpleStatusChip(client.status),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                textDirection: TextDirection.rtl,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.share, size: 18, color: Colors.greenAccent),
+                    tooltip: "مشاركة ملف العميل PDF عبر التطبيقات",
+                    onPressed: () => ClientPdfGenerator.shareClientPdf(client),
+                  ),
+                  if (permissions.canEditClients)
+                    IconButton(
+                      icon: const Icon(Icons.edit,
+                          size: 18, color: TfcColors.primary),
+                      onPressed: () =>
+                          _showEditClientDialog(context, client, staffName),
+                    ),
+                  _buildSimpleStatusChip(client.status),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -1056,10 +1184,10 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           const SizedBox(height: 12),
           _buildInfoRow("الاسم الكامل", client.fullName),
           if (showPhone) ...[
-            _buildInfoRow("الهاتف المحمول", client.phoneNumber),
+            PhoneActionWidget(label: "الهاتف المحمول", phoneNumber: client.phoneNumber),
             if (client.secondaryPhoneNumber != null &&
                 client.secondaryPhoneNumber!.isNotEmpty)
-              _buildInfoRow("هاتف إضافي", client.secondaryPhoneNumber!),
+              PhoneActionWidget(label: "هاتف إضافي", phoneNumber: client.secondaryPhoneNumber!),
           ],
           if (showNationalId)
             _buildInfoRow("الرقم القومي",
@@ -1879,9 +2007,36 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text("الوحدة #${idx + 1}",
-                        textDirection: TextDirection.rtl,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: TfcColors.primary)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      textDirection: TextDirection.rtl,
+                      children: [
+                        Text("الوحدة #${idx + 1}",
+                            textDirection: TextDirection.rtl,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: TfcColors.primary)),
+                        if (canEditClients)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit, color: Colors.blueAccent, size: 16),
+                                tooltip: "تعديل بيانات الوحدة",
+                                onPressed: () => _showManageCompoundUnitsDialog(context, client, staffName),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                              const SizedBox(width: 12),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 16),
+                                tooltip: "حذف هذه الوحدة",
+                                onPressed: () => _confirmDeleteCompoundUnit(context, client, idx, staffName),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
                     const SizedBox(height: 6),
                     _buildSubInfoRow("اسم الكمبوند", name),
                     _buildSubInfoRow("اسم المطور", dev),
@@ -1986,9 +2141,36 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text("السيارة #${idx + 1}",
-                        textDirection: TextDirection.rtl,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: TfcColors.primary)),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      textDirection: TextDirection.rtl,
+                      children: [
+                        Text("السيارة #${idx + 1}",
+                            textDirection: TextDirection.rtl,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: TfcColors.primary)),
+                        if (canEditClients)
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit, color: Colors.blueAccent, size: 16),
+                                tooltip: "تعديل بيانات السيارة",
+                                onPressed: () => _showManageModernCarsDialog(context, client, staffName),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                              const SizedBox(width: 12),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 16),
+                                tooltip: "حذف هذه السيارة",
+                                onPressed: () => _confirmDeleteModernCar(context, client, idx, staffName),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
                     const SizedBox(height: 6),
                     _buildSubInfoRow("نوع السيارة", type),
                     _buildSubInfoRow("الموديل", model),
@@ -2008,6 +2190,39 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               ],
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  // Confirm delete individual modern car
+  void _confirmDeleteModernCar(BuildContext context, ClientModel client, int index, String staffName) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        title: const Text("حذف السيارة", textDirection: TextDirection.rtl, style: TextStyle(color: Colors.white)),
+        content: Text("هل أنت تأكد من حذف هذه السيارة (#${index + 1}) من حساب العميل؟", textDirection: TextDirection.rtl, style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("إلغاء")),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final list = List<Map<String, dynamic>>.from(client.modernCarsData);
+              if (index >= 0 && index < list.length) {
+                list.removeAt(index);
+                final updated = client.copyWith(hasModernCar: list.isNotEmpty, modernCarsData: list);
+                final error = await ref.read(clientProvider.notifier).updateClient(updated, staffName: staffName);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(error ?? "تم حذف السيارة بنجاح"), backgroundColor: error == null ? Colors.green : Colors.redAccent),
+                  );
+                }
+              }
+            },
+            child: const Text("حذف النهائي", style: TextStyle(color: Colors.white)),
+          ),
         ],
       ),
     );
@@ -4327,11 +4542,21 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       : TfcColors.onSurfaceVariant,
                   fontSize: 13,
                   fontWeight: highlight ? FontWeight.bold : FontWeight.normal)),
-          Text(value,
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.left,
+              textDirection: TextDirection.rtl,
+              overflow: TextOverflow.ellipsis,
+              maxLines: 2,
               style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: highlight ? 15 : 13,
-                  color: highlight ? TfcColors.primary : null)),
+                fontWeight: FontWeight.bold,
+                fontSize: highlight ? 14 : 13,
+                color: highlight ? TfcColors.primary : null,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -6248,6 +6473,39 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  // Confirm delete individual compound unit
+  void _confirmDeleteCompoundUnit(BuildContext context, ClientModel client, int index, String staffName) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1A2E),
+        title: const Text("حذف وحدة الكمبوند", textDirection: TextDirection.rtl, style: TextStyle(color: Colors.white)),
+        content: Text("هل أنت تأكد من حذف هذه الوحدة (#${index + 1}) من حساب العميل؟", textDirection: TextDirection.rtl, style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("إلغاء")),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final list = List<Map<String, dynamic>>.from(client.compoundUnitsData);
+              if (index >= 0 && index < list.length) {
+                list.removeAt(index);
+                final updated = client.copyWith(hasCompoundUnit: list.isNotEmpty, compoundUnitsData: list);
+                final error = await ref.read(clientProvider.notifier).updateClient(updated, staffName: staffName);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(error ?? "تم حذف الوحدة بنجاح"), backgroundColor: error == null ? Colors.green : Colors.redAccent),
+                  );
+                }
+              }
+            },
+            child: const Text("حذف النهائي", style: TextStyle(color: Colors.white)),
+          ),
         ],
       ),
     );

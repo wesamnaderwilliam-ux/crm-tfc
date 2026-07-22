@@ -7,6 +7,7 @@ import '../../providers/permissions_provider.dart';
 import '../../models/profile.dart';
 import 'employee_permissions_panel.dart';
 import 'employee_targets_panel.dart';
+import '../../core/widgets/phone_action_widget.dart';
 
 class EmployeesScreen extends ConsumerStatefulWidget {
   const EmployeesScreen({super.key});
@@ -302,7 +303,9 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
                 _buildProfileDetailRow(Icons.email_outlined, emp.email ?? '—'),
                 const SizedBox(height: 6),
                 effectiveCanViewPhone
-                    ? _buildProfileDetailRow(Icons.phone_iphone_outlined, emp.phoneNumber ?? '—')
+                    ? (emp.phoneNumber != null && emp.phoneNumber!.isNotEmpty
+                        ? PhoneActionWidget(label: 'رقم الهاتف', phoneNumber: emp.phoneNumber!)
+                        : _buildProfileDetailRow(Icons.phone_iphone_outlined, '—'))
                     : _buildProfileDetailRow(Icons.phone_iphone_outlined, 'مخفي 🔒', isHidden: true),
                 const SizedBox(height: 6),
                 canViewNationalId

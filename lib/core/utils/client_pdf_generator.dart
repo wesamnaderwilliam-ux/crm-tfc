@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -9,9 +11,14 @@ class ClientPdfGenerator {
   static Future<Uint8List> generateClientPdf(ClientModel client) async {
     final pdf = pw.Document();
 
-    // Load custom Arabic font for PDF rendering
+    // Load custom Arabic font and company logo for PDF rendering
     final font = await PdfGoogleFonts.cairoRegular();
     final fontBold = await PdfGoogleFonts.cairoBold();
+    pw.MemoryImage? logoImage;
+    try {
+      final logoData = await rootBundle.load('assets/images/logo.png');
+      logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
+    } catch (_) {}
 
     // Calculate totals
     double totalSalary = 0.0;
@@ -32,18 +39,39 @@ class ClientPdfGenerator {
     final List<Map<String, dynamic>> downloadedDocs = [];
     for (var doc in client.documents) {
       Uint8List? imageBytes;
-      if (doc.documentUrl.isNotEmpty) {
-        final urlLower = doc.documentUrl.toLowerCase();
-        final isImage = urlLower.contains('.jpg') ||
-            urlLower.contains('.jpeg') ||
-            urlLower.contains('.png') ||
-            urlLower.contains('.webp') ||
-            urlLower.contains('supabase.co/storage');
-        if (isImage) {
+      final url = doc.documentUrl;
+      if (url.isNotEmpty) {
+        // Handle data:image/ base64 URLs
+        if (url.startsWith('data:image/')) {
           try {
-            final response = await http.get(Uri.parse(doc.documentUrl)).timeout(const Duration(seconds: 8));
+            final base64Str = url.split(',').last;
+            imageBytes = base64Decode(base64Str);
+          } catch (_) {}
+        }
+        // Handle http/https URLs
+        else if (url.startsWith('http')) {
+          try {
+            final response = await http.get(
+              Uri.parse(url),
+              headers: {'Accept': 'image/*,*/*'},
+            ).timeout(const Duration(seconds: 15));
             if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
-              imageBytes = response.bodyBytes;
+              final contentType = response.headers['content-type'] ?? '';
+              final urlLower = url.toLowerCase();
+              final nameLower = doc.documentName.toLowerCase();
+              final isImage = contentType.startsWith('image/') ||
+                  urlLower.contains('.jpg') ||
+                  urlLower.contains('.jpeg') ||
+                  urlLower.contains('.png') ||
+                  urlLower.contains('.webp') ||
+                  nameLower.contains('.jpg') ||
+                  nameLower.contains('.jpeg') ||
+                  nameLower.contains('.png') ||
+                  nameLower.contains('.webp') ||
+                  urlLower.contains('supabase.co/storage');
+              if (isImage) {
+                imageBytes = response.bodyBytes;
+              }
             }
           } catch (_) {}
         }
@@ -62,24 +90,50 @@ class ClientPdfGenerator {
         theme: pw.ThemeData.withFont(base: font, bold: fontBold),
         build: (pw.Context context) {
           return [
-            // Header Title
+            // Header with Company Logo
             pw.Container(
               alignment: pw.Alignment.center,
-              padding: const pw.EdgeInsets.all(12),
+              padding: const pw.EdgeInsets.all(14),
               decoration: pw.BoxDecoration(
-                color: PdfColors.blueGrey900,
-                borderRadius: pw.BorderRadius.circular(8),
+                color: const PdfColor.fromInt(0xFF1A1A2E),
+                borderRadius: pw.BorderRadius.circular(10),
+                border: pw.Border.all(color: const PdfColor.fromInt(0xFFD4AF37), width: 1.5),
               ),
               child: pw.Column(
                 children: [
+                  if (logoImage != null)
+                    pw.Container(
+                      margin: const pw.EdgeInsets.only(bottom: 8),
+                      child: pw.ClipOval(
+                        child: pw.Image(logoImage, width: 60, height: 60, fit: pw.BoxFit.cover),
+                      ),
+                    ),
                   pw.Text(
-                    'The Future Club - تقرير الملف الائتماني والمالي',
-                    style: pw.TextStyle(color: PdfColors.white, fontSize: 18, fontWeight: pw.FontWeight.bold),
+                    'THE FUTURE CLUB',
+                    style: pw.TextStyle(
+                      color: const PdfColor.fromInt(0xFFD4AF37),
+                      fontSize: 20,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
                   ),
+                  pw.SizedBox(height: 2),
+                  pw.Text(
+                    'FINANCIAL CONSULTING',
+                    style: const pw.TextStyle(
+                      color: PdfColors.grey400,
+                      fontSize: 10,
+                    ),
+                  ),
+                  pw.Divider(color: const PdfColor.fromInt(0xFFD4AF37), thickness: 0.8),
                   pw.SizedBox(height: 4),
                   pw.Text(
+                    'تقرير الملف الائتماني والمالي',
+                    style: pw.TextStyle(color: PdfColors.white, fontSize: 16, fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.SizedBox(height: 2),
+                  pw.Text(
                     'مستند رسمي مخصص للمشاركة والمطابقة البنكية',
-                    style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 11),
+                    style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 10),
                   ),
                 ],
               ),

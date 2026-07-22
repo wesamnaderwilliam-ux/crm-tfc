@@ -5,6 +5,8 @@ import '../../core/supabase_config.dart';
 import '../../providers/banks_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/permissions_provider.dart';
+import '../../core/widgets/toggleable_filter_panel.dart';
+import '../../core/widgets/interactive_hover_card.dart';
 
 class AllDistributionsScreen extends ConsumerStatefulWidget {
   final Function(String) onViewClient;
@@ -220,107 +222,95 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Filters Card
-            GlassCard(
-              padding: const EdgeInsets.all(16),
-              borderColor: Colors.white.withValues(alpha: 0.05),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Row(
-                    textDirection: TextDirection.rtl,
-                    children: [
-                      Icon(Icons.filter_list, color: TfcColors.primary, size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        "تصفية التوزيعات",
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: TfcColors.primary,
+            ToggleableFilterPanel(
+              title: "تصفية وتصفح التوزيعات 🔍",
+              activeFilterCount: (_selectedBankFilter != 'all' ? 1 : 0) +
+                  (_selectedProgramFilter != 'all' ? 1 : 0) +
+                  (_selectedStatusFilter != 'all' ? 1 : 0),
+              onResetFilter: () {
+                setState(() {
+                  _selectedBankFilter = 'all';
+                  _selectedProgramFilter = 'all';
+                  _selectedStatusFilter = 'all';
+                });
+              },
+              filterContent: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth >= 600;
+                  final children = [
+                    // Bank Filter
+                    Expanded(
+                      flex: isWide ? 1 : 0,
+                      child: banksAsync.when(
+                        data: (banks) => _buildFilterDropdown(
+                          value: _selectedBankFilter,
+                          hint: "كل البنوك",
+                          items: [
+                            const DropdownMenuItem(value: 'all', child: Text("كل البنوك", textDirection: TextDirection.rtl)),
+                            ...banks.map((b) => DropdownMenuItem(
+                                  value: b['id'].toString(),
+                                  child: Text(b['bank_name'] ?? '', textDirection: TextDirection.rtl),
+                                ))
+                          ],
+                          onChanged: (val) {
+                            if (val != null) setState(() => _selectedBankFilter = val);
+                          },
                         ),
+                        loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                        error: (_, __) => const Text("خطأ في تحميل البنوك"),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isWide = constraints.maxWidth >= 600;
-                      final children = [
-                        // Bank Filter
-                        Expanded(
-                          flex: isWide ? 1 : 0,
-                          child: banksAsync.when(
-                            data: (banks) => _buildFilterDropdown(
-                              value: _selectedBankFilter,
-                              hint: "كل البنوك",
-                              items: [
-                                const DropdownMenuItem(value: 'all', child: Text("كل البنوك", textDirection: TextDirection.rtl)),
-                                ...banks.map((b) => DropdownMenuItem(
-                                      value: b['id'].toString(),
-                                      child: Text(b['bank_name'] ?? '', textDirection: TextDirection.rtl),
-                                    ))
-                              ],
-                              onChanged: (val) {
-                                if (val != null) setState(() => _selectedBankFilter = val);
-                              },
-                            ),
-                            loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                            error: (_, __) => const Text("خطأ في تحميل البنوك"),
-                          ),
-                        ),
-                        if (!isWide) const SizedBox(height: 12),
-                        if (isWide) const SizedBox(width: 12),
+                    ),
+                    if (!isWide) const SizedBox(height: 12),
+                    if (isWide) const SizedBox(width: 12),
 
-                        // Program Filter
-                        Expanded(
-                          flex: isWide ? 1 : 0,
-                          child: programsAsync.when(
-                            data: (programs) => _buildFilterDropdown(
-                              value: _selectedProgramFilter,
-                              hint: "كل البرامج",
-                              items: [
-                                const DropdownMenuItem(value: 'all', child: Text("كل البرامج", textDirection: TextDirection.rtl)),
-                                ...programs.map((p) => DropdownMenuItem(
-                                      value: p['id'].toString(),
-                                      child: Text(p['program_name'] ?? '', textDirection: TextDirection.rtl),
-                                    ))
-                              ],
-                              onChanged: (val) {
-                                if (val != null) setState(() => _selectedProgramFilter = val);
-                              },
-                            ),
-                            loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                            error: (_, __) => const Text("خطأ في تحميل البرامج"),
-                          ),
+                    // Program Filter
+                    Expanded(
+                      flex: isWide ? 1 : 0,
+                      child: programsAsync.when(
+                        data: (programs) => _buildFilterDropdown(
+                          value: _selectedProgramFilter,
+                          hint: "كل البرامج",
+                          items: [
+                            const DropdownMenuItem(value: 'all', child: Text("كل البرامج", textDirection: TextDirection.rtl)),
+                            ...programs.map((p) => DropdownMenuItem(
+                                  value: p['id'].toString(),
+                                  child: Text(p['program_name'] ?? '', textDirection: TextDirection.rtl),
+                                ))
+                          ],
+                          onChanged: (val) {
+                            if (val != null) setState(() => _selectedProgramFilter = val);
+                          },
                         ),
-                        if (!isWide) const SizedBox(height: 12),
-                        if (isWide) const SizedBox(width: 12),
+                        loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                        error: (_, __) => const Text("خطأ في تحميل البرامج"),
+                      ),
+                    ),
+                    if (!isWide) const SizedBox(height: 12),
+                    if (isWide) const SizedBox(width: 12),
 
-                        // Status Filter
-                        Expanded(
-                          flex: isWide ? 1 : 0,
-                          child: _buildFilterDropdown(
-                            value: _selectedStatusFilter,
-                            hint: "كل الحالات",
-                            items: _statusNames.entries
-                                .map((e) => DropdownMenuItem(
-                                      value: e.key,
-                                      child: Text(e.value, textDirection: TextDirection.rtl),
-                                    ))
-                                .toList(),
-                            onChanged: (val) {
-                              if (val != null) setState(() => _selectedStatusFilter = val);
-                            },
-                          ),
-                        ),
-                      ];
+                    // Status Filter
+                    Expanded(
+                      flex: isWide ? 1 : 0,
+                      child: _buildFilterDropdown(
+                        value: _selectedStatusFilter,
+                        hint: "كل الحالات",
+                        items: _statusNames.entries
+                            .map((e) => DropdownMenuItem(
+                                  value: e.key,
+                                  child: Text(e.value, textDirection: TextDirection.rtl),
+                                ))
+                            .toList(),
+                        onChanged: (val) {
+                          if (val != null) setState(() => _selectedStatusFilter = val);
+                        },
+                      ),
+                    ),
+                  ];
 
-                      return isWide
-                          ? Row(textDirection: TextDirection.rtl, children: children)
-                          : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
-                    },
-                  ),
-                ],
+                  return isWide
+                      ? Row(textDirection: TextDirection.rtl, children: children)
+                      : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
+                },
               ),
             ),
             const SizedBox(height: 20),
@@ -389,8 +379,8 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
       borderColor: Colors.white.withValues(alpha: 0.03),
       child: SingleChildScrollView(
         scrollDirection: Axis.vertical,
-        child: SizedBox(
-          width: double.infinity,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
           child: DataTable(
             horizontalMargin: 12,
             columnSpacing: 24,

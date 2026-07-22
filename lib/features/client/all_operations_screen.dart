@@ -4,6 +4,8 @@ import '../../core/theme.dart';
 import '../../core/supabase_config.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/client_provider.dart';
+import '../../core/widgets/toggleable_filter_panel.dart';
+import '../../core/widgets/interactive_hover_card.dart';
 
 class AllOperationsScreen extends ConsumerStatefulWidget {
   final Function(String) onViewClient;
@@ -254,99 +256,87 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Filters Card
-            GlassCard(
-              padding: const EdgeInsets.all(16),
-              borderColor: Colors.white.withValues(alpha: 0.05),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Row(
-                    textDirection: TextDirection.rtl,
-                    children: [
-                      Icon(Icons.filter_list, color: TfcColors.primary, size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        "تصفية العمليات",
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: TfcColors.primary,
-                        ),
+            ToggleableFilterPanel(
+              title: "تصفية وتصفح العمليات 🔍",
+              activeFilterCount: (_selectedBankFilter != 'all' ? 1 : 0) +
+                  (_selectedEmployeeFilter != 'all' ? 1 : 0) +
+                  (_selectedStatusFilter != 'all' ? 1 : 0),
+              onResetFilter: () {
+                setState(() {
+                  _selectedBankFilter = 'all';
+                  _selectedEmployeeFilter = 'all';
+                  _selectedStatusFilter = 'all';
+                });
+              },
+              filterContent: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isWide = constraints.maxWidth >= 600;
+                  final children = [
+                    // Bank Filter
+                    Expanded(
+                      flex: isWide ? 1 : 0,
+                      child: _buildFilterDropdown(
+                        value: _selectedBankFilter,
+                        hint: "كل البنوك",
+                        items: [
+                          const DropdownMenuItem(value: 'all', child: Text("كل البنوك", textDirection: TextDirection.rtl)),
+                          ...uniqueBanks.entries.map((e) => DropdownMenuItem(
+                                value: e.key,
+                                child: Text(e.value, textDirection: TextDirection.rtl),
+                              ))
+                        ],
+                        onChanged: (val) {
+                          if (val != null) setState(() => _selectedBankFilter = val);
+                        },
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final isWide = constraints.maxWidth >= 600;
-                      final children = [
-                        // Bank Filter
-                        Expanded(
-                          flex: isWide ? 1 : 0,
-                          child: _buildFilterDropdown(
-                            value: _selectedBankFilter,
-                            hint: "كل البنوك",
-                            items: [
-                              const DropdownMenuItem(value: 'all', child: Text("كل البنوك", textDirection: TextDirection.rtl)),
-                              ...uniqueBanks.entries.map((e) => DropdownMenuItem(
-                                    value: e.key,
-                                    child: Text(e.value, textDirection: TextDirection.rtl),
-                                  ))
-                            ],
-                            onChanged: (val) {
-                              if (val != null) setState(() => _selectedBankFilter = val);
-                            },
-                          ),
-                        ),
-                        if (!isWide) const SizedBox(height: 12),
-                        if (isWide) const SizedBox(width: 12),
+                    ),
+                    if (!isWide) const SizedBox(height: 12),
+                    if (isWide) const SizedBox(width: 12),
 
-                        // Employee Filter
-                        Expanded(
-                          flex: isWide ? 1 : 0,
-                          child: _buildFilterDropdown(
-                            value: _selectedEmployeeFilter,
-                            hint: "كل المندوبين",
-                            items: [
-                              const DropdownMenuItem(value: 'all', child: Text("كل المندوبين", textDirection: TextDirection.rtl)),
-                              ...uniqueEmployees.entries.map((e) => DropdownMenuItem(
-                                    value: e.key,
-                                    child: Text(e.value, textDirection: TextDirection.rtl),
-                                  ))
-                            ],
-                            onChanged: (val) {
-                              if (val != null) setState(() => _selectedEmployeeFilter = val);
-                            },
-                          ),
-                        ),
-                        if (!isWide) const SizedBox(height: 12),
-                        if (isWide) const SizedBox(width: 12),
+                    // Employee Filter
+                    Expanded(
+                      flex: isWide ? 1 : 0,
+                      child: _buildFilterDropdown(
+                        value: _selectedEmployeeFilter,
+                        hint: "كل المندوبين",
+                        items: [
+                          const DropdownMenuItem(value: 'all', child: Text("كل المندوبين", textDirection: TextDirection.rtl)),
+                          ...uniqueEmployees.entries.map((e) => DropdownMenuItem(
+                                value: e.key,
+                                child: Text(e.value, textDirection: TextDirection.rtl),
+                              ))
+                        ],
+                        onChanged: (val) {
+                          if (val != null) setState(() => _selectedEmployeeFilter = val);
+                        },
+                      ),
+                    ),
+                    if (!isWide) const SizedBox(height: 12),
+                    if (isWide) const SizedBox(width: 12),
 
-                        // Status Filter
-                        Expanded(
-                          flex: isWide ? 1 : 0,
-                          child: _buildFilterDropdown(
-                            value: _selectedStatusFilter,
-                            hint: "كل الحالات",
-                            items: _statusNames.entries
-                                .map((e) => DropdownMenuItem(
-                                      value: e.key,
-                                      child: Text(e.value, textDirection: TextDirection.rtl),
-                                    ))
-                                .toList(),
-                            onChanged: (val) {
-                              if (val != null) setState(() => _selectedStatusFilter = val);
-                            },
-                          ),
-                        ),
-                      ];
+                    // Status Filter
+                    Expanded(
+                      flex: isWide ? 1 : 0,
+                      child: _buildFilterDropdown(
+                        value: _selectedStatusFilter,
+                        hint: "كل الحالات",
+                        items: _statusNames.entries
+                            .map((e) => DropdownMenuItem(
+                                  value: e.key,
+                                  child: Text(e.value, textDirection: TextDirection.rtl),
+                                ))
+                            .toList(),
+                        onChanged: (val) {
+                          if (val != null) setState(() => _selectedStatusFilter = val);
+                        },
+                      ),
+                    ),
+                  ];
 
-                      return isWide
-                          ? Row(textDirection: TextDirection.rtl, children: children)
-                          : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
-                    },
-                  ),
-                ],
+                  return isWide
+                      ? Row(textDirection: TextDirection.rtl, children: children)
+                      : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
+                },
               ),
             ),
             const SizedBox(height: 20),
@@ -423,8 +413,8 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
       borderColor: Colors.white.withValues(alpha: 0.03),
       child: SingleChildScrollView(
         scrollDirection: Axis.vertical,
-        child: SizedBox(
-          width: double.infinity,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
           child: DataTable(
             horizontalMargin: 12,
             columnSpacing: 20,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme.dart';
+import '../../core/widgets/interactive_hover_card.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../providers/employees_provider.dart';
@@ -27,17 +28,17 @@ class MainNavigationWrapper extends ConsumerStatefulWidget {
 
 class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
   int _selectedIndex = 0;
-  String?
-      _selectedClientId; // To drill down to a client details page in bento layout
-  String? _aiClientId; // Target client to analyze in AI Assistant
+  String? _selectedClientId;
+  String? _aiClientId;
+  bool _showNewClientForm = false; // Toggle to show new finance request inside client details hub
 
-  // Track sub-menu expansion states
-  bool _clientsExpanded = false;
-  bool _opsExpanded = false;
+  // Navigation History Stack for "Back" button
+  final List<int> _historyStack = [0];
 
   void selectClient(String id) {
     setState(() {
       _selectedClientId = id.isEmpty ? null : id;
+      _showNewClientForm = false;
     });
   }
 
@@ -47,16 +48,56 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
     });
   }
 
-  void navigateToTab(int index) {
+  void navigateToTab(int index, {bool isBack = false}) {
     setState(() {
       _selectedClientId = null;
       _aiClientId = null;
+      _showNewClientForm = false;
       _selectedIndex = index;
+      if (!isBack) {
+        if (_historyStack.isEmpty || _historyStack.last != index) {
+          _historyStack.add(index);
+        }
+      }
     });
   }
 
-  /// Resolve the effective permissions for the currently logged-in user.
-  /// Merges role defaults with any custom per-employee overrides.
+  void _goBack() {
+    if (_showNewClientForm) {
+      setState(() {
+        _showNewClientForm = false;
+      });
+      return;
+    }
+
+    if (_selectedClientId != null) {
+      setState(() {
+        _selectedClientId = null;
+      });
+      return;
+    }
+
+    if (_historyStack.length > 1) {
+      setState(() {
+        _historyStack.removeLast();
+        _selectedIndex = _historyStack.last;
+      });
+    } else {
+      navigateToTab(0); // Default to home
+    }
+  }
+
+  void _goHome() {
+    setState(() {
+      _historyStack.clear();
+      _historyStack.add(0);
+      _selectedIndex = 0;
+      _selectedClientId = null;
+      _aiClientId = null;
+      _showNewClientForm = false;
+    });
+  }
+
   Map<String, bool> _resolveEffectivePermissions(
       String userId, String role, Map<String, Map<String, bool>> customPermsState) {
     if (role == 'admin') {
@@ -66,54 +107,187 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
     return EmployeePermissionKeys.resolve(role, custom);
   }
 
+  void _syncCurrentUserPermissions(String? userId, String role) {
+    if (userId == null) return;
+    final empState = ref.read(employeesProvider);
+    final userEmail = ref.read(authProvider).user?.email;
+    final emps = empState.employees.where((e) => e.id == userId || e.email == userEmail);
+    if (emps.isNotEmpty) {
+      final currentEmp = emps.first;
+      if (currentEmp.id.isNotEmpty && currentEmp.customPermissions != null) {
+        final inMemory = ref.read(employeeCustomPermissionsProvider);
+        if (!inMemory.containsKey(currentEmp.id)) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            ref.read(employeeCustomPermissionsProvider.notifier).loadForEmployee(
+                  currentEmp.id,
+                  currentEmp.customPermissions!,
+                );
+          });
+        }
+      }
+    }
+  }
+
+  // Popover Main Menu Modal
+  void _openMainMenuModal(BuildContext context, List<_NavItem> items) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => BackdropFilter(
+        filter: ColorFilter.mode(Colors.black.withValues(alpha: 0.7), BlendMode.darken),
+        child: Container(
+          height: MediaQuery.of(context).size.height * 0.85,
+          decoration: const BoxDecoration(
+            color: Color(0xFF16162A),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            border: Border(top: BorderSide(color: Color(0xFF6C5CE7), width: 2)),
+          ),
+          child: Column(
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 48,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        width: 38,
+                        height: 38,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF6C5CE7).withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.apps_rounded, color: Color(0xFFA29BFE), size: 22),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "THE FUTURE CLUB 🧭",
+                          style: TextStyle(
+                            color: Color(0xFFD4AF37),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          "اختر قسم التصفح والانتقال الأنسب لك",
+                          style: TextStyle(color: Colors.white54, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, color: Colors.white70),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(color: Colors.white12, height: 1),
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  itemCount: items.length,
+                  itemBuilder: (context, index) {
+                    final item = items[index];
+                    final isSelected = _selectedIndex == index && !_showNewClientForm;
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: InteractiveHoverCard(
+                        onTap: () {
+                          Navigator.pop(ctx);
+                          navigateToTab(index);
+                        },
+                        glowColor: const Color(0xFF6C5CE7),
+                        backgroundColor: isSelected
+                            ? const Color(0xFF6C5CE7).withValues(alpha: 0.3)
+                            : const Color(0xFF1E1E38).withValues(alpha: 0.6),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        borderRadius: BorderRadius.circular(14),
+                        child: Row(
+                          children: [
+                            Icon(
+                              item.icon,
+                              color: isSelected ? const Color(0xFF00CEC9) : Colors.white70,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              item.label,
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : Colors.white70,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                fontSize: 15,
+                              ),
+                            ),
+                            const Spacer(),
+                            if (isSelected)
+                              const Icon(Icons.check_circle_rounded, color: Color(0xFF00CEC9), size: 20)
+                            else
+                              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 14),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final customPermsState = ref.watch(employeeCustomPermissionsProvider);
-
-    // Legacy role permissions (for canManageRoles compatibility)
     final rolePerms = ref.watch(permissionsProvider)[authState.role] ??
         RolePermissions.fromDefaults(authState.role);
 
     final isAdmin = authState.role == 'admin';
     final userId = authState.user?.id ?? '';
+    final perms = _resolveEffectivePermissions(userId, authState.role, customPermsState);
 
-    // Resolve effective permissions (role defaults + custom overrides)
-    final perms = _resolveEffectivePermissions(
-        userId, authState.role, customPermsState);
-
-    // Load custom permissions for current user from employees list
-    // (needed at startup to sync in-memory state)
     _syncCurrentUserPermissions(authState.user?.id, authState.role);
 
-    // ── Build visible screens ──
     final List<_NavItem> navItems = [];
 
-    // Dashboard (Index 0)
+    // Dashboard (0)
     if (isAdmin || (perms[EmployeePermissionKeys.viewDashboard] ?? true)) {
       navItems.add(_NavItem(
-        label: 'لوحة التحكم',
-        icon: Icons.analytics,
+        label: 'لوحة التحكم الرئيسية',
+        icon: Icons.analytics_rounded,
         screen: DashboardScreen(onViewClient: selectClient),
       ));
     }
 
-    // Add Client / new financing request (Index 1)
-    final bool showAddClient = isAdmin || (perms[EmployeePermissionKeys.addClient] ?? true);
-    if (showAddClient) {
-      navItems.add(_NavItem(
-        label: 'طلب تمويل جديد',
-        icon: Icons.add_circle,
-        screen: NewClientScreen(onComplete: () => navigateToTab(0)),
-      ));
-    }
-
-    // Prospects Tab (العملاء المحتملين)
+    // Prospects (1)
     final bool showProspects = isAdmin || (perms[EmployeePermissionKeys.viewClients] ?? true);
     if (showProspects) {
       navItems.add(_NavItem(
         label: 'العملاء المحتملين',
-        icon: Icons.recent_actors,
+        icon: Icons.recent_actors_rounded,
         screen: ProspectsScreen(
           onNavigateToClientDetails: (convertedClientId) {
             selectClient(convertedClientId);
@@ -122,24 +296,30 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       ));
     }
 
-    // Client Details (Index 2)
+    // Client Details (2) - Now consolidates Client Profile & New Request
     final bool showClientDetails = isAdmin || (perms[EmployeePermissionKeys.viewClients] ?? true);
     if (showClientDetails) {
       navItems.add(_NavItem(
-        label: 'تفاصيل العميل',
-        icon: Icons.person,
-        screen: ClientDetailsScreen(
-          clientId: _selectedClientId,
-          onBack: () => navigateToTab(0),
-          onClientSelected: selectClient,
-          onViewAiAnalysis: selectAiClient,
-        ),
+        label: 'تفاصيل وإدارة العملاء',
+        icon: Icons.person_search_rounded,
+        screen: _showNewClientForm
+            ? NewClientScreen(onComplete: () {
+                setState(() => _showNewClientForm = false);
+              })
+            : ClientDetailsScreen(
+                clientId: _selectedClientId,
+                onBack: _goBack,
+                onClientSelected: selectClient,
+                onViewAiAnalysis: selectAiClient,
+                onOpenNewClientForm: () {
+                  setState(() => _showNewClientForm = true);
+                },
+              ),
       ));
     }
 
-    // All Distributions (Index 3)
-    final bool showDistributions = isAdmin || (perms[EmployeePermissionKeys.viewClients] ?? true);
-    if (showDistributions) {
+    // All Distributions
+    if (isAdmin || (perms[EmployeePermissionKeys.viewClients] ?? true)) {
       navItems.add(_NavItem(
         label: 'التوزيعات العامة',
         icon: Icons.account_tree_rounded,
@@ -147,30 +327,29 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       ));
     }
 
-    // All Operations (Index 4)
-    final bool showOperations = isAdmin || (perms[EmployeePermissionKeys.viewClients] ?? true);
-    if (showOperations) {
+    // All Operations
+    if (isAdmin || (perms[EmployeePermissionKeys.viewClients] ?? true)) {
       navItems.add(_NavItem(
         label: 'العمليات العامة',
-        icon: Icons.settings_suggest_outlined,
+        icon: Icons.settings_suggest_rounded,
         screen: AllOperationsScreen(onViewClient: selectClient),
       ));
     }
 
-    // Invoices - Admin Only
+    // Invoices - Admin
     if (isAdmin) {
       navItems.add(_NavItem(
-        label: 'الفواتير',
-        icon: Icons.receipt_long,
+        label: 'الفواتير والماليات',
+        icon: Icons.receipt_long_rounded,
         screen: InvoicesScreen(onViewClient: selectClient),
       ));
     }
 
-    // Accounts - Admin Only
+    // Accounts - Admin
     if (isAdmin) {
       navItems.add(_NavItem(
-        label: 'الحسابات',
-        icon: Icons.account_balance_wallet,
+        label: 'الحسابات والميزانية',
+        icon: Icons.account_balance_wallet_rounded,
         screen: AccountsScreen(onViewClient: selectClient),
       ));
     }
@@ -178,22 +357,20 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
     // Banks
     if (isAdmin || (perms[EmployeePermissionKeys.viewBanks] ?? true)) {
       navItems.add(_NavItem(
-        label: 'دليل البنوك',
-        icon: Icons.account_balance,
+        label: 'دليل البنوك والبرامج',
+        icon: Icons.account_balance_rounded,
         screen: const BanksScreen(),
       ));
     }
 
-    // AI Assistant (Intelligent Credit recommendation)
+    // AI Assistant
     navItems.add(_NavItem(
       label: 'المساعد الذكي (AI)',
-      icon: Icons.psychology,
-      screen: AiAssistantScreen(
-        initialClientId: _aiClientId,
-      ),
+      icon: Icons.psychology_rounded,
+      screen: AiAssistantScreen(initialClientId: _aiClientId),
     ));
 
-    // Employees — admin only or explicitly granted
+    // Employees
     if (isAdmin || (perms[EmployeePermissionKeys.viewEmployees] ?? false)) {
       navItems.add(_NavItem(
         label: 'موظفي الشركة',
@@ -202,21 +379,19 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       ));
     }
 
-    // Settings — admin or canManageRoles
-    if (isAdmin || rolePerms.canManageRoles ||
-        (perms[EmployeePermissionKeys.viewSettings] ?? false)) {
+    // Settings
+    if (isAdmin || rolePerms.canManageRoles || (perms[EmployeePermissionKeys.viewSettings] ?? false)) {
       navItems.add(_NavItem(
         label: 'الإعدادات والصلاحيات',
-        icon: Icons.settings,
+        icon: Icons.settings_rounded,
         screen: const SettingsScreen(),
       ));
     }
 
     // Adjust selected client navigation helper
     if (_selectedClientId != null) {
-      final detailsIdx = navItems.indexWhere((item) => item.label == 'تفاصيل العميل');
+      final detailsIdx = navItems.indexWhere((item) => item.label == 'تفاصيل وإدارة العملاء');
       if (detailsIdx != -1 && _selectedIndex != detailsIdx) {
-        // Trigger select client navigation immediately in this build frame
         WidgetsBinding.instance.addPostFrameCallback((_) {
           setState(() {
             _selectedIndex = detailsIdx;
@@ -225,7 +400,6 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       }
     }
 
-    // Adjust selected AI client navigation helper
     if (_aiClientId != null) {
       final aiIdx = navItems.indexWhere((item) => item.label == 'المساعد الذكي (AI)');
       if (aiIdx != -1 && _selectedIndex != aiIdx) {
@@ -237,480 +411,132 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       }
     }
 
-    // Ensure selected index is within bounds if permissions change
     if (_selectedIndex >= navItems.length) {
       _selectedIndex = navItems.isNotEmpty ? navItems.length - 1 : 0;
     }
 
+    final currentNavItem = navItems.isNotEmpty ? navItems[_selectedIndex] : null;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final isLargeScreen = constraints.maxWidth >= 1024;
-
-          return Row(
-            children: [
-              // 1. Sidebar for Desktop
-              if (isLargeScreen) ...[
-                GlassSidebar(
-                  width: 260,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Universal Top Header Navigation Bar (Item 2 & Item 3)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF16162A).withValues(alpha: 0.92),
+                border: const Border(bottom: BorderSide(color: Colors.white10)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  // Popover Main Menu Trigger Button (Item 2)
+                  InteractiveHoverCard(
+                    onTap: () => _openMainMenuModal(context, navItems),
+                    glowColor: const Color(0xFF6C5CE7),
+                    backgroundColor: const Color(0xFF6C5CE7).withValues(alpha: 0.25),
+                    borderRadius: BorderRadius.circular(12),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Branding
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: TfcColors.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(Icons.account_balance_wallet,
-                                  color: TfcColors.primary, size: 22),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(
-                              "FUTURE CLUB",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge
-                                  ?.copyWith(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: -0.5,
-                                  ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 40),
-
-                        // Navigation links with Interactive Accordion Submenus
-                        Expanded(
-                          child: ListView(
-                            children: [
-                              // Loop & render navItems but group them dynamically
-                              ...List.generate(navItems.length, (idx) {
-                                final item = navItems[idx];
-                                
-                                // Render standalone links (Dashboard, Banks, Employees, Settings)
-                                if (item.label != 'طلب تمويل جديد' && 
-                                    item.label != 'تفاصيل العميل' &&
-                                    item.label != 'التوزيعات العامة' &&
-                                    item.label != 'العمليات العامة') {
-                                  final isSelected = _selectedIndex == idx;
-                                  return _buildNavButton(
-                                    label: item.label,
-                                    icon: item.icon,
-                                    isSelected: isSelected,
-                                    onPressed: () => navigateToTab(idx),
-                                  );
-                                }
-                                
-                                // Render Group 1: 'العملاء'
-                                if (item.label == 'طلب تمويل جديد' && showAddClient) {
-                                  final showDetails = showClientDetails;
-                                  final addClientIdx = navItems.indexWhere((i) => i.label == 'طلب تمويل جديد');
-                                  final detailsIdx = navItems.indexWhere((i) => i.label == 'تفاصيل العميل');
-                                  
-                                  final isSubItemSelected = _selectedIndex == addClientIdx || _selectedIndex == detailsIdx;
-
-                                  return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      _buildGroupHeaderButton(
-                                        label: 'العملاء',
-                                        icon: Icons.people_outline,
-                                        isExpanded: _clientsExpanded,
-                                        isActiveGroup: isSubItemSelected,
-                                        onPressed: () {
-                                          setState(() {
-                                            _clientsExpanded = !_clientsExpanded;
-                                          });
-                                        },
-                                      ),
-                                      if (_clientsExpanded) ...[
-                                        if (showAddClient && addClientIdx != -1)
-                                          _buildSubNavButton(
-                                            label: 'طلب تمويل جديد',
-                                            isSelected: _selectedIndex == addClientIdx,
-                                            onPressed: () => navigateToTab(addClientIdx),
-                                          ),
-                                        if (showDetails && detailsIdx != -1)
-                                          _buildSubNavButton(
-                                            label: 'تفاصيل العميل',
-                                            isSelected: _selectedIndex == detailsIdx,
-                                            onPressed: () => navigateToTab(detailsIdx),
-                                          ),
-                                      ],
-                                      const SizedBox(height: 6),
-                                    ],
-                                  );
-                                }
-
-                                // Render Group 2: 'التوزيع والعمليات'
-                                if (item.label == 'التوزيعات العامة' && showDistributions) {
-                                  final showOps = showOperations;
-                                  final distIdx = navItems.indexWhere((i) => i.label == 'التوزيعات العامة');
-                                  final opsIdx = navItems.indexWhere((i) => i.label == 'العمليات العامة');
-                                  
-                                  final isSubItemSelected = _selectedIndex == distIdx || _selectedIndex == opsIdx;
-
-                                  return Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      _buildGroupHeaderButton(
-                                        label: 'التوزيع والعمليات',
-                                        icon: Icons.alt_route_rounded,
-                                        isExpanded: _opsExpanded,
-                                        isActiveGroup: isSubItemSelected,
-                                        onPressed: () {
-                                          setState(() {
-                                            _opsExpanded = !_opsExpanded;
-                                          });
-                                        },
-                                      ),
-                                      if (_opsExpanded) ...[
-                                        if (showDistributions && distIdx != -1)
-                                          _buildSubNavButton(
-                                            label: 'التوزيعات العامة',
-                                            isSelected: _selectedIndex == distIdx,
-                                            onPressed: () => navigateToTab(distIdx),
-                                          ),
-                                        if (showOps && opsIdx != -1)
-                                          _buildSubNavButton(
-                                            label: 'العمليات العامة',
-                                            isSelected: _selectedIndex == opsIdx,
-                                            onPressed: () => navigateToTab(opsIdx),
-                                          ),
-                                      ],
-                                      const SizedBox(height: 6),
-                                    ],
-                                  );
-                                }
-
-                                // Skip drawing details & ops directly since they are drawn in accordion groups
-                                return const SizedBox.shrink();
-                              }),
-                            ],
-                          ),
-                        ),
-
-                        // User status Card & Log Out
-                        Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            textDirection: TextDirection.rtl,
-                            children: [
-                              Flexible(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      authState.fullName,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold, fontSize: 13),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    Text(
-                                      _getRoleLabel(authState.role),
-                                      style: const TextStyle(
-                                          color: TfcColors.outline, fontSize: 11),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.logout,
-                                    color: Colors.redAccent, size: 20),
-                                onPressed: () =>
-                                    ref.read(authProvider.notifier).signOut(),
-                              ),
-                            ],
+                        Icon(Icons.menu_rounded, color: Color(0xFFA29BFE), size: 22),
+                        SizedBox(width: 8),
+                        Text(
+                          "القائمة الرئيسية",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
 
-              // 2. Main Page Content View
-              Expanded(
-                child: Column(
-                  children: [
-                    // Top Appbar for Mobile
-                    if (!isLargeScreen)
-                      GlassAppBar(
-                        title: Row(
-                          textDirection: TextDirection.rtl,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: TfcColors.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(Icons.account_balance_wallet,
-                                  color: TfcColors.primary, size: 20),
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              "FUTURE CLUB",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelLarge
-                                  ?.copyWith(fontSize: 16),
-                            ),
-                          ],
-                        ),
-                        actions: [
-                          IconButton(
-                            icon: const Icon(Icons.logout,
-                                color: Colors.redAccent),
-                            onPressed: () =>
-                                ref.read(authProvider.notifier).signOut(),
-                          ),
-                        ],
-                      ),
-
-                    // Active Screen body
-                    Expanded(
-                      child: navItems.isNotEmpty
-                          ? navItems[_selectedIndex].screen
-                          : const Center(
-                              child: Text(
-                                'لا توجد صلاحيات متاحة',
-                                style: TextStyle(color: TfcColors.outline),
-                              ),
-                            ),
+                  // Navigation Back & Home buttons (Item 3)
+                  InteractiveHoverCard(
+                    onTap: _goBack,
+                    glowColor: Colors.amber,
+                    backgroundColor: Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    padding: const EdgeInsets.all(8),
+                    child: const Tooltip(
+                      message: "عودة للخلف",
+                      child: Icon(Icons.arrow_back_rounded, color: Colors.amber, size: 20),
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: 6),
+                  InteractiveHoverCard(
+                    onTap: _goHome,
+                    glowColor: Colors.cyan,
+                    backgroundColor: Colors.white.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(10),
+                    padding: const EdgeInsets.all(8),
+                    child: const Tooltip(
+                      message: "الصفحة الرئيسية",
+                      child: Icon(Icons.home_rounded, color: Colors.cyan, size: 20),
+                    ),
+                  ),
+
+                  const SizedBox(width: 14),
+                  // Logo Icon & Current Page Title
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      width: 28,
+                      height: 28,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _showNewClientForm
+                          ? "طلب تمويل جديد 📝"
+                          : (currentNavItem?.label ?? "TFC FINANCIAL CONSULTING"),
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+
+                  // Logout & User Info
+                  IconButton(
+                    icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
+                    tooltip: "تسجيل الخروج",
+                    onPressed: () {
+                      ref.read(authProvider.notifier).signOut();
+                    },
+                  ),
+                ],
               ),
-            ],
-          );
-        },
-      ),
-
-      // 3. Bottom nav bar for mobile (glassmorphic)
-      bottomNavigationBar: LayoutBuilder(
-        builder: (context, constraints) {
-          final isLargeScreen = constraints.maxWidth >= 1024;
-          if (isLargeScreen) return const SizedBox.shrink();
-
-          return GlassBottomNavBar(
-            child: BottomNavigationBar(
-              currentIndex: _selectedIndex,
-              backgroundColor: Colors.transparent,
-              selectedItemColor: TfcColors.primary,
-              unselectedItemColor: TfcColors.outline,
-              type: BottomNavigationBarType.fixed,
-              elevation: 0,
-              onTap: (idx) {
-                navigateToTab(idx);
-              },
-              items: navItems.map((item) {
-                return BottomNavigationBarItem(
-                  icon: Icon(item.icon),
-                  label: item.label,
-                );
-              }).toList(),
             ),
-          );
-        },
-      ),
-    );
-  }
 
-  /// Sync current user's custom permissions from the employees list into
-  /// the in-memory employeeCustomPermissionsProvider (once, on first load).
-  void _syncCurrentUserPermissions(String? userId, String role) {
-    if (userId == null || role == 'admin') return;
-    final permsNotifier = ref.read(employeeCustomPermissionsProvider.notifier);
-    final alreadyLoaded = ref.read(employeeCustomPermissionsProvider).containsKey(userId);
-    if (alreadyLoaded) return;
-
-    // Try to find the user in the employees list
-    final empState = ref.read(employeesProvider);
-    final match = empState.employees.where((e) => e.id == userId).toList();
-    if (match.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        permsNotifier.loadForEmployee(userId, match.first.customPermissions);
-      });
-    }
-  }
-
-  String _getRoleLabel(String role) {
-    switch (role) {
-      case 'admin':
-        return 'المدير العام (الأدمن)';
-      case 'manager':
-        return 'المدير المسؤول';
-      case 'company_employee':
-        return 'موظف الشركة';
-      case 'bank_employee':
-        return 'موظف البنك';
-      default:
-        return 'موظف';
-    }
-  }
-
-  Widget _buildNavButton({
-    required String label,
-    required IconData icon,
-    required bool isSelected,
-    required VoidCallback onPressed,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 6),
-      child: TextButton(
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-          backgroundColor: isSelected
-              ? TfcColors.primary.withValues(alpha: 0.12)
-              : Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: isSelected
-                  ? TfcColors.primary.withValues(alpha: 0.25)
-                  : Colors.transparent,
-            ),
-          ),
-        ),
-        onPressed: onPressed,
-        child: Row(
-          textDirection: TextDirection.rtl,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? TfcColors.primary : TfcColors.outline,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
+            // Active Screen Body (Item 1: Fully Responsive Container)
             Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : TfcColors.outline,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-                textDirection: TextDirection.rtl,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGroupHeaderButton({
-    required String label,
-    required IconData icon,
-    required bool isExpanded,
-    required bool isActiveGroup,
-    required VoidCallback onPressed,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 4),
-      child: TextButton(
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-          backgroundColor: isActiveGroup
-              ? Colors.white.withValues(alpha: 0.03)
-              : Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: isActiveGroup
-                  ? Colors.white.withValues(alpha: 0.1)
-                  : Colors.transparent,
-            ),
-          ),
-        ),
-        onPressed: onPressed,
-        child: Row(
-          textDirection: TextDirection.rtl,
-          children: [
-            Icon(
-              icon,
-              color: isActiveGroup ? TfcColors.primary : TfcColors.outline,
-              size: 20,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: isActiveGroup ? Colors.white : TfcColors.outline,
-                  fontWeight: isActiveGroup ? FontWeight.bold : FontWeight.normal,
-                ),
-                textDirection: TextDirection.rtl,
-              ),
-            ),
-            Icon(
-              isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-              color: TfcColors.outline,
-              size: 18,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSubNavButton({
-    required String label,
-    required bool isSelected,
-    required VoidCallback onPressed,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 4, right: 28),
-      child: TextButton(
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          backgroundColor: isSelected
-              ? TfcColors.primary.withValues(alpha: 0.1)
-              : Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-            side: BorderSide(
-              color: isSelected
-                  ? TfcColors.primary.withValues(alpha: 0.2)
-                  : Colors.transparent,
-            ),
-          ),
-        ),
-        onPressed: onPressed,
-        child: Row(
-          textDirection: TextDirection.rtl,
-          children: [
-            Container(
-              width: 6,
-              height: 6,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isSelected ? TfcColors.primary : TfcColors.outline.withValues(alpha: 0.4),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : TfcColors.outline,
-                  fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
-                textDirection: TextDirection.rtl,
-              ),
+              child: currentNavItem != null
+                  ? currentNavItem.screen
+                  : const Center(
+                      child: Text(
+                        "لا تملك صلاحيات لعرض هذا القسم",
+                        style: TextStyle(color: Colors.white70),
+                      ),
+                    ),
             ),
           ],
         ),
@@ -719,10 +545,14 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
   }
 }
 
-/// Simple navigation item model
 class _NavItem {
   final String label;
   final IconData icon;
   final Widget screen;
-  const _NavItem({required this.label, required this.icon, required this.screen});
+
+  _NavItem({
+    required this.label,
+    required this.icon,
+    required this.screen,
+  });
 }

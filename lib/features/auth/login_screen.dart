@@ -222,14 +222,44 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Header Brand
+                      // Header Brand Image Logo
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFD4AF37).withValues(alpha: 0.35),
+                              blurRadius: 24,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(60),
+                          child: Image.asset(
+                            'assets/images/logo.png',
+                            height: 100,
+                            width: 100,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => const Icon(
+                              Icons.account_balance,
+                              color: Color(0xFFD4AF37),
+                              size: 60,
+                            ),
+                          ),
+                        ),
+                      ),
                       Text(
-                        "FUTURE CLUB",
+                        "THE FUTURE CLUB",
                         style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                          color: TfcColors.primary,
+                          color: const Color(0xFFD4AF37),
+                          fontSize: 22,
+                          letterSpacing: 1.5,
                           shadows: [
                             const Shadow(
-                              color: Color(0x9900F5D4),
+                              color: Color(0x99D4AF37),
                               blurRadius: 16,
                             ),
                           ],

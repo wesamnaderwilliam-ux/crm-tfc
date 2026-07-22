@@ -4,8 +4,12 @@ import '../../core/theme.dart';
 import '../../models/prospect_model.dart';
 import '../../models/client_model.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/permissions_provider.dart';
 import '../../providers/prospects_provider.dart';
 import '../../providers/employees_provider.dart';
+import '../../core/widgets/toggleable_filter_panel.dart';
+import '../../core/widgets/interactive_hover_card.dart';
+import '../../core/widgets/phone_action_widget.dart';
 import '../../providers/client_provider.dart';
 
 class ProspectsScreen extends ConsumerStatefulWidget {
@@ -114,97 +118,119 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    Row(
-                      children: [
-                        // Search Field
-                        Expanded(
-                          flex: 3,
-                          child: TextField(
-                            onChanged: (val) => setState(() => _searchQuery = val),
-                            style: const TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              hintText: 'بحث بالاسم، الهاتف، الشركة...',
-                              hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
-                              prefixIcon: Icon(Icons.search, color: Colors.white.withValues(alpha: 0.5)),
-                              filled: true,
-                              fillColor: Colors.black.withValues(alpha: 0.2),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-
-                        // Filter by Status
-                        Expanded(
-                          flex: 2,
-                          child: DropdownButtonFormField<String>(
-                            initialValue: _selectedStatusFilter,
-                            dropdownColor: const Color(0xFF1E2430),
-                            style: const TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              labelText: 'الحالة',
-                              labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
-                              filled: true,
-                              fillColor: Colors.black.withValues(alpha: 0.2),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-                              ),
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            ),
-                            items: const [
-                              DropdownMenuItem(value: 'all', child: Text('جميع الحالات')),
-                              DropdownMenuItem(value: 'pending', child: Text('قيد الانتظار')),
-                              DropdownMenuItem(value: 'contacted', child: Text('تم التواصل')),
-                              DropdownMenuItem(value: 'converted', child: Text('تم التحويل لعميل')),
-                              DropdownMenuItem(value: 'rejected', child: Text('مرفوض / غير مهتم')),
-                            ],
-                            onChanged: (val) {
-                              if (val != null) setState(() => _selectedStatusFilter = val);
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-
-                        // Filter by Employee (Admin Only)
-                        if (isAdmin)
-                          Expanded(
-                            flex: 2,
-                            child: DropdownButtonFormField<String>(
-                              initialValue: _selectedEmployeeFilter,
-                              dropdownColor: const Color(0xFF1E2430),
-                              style: const TextStyle(color: Colors.white),
-                              decoration: InputDecoration(
-                                labelText: 'الموظف المسند إليه',
-                                labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
-                                filled: true,
-                                fillColor: Colors.black.withValues(alpha: 0.2),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                    ToggleableFilterPanel(
+                      title: "تصفية وتصفح العملاء المحتملين 🔍",
+                      activeFilterCount: (_searchQuery.isNotEmpty ? 1 : 0) +
+                          (_selectedStatusFilter != 'all' ? 1 : 0) +
+                          (_selectedEmployeeFilter != 'all' ? 1 : 0),
+                      onResetFilter: () {
+                        setState(() {
+                          _searchQuery = '';
+                          _selectedStatusFilter = 'all';
+                          _selectedEmployeeFilter = 'all';
+                        });
+                      },
+                      filterContent: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final isWide = constraints.maxWidth >= 600;
+                          final children = [
+                            // Search Field
+                            Expanded(
+                              flex: isWide ? 3 : 0,
+                              child: TextField(
+                                onChanged: (val) => setState(() => _searchQuery = val),
+                                style: const TextStyle(color: Colors.white),
+                                decoration: InputDecoration(
+                                  hintText: 'بحث بالاسم، الهاتف، الشركة...',
+                                  hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.4)),
+                                  prefixIcon: Icon(Icons.search, color: Colors.white.withValues(alpha: 0.5)),
+                                  filled: true,
+                                  fillColor: Colors.black.withValues(alpha: 0.2),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                 ),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                               ),
-                              items: [
-                                const DropdownMenuItem(value: 'all', child: Text('كل الموظفين')),
-                                const DropdownMenuItem(value: 'unassigned', child: Text('غير مسند لموظف')),
-                                ...employeesState.employees
-                                    .where((emp) => emp.role != 'bank_employee')
-                                    .map((emp) => DropdownMenuItem(
-                                          value: emp.id,
-                                          child: Text(emp.fullName),
-                                        )),
-                              ],
-                              onChanged: (val) {
-                                if (val != null) setState(() => _selectedEmployeeFilter = val);
-                              },
                             ),
-                          ),
-                      ],
+                            if (!isWide) const SizedBox(height: 12),
+                            if (isWide) const SizedBox(width: 12),
+
+                            // Filter by Status
+                            Expanded(
+                              flex: isWide ? 2 : 0,
+                              child: DropdownButtonFormField<String>(
+                                initialValue: _selectedStatusFilter,
+                                dropdownColor: const Color(0xFF1E2430),
+                                style: const TextStyle(color: Colors.white),
+                                decoration: InputDecoration(
+                                  labelText: 'الحالة',
+                                  labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+                                  filled: true,
+                                  fillColor: Colors.black.withValues(alpha: 0.2),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                ),
+                                items: const [
+                                  DropdownMenuItem(value: 'all', child: Text('جميع الحالات')),
+                                  DropdownMenuItem(value: 'pending', child: Text('قيد الانتظار')),
+                                  DropdownMenuItem(value: 'contacted', child: Text('تم التواصل')),
+                                  DropdownMenuItem(value: 'converted', child: Text('تم التحويل لعميل')),
+                                  DropdownMenuItem(value: 'rejected', child: Text('مرفوض / غير مهتم')),
+                                ],
+                                onChanged: (val) {
+                                  if (val != null) setState(() => _selectedStatusFilter = val);
+                                },
+                              ),
+                            ),
+                            if (!isWide && isAdmin) const SizedBox(height: 12),
+                            if (isWide && isAdmin) const SizedBox(width: 12),
+
+                            // Filter by Employee (Admin Only)
+                            if (isAdmin)
+                              Expanded(
+                                flex: isWide ? 2 : 0,
+                                child: DropdownButtonFormField<String>(
+                                  initialValue: _selectedEmployeeFilter,
+                                  dropdownColor: const Color(0xFF1E2430),
+                                  style: const TextStyle(color: Colors.white),
+                                  decoration: InputDecoration(
+                                    labelText: 'الموظف المسند إليه',
+                                    labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+                                    filled: true,
+                                    fillColor: Colors.black.withValues(alpha: 0.2),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                  ),
+                                  items: [
+                                    const DropdownMenuItem(value: 'all', child: Text('كل الموظفين')),
+                                    const DropdownMenuItem(value: 'unassigned', child: Text('غير مسند لموظف')),
+                                    ...employeesState.employees
+                                        .where((emp) => emp.role != 'bank_employee')
+                                        .map((emp) => DropdownMenuItem(
+                                              value: emp.id,
+                                              child: Text(emp.fullName),
+                                            )),
+                                  ],
+                                  onChanged: (val) {
+                                    if (val != null) setState(() => _selectedEmployeeFilter = val);
+                                  },
+                                ),
+                              ),
+                          ];
+
+                          return isWide
+                              ? Row(children: children)
+                              : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
+                        },
+                      ),
                     ),
 
                     // Bulk Actions Bar if selection is active
@@ -319,7 +345,10 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                     return GlassCard(
                       padding: const EdgeInsets.all(0),
                       child: SingleChildScrollView(
-                        child: DataTable(
+                        scrollDirection: Axis.vertical,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: DataTable(
                           columnSpacing: 20,
                           headingRowHeight: 48,
                           dataRowMinHeight: 56,
@@ -410,7 +439,11 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                     ),
                                   ),
                                 ),
-                                DataCell(Text(prospect.phoneNumber ?? 'غير محدد', style: const TextStyle(color: Colors.white70))),
+                                DataCell(
+                                  prospect.phoneNumber != null && prospect.phoneNumber!.isNotEmpty
+                                    ? PhoneActionWidget(label: '', phoneNumber: prospect.phoneNumber!)
+                                    : const Text('غير محدد', style: TextStyle(color: Colors.white70)),
+                                ),
                                 DataCell(Text(
                                   '${prospect.companyName ?? ''} ${prospect.jobTitle != null ? '(${prospect.jobTitle})' : ''}'.trim(),
                                   style: const TextStyle(color: Colors.white70),
@@ -474,6 +507,7 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                           }).toList(),
                         ),
                       ),
+                    ),
                     );
                   },
                   loading: () => const Center(child: CircularProgressIndicator(color: TfcColors.primary)),
@@ -755,9 +789,10 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                   runSpacing: 12,
                   children: [
                     _buildDetailInfoTile('👤 الاسم الكامل', prospect.fullName),
-                    _buildDetailInfoTile('📞 رقم الهاتف الأساسي', prospect.phoneNumber ?? 'غير متوفر'),
-                    if (prospect.secondaryPhoneNumber != null)
-                      _buildDetailInfoTile('📱 رقم الهاتف الإضافي', prospect.secondaryPhoneNumber!),
+                    if (prospect.phoneNumber != null && prospect.phoneNumber!.isNotEmpty)
+                      PhoneActionWidget(label: '📞 رقم الهاتف الأساسي', phoneNumber: prospect.phoneNumber!),
+                    if (prospect.secondaryPhoneNumber != null && prospect.secondaryPhoneNumber!.isNotEmpty)
+                      PhoneActionWidget(label: '📱 رقم الهاتف الإضافي', phoneNumber: prospect.secondaryPhoneNumber!),
                     if (prospect.nationalId != null)
                       _buildDetailInfoTile('🆔 الرقم القومي', prospect.nationalId!),
                     _buildDetailInfoTile('🏢 جهة العمل / الشركة', prospect.companyName ?? 'غير محدد'),
