@@ -27,6 +27,11 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   List<Map<String, dynamic>> _matchingProgramsList = [];
   bool _isDistributing = false;
 
+  final TextEditingController _chatController = TextEditingController();
+  final List<Map<String, String>> _chatMessages = [];
+  bool _isSendingChat = false;
+  int _activeViewTab = 0; // 0 = التقرير والترشيحات, 1 = المحادثة المباشرة مع AI
+
   @override
   void initState() {
     super.initState();
@@ -138,6 +143,41 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
             backgroundColor: TfcColors.error,
           ),
         );
+      }
+    }
+  }
+
+  Future<void> _sendChatMessage(ClientModel client, List<Map<String, dynamic>> allPrograms) async {
+    final text = _chatController.text.trim();
+    if (text.isEmpty || _isSendingChat) return;
+
+    _chatController.clear();
+    setState(() {
+      _chatMessages.add({'role': 'user', 'text': text});
+      _isSendingChat = true;
+    });
+
+    try {
+      final chatFn = ref.read(aiChatProvider);
+      final response = await chatFn(
+        client: client,
+        availablePrograms: allPrograms,
+        chatHistory: _chatMessages,
+        userQuestion: text,
+      );
+
+      if (mounted) {
+        setState(() {
+          _chatMessages.add({'role': 'assistant', 'text': response});
+          _isSendingChat = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _chatMessages.add({'role': 'assistant', 'text': 'حدث خطأ: $e'});
+          _isSendingChat = false;
+        });
       }
     }
   }
@@ -397,120 +437,297 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                               ),
                               const SizedBox(width: 20),
 
-                              // Left column: Report & recommendation
-                              Expanded(
-                                flex: 3,
-                                child: _analysisResult == null
-                                    ? GlassCard(
-                                        child: Center(
-                                          child: Column(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              Icon(Icons.auto_awesome, color: TfcColors.primary.withValues(alpha: 0.3), size: 64),
-                                              const SizedBox(height: 16),
-                                              const Text("لم يتم إجراء تحليل ائتماني بعد للعميل المختار.", style: TextStyle(color: TfcColors.outline)),
-                                              const SizedBox(height: 8),
-                                              const Text("اضغط على زر 'بدء التحليل الذكي' بالأعلى لإنشاء التقرير.", style: TextStyle(color: Colors.white30, fontSize: 11)),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                    : Column(
-                                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                                        children: [
-                                          // Report scroll view
-                                          Expanded(
-                                            child: GlassCard(
-                                              padding: const EdgeInsets.all(20),
-                                              child: Scrollbar(
-                                                child: SingleChildScrollView(
-                                                  child: MarkdownBody(
-                                                    data: _analysisResult!.reportMarkdown,
-                                                    styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
-                                                      p: const TextStyle(color: Colors.white70, height: 1.6, fontSize: 13),
-                                                      h1: const TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold, fontSize: 18, height: 2),
-                                                      h2: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15, height: 1.8),
-                                                      listBullet: const TextStyle(color: TfcColors.primary),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(height: 16),
+                               // Left column: Report & recommendation OR AI Chat
+                               Expanded(
+                                 flex: 3,
+                                 child: Column(
+                                   children: [
+                                     // Navigation Bar for Report vs AI Chat
+                                     Row(
+                                       children: [
+                                         Expanded(
+                                           child: InkWell(
+                                             onTap: () => setState(() => _activeViewTab = 0),
+                                             child: Container(
+                                               padding: const EdgeInsets.symmetric(vertical: 10),
+                                               decoration: BoxDecoration(
+                                                 color: _activeViewTab == 0 ? TfcColors.primary.withValues(alpha: 0.15) : Colors.transparent,
+                                                 border: Border(bottom: BorderSide(color: _activeViewTab == 0 ? TfcColors.primary : Colors.white12, width: 2)),
+                                               ),
+                                               child: Row(
+                                                 mainAxisAlignment: MainAxisAlignment.center,
+                                                 children: [
+                                                   Icon(Icons.analytics_outlined, color: _activeViewTab == 0 ? TfcColors.primary : Colors.white60, size: 18),
+                                                   const SizedBox(width: 8),
+                                                   Text(
+                                                     "تقرير التحليل والترشيحات",
+                                                     style: TextStyle(
+                                                       fontWeight: FontWeight.bold,
+                                                       color: _activeViewTab == 0 ? TfcColors.primary : Colors.white60,
+                                                       fontSize: 13,
+                                                     ),
+                                                   ),
+                                                 ],
+                                               ),
+                                             ),
+                                           ),
+                                         ),
+                                         Expanded(
+                                           child: InkWell(
+                                             onTap: () => setState(() => _activeViewTab = 1),
+                                             child: Container(
+                                               padding: const EdgeInsets.symmetric(vertical: 10),
+                                               decoration: BoxDecoration(
+                                                 color: _activeViewTab == 1 ? TfcColors.primary.withValues(alpha: 0.15) : Colors.transparent,
+                                                 border: Border(bottom: BorderSide(color: _activeViewTab == 1 ? TfcColors.primary : Colors.white12, width: 2)),
+                                               ),
+                                               child: Row(
+                                                 mainAxisAlignment: MainAxisAlignment.center,
+                                                 children: [
+                                                   Icon(Icons.chat_bubble_outline, color: _activeViewTab == 1 ? TfcColors.primary : Colors.white60, size: 18),
+                                                   const SizedBox(width: 8),
+                                                   Text(
+                                                     "دردشة ومناقشة تفاعلية مع AI",
+                                                     style: TextStyle(
+                                                       fontWeight: FontWeight.bold,
+                                                       color: _activeViewTab == 1 ? TfcColors.primary : Colors.white60,
+                                                       fontSize: 13,
+                                                     ),
+                                                   ),
+                                                 ],
+                                               ),
+                                             ),
+                                           ),
+                                         ),
+                                       ],
+                                     ),
+                                     const SizedBox(height: 12),
 
-                                          // Quick action program cards
-                                          if (_matchingProgramsList.isNotEmpty) ...[
-                                            const Text(
-                                              "الترشيحات الذكية للبرامج التمويلية:",
-                                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: TfcColors.primary),
-                                            ),
-                                            const SizedBox(height: 8),
-                                            SizedBox(
-                                              height: 135,
-                                              child: ListView.builder(
-                                                scrollDirection: Axis.horizontal,
-                                                itemCount: _matchingProgramsList.length,
-                                                itemBuilder: (c, idx) {
-                                                  final prog = _matchingProgramsList[idx];
-                                                  final core = prog['core_programs'] as Map?;
-                                                  final bank = prog['banks'] as Map?;
-                                                  
-                                                  final progName = core?['program_name']?.toString() ?? 'برنامج ائتماني';
-                                                  final bankName = bank?['bank_name']?.toString() ?? 'بنك عام';
-                                                  final rate = prog['interest_rate'] ?? 20.0;
-                                                  final maxLoan = prog['max_loan_amount'] ?? 1000000.0;
+                                     // Active Tab View Content
+                                     Expanded(
+                                       child: _activeViewTab == 0
+                                           ? (_analysisResult == null
+                                               ? GlassCard(
+                                                   child: Center(
+                                                     child: Column(
+                                                       mainAxisAlignment: MainAxisAlignment.center,
+                                                       children: [
+                                                         Icon(Icons.auto_awesome, color: TfcColors.primary.withValues(alpha: 0.3), size: 64),
+                                                         const SizedBox(height: 16),
+                                                         const Text("لم يتم إجراء تحليل ائتماني بعد للعميل المختار.", style: TextStyle(color: TfcColors.outline)),
+                                                         const SizedBox(height: 8),
+                                                         const Text("اضغط على زر 'بدء التحليل الذكي' بالأعلى لإنشاء التقرير.", style: TextStyle(color: Colors.white30, fontSize: 11)),
+                                                       ],
+                                                     ),
+                                                   ),
+                                                 )
+                                               : Column(
+                                                   crossAxisAlignment: CrossAxisAlignment.stretch,
+                                                   children: [
+                                                     // Report scroll view
+                                                     Expanded(
+                                                       child: GlassCard(
+                                                         padding: const EdgeInsets.all(20),
+                                                         child: Scrollbar(
+                                                           child: SingleChildScrollView(
+                                                             child: MarkdownBody(
+                                                               data: _analysisResult!.reportMarkdown,
+                                                               styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                                                                 p: const TextStyle(color: Colors.white70, height: 1.6, fontSize: 13),
+                                                                 h1: const TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold, fontSize: 18, height: 2),
+                                                                 h2: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15, height: 1.8),
+                                                                 listBullet: const TextStyle(color: TfcColors.primary),
+                                                               ),
+                                                             ),
+                                                           ),
+                                                         ),
+                                                       ),
+                                                     ),
+                                                     const SizedBox(height: 16),
 
-                                                  return Container(
-                                                    width: 240,
-                                                    margin: const EdgeInsets.only(left: 12),
-                                                    child: GlassCard(
-                                                      padding: const EdgeInsets.all(12),
-                                                      borderColor: TfcColors.primary.withValues(alpha: 0.15),
-                                                      child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                        children: [
-                                                          Column(
-                                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                                            children: [
-                                                              Text(progName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, overflow: TextOverflow.ellipsis)),
-                                                              Text(bankName, style: const TextStyle(color: TfcColors.outline, fontSize: 10)),
-                                                            ],
-                                                          ),
-                                                          Row(
-                                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                            children: [
-                                                              Text("الفائدة: $rate%", style: const TextStyle(color: Colors.orangeAccent, fontSize: 11, fontWeight: FontWeight.bold)),
-                                                              Text("الأقصى: ${_fmt(maxLoan)}", style: const TextStyle(color: Colors.white60, fontSize: 10)),
-                                                            ],
-                                                          ),
-                                                          const SizedBox(height: 4),
-                                                          SizedBox(
-                                                            width: double.infinity,
-                                                            child: ElevatedButton(
-                                                              onPressed: _isDistributing ? null : () => _distributeClientToProgram(prog),
-                                                              style: ElevatedButton.styleFrom(
-                                                                backgroundColor: TfcColors.primary.withValues(alpha: 0.15),
-                                                                foregroundColor: TfcColors.primary,
-                                                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                                                                side: const BorderSide(color: TfcColors.primary, width: 0.5),
-                                                              ),
-                                                              child: const Text("توزيع فوري للبرنامج", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                              ),
+                                                     // Quick action program cards
+                                                     if (_matchingProgramsList.isNotEmpty) ...[
+                                                       const Text(
+                                                         "الترشيحات الذكية للبرامج التمويلية:",
+                                                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: TfcColors.primary),
+                                                       ),
+                                                       const SizedBox(height: 8),
+                                                       SizedBox(
+                                                         height: 135,
+                                                         child: ListView.builder(
+                                                           scrollDirection: Axis.horizontal,
+                                                           itemCount: _matchingProgramsList.length,
+                                                           itemBuilder: (c, idx) {
+                                                             final prog = _matchingProgramsList[idx];
+                                                             final core = prog['core_programs'] as Map?;
+                                                             final bank = prog['banks'] as Map?;
+                                                             
+                                                             final progName = core?['program_name']?.toString() ?? 'برنامج ائتماني';
+                                                             final bankName = bank?['bank_name']?.toString() ?? 'بنك عام';
+                                                             final rate = prog['interest_rate'] ?? 20.0;
+                                                             final maxLoan = prog['max_loan_amount'] ?? 1000000.0;
+
+                                                             return Container(
+                                                               width: 240,
+                                                               margin: const EdgeInsets.only(left: 12),
+                                                               child: GlassCard(
+                                                                 padding: const EdgeInsets.all(12),
+                                                                 borderColor: TfcColors.primary.withValues(alpha: 0.15),
+                                                                 child: Column(
+                                                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                   children: [
+                                                                     Column(
+                                                                       crossAxisAlignment: CrossAxisAlignment.start,
+                                                                       children: [
+                                                                         Text(progName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12, overflow: TextOverflow.ellipsis)),
+                                                                         Text(bankName, style: const TextStyle(color: TfcColors.outline, fontSize: 10)),
+                                                                       ],
+                                                                     ),
+                                                                     Row(
+                                                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                       children: [
+                                                                         Text("الفائدة: $rate%", style: const TextStyle(color: Colors.orangeAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                                                                         Text("الأقصى: ${_fmt(maxLoan)}", style: const TextStyle(color: Colors.white60, fontSize: 10)),
+                                                                       ],
+                                                                     ),
+                                                                     const SizedBox(height: 4),
+                                                                     SizedBox(
+                                                                       width: double.infinity,
+                                                                       child: ElevatedButton(
+                                                                         onPressed: _isDistributing ? null : () => _distributeClientToProgram(prog),
+                                                                         style: ElevatedButton.styleFrom(
+                                                                           backgroundColor: TfcColors.primary.withValues(alpha: 0.15),
+                                                                           foregroundColor: TfcColors.primary,
+                                                                           padding: const EdgeInsets.symmetric(vertical: 4),
+                                                                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                                                           side: const BorderSide(color: TfcColors.primary, width: 0.5),
+                                                                         ),
+                                                                         child: const Text("توزيع فوري للبرنامج", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+                                                                       ),
+                                                                     ),
+                                                                   ],
+                                                                 ),
+                                                               ),
+                                                             );
+                                                           },
+                                                         ),
+                                                       ),
+                                                     ],
+                                                   ],
+                                                 ))
+                                           : GlassCard(
+                                               padding: const EdgeInsets.all(16),
+                                               child: Column(
+                                                 children: [
+                                                   // Messages List
+                                                   Expanded(
+                                                     child: _chatMessages.isEmpty
+                                                         ? Center(
+                                                             child: Column(
+                                                               mainAxisAlignment: MainAxisAlignment.center,
+                                                               children: [
+                                                                 Icon(Icons.forum_outlined, size: 48, color: Colors.white.withValues(alpha: 0.2)),
+                                                                 const SizedBox(height: 12),
+                                                                 Text(
+                                                                   "مرحباً بك! يمكنك كتابة أي استفسار حول العميل (${selectedClient.fullName}) أو استثنائيات دليل البنوك للرد عليك فوراً.",
+                                                                   style: const TextStyle(color: Colors.white60, fontSize: 12),
+                                                                   textAlign: TextAlign.center,
+                                                                 ),
+                                                               ],
+                                                             ),
+                                                           )
+                                                         : ListView.builder(
+                                                             itemCount: _chatMessages.length,
+                                                             itemBuilder: (ctx, idx) {
+                                                               final msg = _chatMessages[idx];
+                                                               final isUser = msg['role'] == 'user';
+                                                               return Align(
+                                                                 alignment: isUser ? Alignment.centerLeft : Alignment.centerRight,
+                                                                 child: Container(
+                                                                   margin: const EdgeInsets.symmetric(vertical: 6),
+                                                                   padding: const EdgeInsets.all(12),
+                                                                   decoration: BoxDecoration(
+                                                                     color: isUser ? TfcColors.primary.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.08),
+                                                                     borderRadius: BorderRadius.circular(12),
+                                                                     border: Border.all(color: isUser ? TfcColors.primary.withValues(alpha: 0.4) : Colors.white12),
+                                                                   ),
+                                                                   child: Text(
+                                                                     msg['text'] ?? '',
+                                                                     style: const TextStyle(color: Colors.white, fontSize: 13),
+                                                                   ),
+                                                                 ),
+                                                               );
+                                                             },
+                                                           ),
+                                                   ),
+                                                   const SizedBox(height: 12),
+                                                   // Input Box
+                                                   Row(
+                                                     children: [
+                                                       Expanded(
+                                                         child: TextField(
+                                                           controller: _chatController,
+                                                           style: const TextStyle(color: Colors.white),
+                                                           decoration: InputDecoration(
+                                                             hintText: "اسأل المساعد الذكي عن ملف العميل أو البنوك...",
+                                                             hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
+                                                             filled: true,
+                                                             fillColor: Colors.black.withValues(alpha: 0.3),
+                                                             border: OutlineInputBorder(
+                                                               borderRadius: BorderRadius.circular(10),
+                                                               borderSide: const BorderSide(color: Colors.white12),
+                                                             ),
+                                                             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                                           ),
+                                                           onSubmitted: (_) {
+                                                             ref.read(banksRepositoryProvider).getAllBanks().then((progs) {
+                                                               // Flatten and send chat
+                                                               final List<Map<String, dynamic>> allP = [];
+                                                               for (var b in progs) {
+                                                                 final pList = b['bank_programs_details'] as List?;
+                                                                 if (pList != null) {
+                                                                   for (var p in pList) {
+                                                                     allP.add({...p, 'banks': b});
+                                                                   }
+                                                                 }
+                                                               }
+                                                               _sendChatMessage(selectedClient, allP);
+                                                             });
+                                                           },
+                                                         ),
+                                                       ),
+                                                       const SizedBox(width: 8),
+                                                       IconButton(
+                                                         onPressed: _isSendingChat
+                                                             ? null
+                                                             : () {
+                                                                 ref.read(banksRepositoryProvider).getAllBanks().then((progs) {
+                                                                   final List<Map<String, dynamic>> allP = [];
+                                                                   for (var b in progs) {
+                                                                     final pList = b['bank_programs_details'] as List?;
+                                                                     if (pList != null) {
+                                                                       for (var p in pList) {
+                                                                         allP.add({...p, 'banks': b});
+                                                                       }
+                                                                     }
+                                                                   }
+                                                                   _sendChatMessage(selectedClient, allP);
+                                                                 });
+                                                               },
+                                                         icon: _isSendingChat
+                                                             ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: TfcColors.primary))
+                                                             : const Icon(Icons.send, color: TfcColors.primary),
+                                                       ),
+                                                     ],
+                                                   ),
+                                                 ],
+                                               ),
+                                             ),
+                                     ),
+                                   ],
+                                 ),
+                               ),
                             ],
                           ),
               ),

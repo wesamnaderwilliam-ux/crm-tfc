@@ -43,18 +43,18 @@ class AiSettingsNotifier extends StateNotifier<AiSettings> {
   }
 
   static const String _defaultRules = '''
-المعايير المعتمدة للمطابقة:
-1. تحويل الراتب: البرامج ذات الفائدة المنخفضة (< 18%) تتطلب "تحويل راتب بنكي".
-2. نوع القطاع:
-   - قطاع حكومي أو خاص مؤمن عليه: مؤهل لمعظم البرامج ذات الفوائد التنافسية.
-   - أعمال حرة أو قطاع خاص غير مؤمن عليه: يوجه لبرامج مخصصة بفائدة أعلى ومستندات بديلة (مثل سجل تجاري وبطاقة ضريبية).
-3. الحد الأدنى للراتب:
-   - تمويل شخصي أو عقاري كبير: حد أدنى للراتب 7,000 ج.م.
-   - تمويل متوسط أو بطاقات ائتمان: حد أدنى للراتب 4,000 ج.م.
-4. التقييم الائتماني (I-Score):
-   - ممتاز (> 720): مؤهل لنسبة فائدة تفضيلية ومبالغ تمويل قصوى.
-   - مقبول (580 - 720): مؤهل للبرامج الاعتيادية.
-   - ضعيف (< 580): ينصح بتحسين التقييم أو التقديم بضمانات إضافية.
+قواعد واشتراطات المطابقة الائتمانية الصارمة (Strict Credit Qualification Rules):
+1. **طبيعة الوظيفة والقطاع**:
+   - قطاع حكومي / خاص مؤمن عليه: يحق له التقديم على جميع برامج تحويل الراتب والشركات المعتمدة.
+   - قطاع خاص غير مؤمن عليه / أعمال حرة: يمنع منعاً باتاً ترشيحه لبرامج تحويل الراتب البنكية المباشرة، وتقتصر التوصية فقط على برامج (أعمال حرة، مهن حرة، سجل تجاري، أو أصحاب العقارات والسيارات).
+2. **نسبة الـ DBR المتبقية وميزانية القسط**:
+   - يُحظر ترشيح أي تمويل يتجاوز قسطه الشهري المتوقع ميزانية القسط المتبقية المتاحة للعميل (50% من الراتب - الأقساط القائمة و5% من البطاقات).
+   - إذا كانت نسبة الـ DTI الحالية 50% أو أكثر، يُمنع ترشيح أية قروض جديدة وتقتصر التوصية على "سداد مديونيات أو غلق بطاقات".
+3. **مطابقة الأصول التمويلية الخاصة (الكمبوندات والسيارات)**:
+   - برامج البنوك الخاصة بـ (ملاك الوحدات في الكمبوندات) تُشترط فقط إذا كان العميل يملك بالفعل وحدة في كمبوند (`hasCompoundUnit = true`).
+   - برامج البنوك الخاصة بـ (أصحاب السيارات الحديثة) تُشترط فقط إذا كان العميل يملك سيارة حديثة (`hasModernCar = true`).
+4. **المطابقة مع الوصف الرسمي المذكور في دليل البنوك**:
+   - يمنع اختيار أو ترشيح أي برنامج بنكي إذا كان الوصف المذكور له في دليل البنوك يتضمن شرطاً مفقوداً أو غير متوفر لدى العميل.
 ''';
 
   Future<void> _loadSettings() async {
@@ -311,6 +311,102 @@ ${const JsonEncoder.withIndent('  ').convert(formattedPrograms)}
   }
 
   return analyzeClient;
+});
+
+final aiChatProvider = Provider((ref) {
+  final settings = ref.watch(aiSettingsProvider);
+
+  Future<String> chatWithAi({
+    required ClientModel client,
+    required List<Map<String, dynamic>> availablePrograms,
+    required List<Map<String, String>> chatHistory, // [{role: user/assistant, text: ...}]
+    required String userQuestion,
+  }) async {
+    final clientDti = _calculateDti(client);
+    double totalSalary = 0.0;
+    if (client.salaryTransferMethod == 'bank_transfer') {
+      for (var b in client.salaryBankDetails) {
+        totalSalary += double.tryParse(b['amount'] ?? '0') ?? 0.0;
+      }
+    } else {
+      totalSalary = client.cashSalaryAmount ?? 0.0;
+    }
+
+    final String contextSummary = '''
+أنت مستشار ائتماني ذكي لشركة "The Future Club". تجيب على استفسارات وأسئلة موظفي الشركة بدقة وخبيرة وحرفية عالية.
+بيانات العميل الحالي المحلل:
+- الاسم: ${client.fullName}
+- طبيعة الوظيفة: ${client.employmentType} (${client.isInsured ? "مؤمن عليه" : "غير مؤمن عليه"})
+- الشركة: ${client.companyName ?? "غير محدد"} - الوظيفة: ${client.jobTitle ?? "غير محدد"}
+- إجمالي الراتب: $totalSalary ج.م (${client.salaryTransferMethod})
+- التقييم الائتماني I-Score: ${client.creditScore}
+- المبلغ المطلوب: ${client.requestedAmount} ج.م
+- نسبة الـ DTI الحالية: ${clientDti.toStringAsFixed(1)}%
+- يملك وحدة في كمبوند: ${client.hasCompoundUnit ? "نعم" : "لا"}
+- يملك سيارة حديثة: ${client.hasModernCar ? "نعم" : "لا"}
+- دليل البنوك المتاحة للشركة: ${availablePrograms.length} برنامج بنكي.
+''';
+
+    if (settings.apiKey.trim().isEmpty) {
+      // Fallback local response
+      await Future.delayed(const Duration(milliseconds: 600));
+      if (userQuestion.contains('قروض') || userQuestion.contains('قسط') || userQuestion.contains('dbr') || userQuestion.contains('dti')) {
+        return 'بناءً على ملف العميل المالية: إجمالي راتبه الموثق هو ($totalSalary ج.م)، ونسبة الـ DTI الحالية هي (${clientDti.toStringAsFixed(1)}%). المتبقي المتاح من الـ DBR للتمويل الجديد هو (${(50 - clientDti).clamp(0, 50).toStringAsFixed(1)}%) بقسط شهري أقصى مسموح به يعادل (${((totalSalary * 0.50) - (totalSalary * clientDti / 100)).clamp(0, totalSalary).toStringAsFixed(0)} ج.م).';
+      } else if (userQuestion.contains('كمبوند') || userQuestion.contains('عقار') || userQuestion.contains('سيارة')) {
+        return 'فيما يتعلق بالأصول التمويلية: العميل ${client.hasCompoundUnit ? "يملك وحدة في كمبوند" : "لا يملك وحدة في كمبوند"}، و${client.hasModernCar ? "يملك سيارة حديثة" : "لا يملك سيارة حديثة"}. يمكنك ترشيح البرامج الخاصة بالملاك بناءً على ذلك.';
+      } else if (userQuestion.contains('مستندات') || userQuestion.contains('أوراق')) {
+        return 'المستندات الأساسية المطلوبة للتقديم بالبنوك المرشحة: شهادة مرتب حديثة موجهة للبنك، كشف حساب بنكي 6 أشهر مختوم، صورة بطاقة الرقم القومي سارية، وإثبات ملكية (عقد كمبوند أو رخصة سيارة) إن وجد.';
+      } else {
+        return 'بناءً على فحص الملف الائتماني للعميل (${client.fullName}) والبرامج المتاحة بالبنوك: ننصح بمراجعة طبيعة القطاع الوظيفي ومدى انتظام كشف الحساب لضمان الحصول على الموافقة الائتمانية دون معوقات.';
+      }
+    }
+
+    try {
+      final url = Uri.parse(
+          'https://generativelanguage.googleapis.com/v1beta/models/${settings.model}:generateContent?key=${settings.apiKey}');
+
+      final contents = [
+        {
+          'parts': [{'text': contextSummary}]
+        },
+        ...chatHistory.map((msg) => {
+              'role': msg['role'] == 'user' ? 'user' : 'model',
+              'parts': [
+                {'text': msg['text'] ?? ''}
+              ]
+            }),
+        {
+          'role': 'user',
+          'parts': [
+            {'text': userQuestion}
+          ]
+        }
+      ];
+
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'contents': contents}),
+      );
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        final candidates = responseData['candidates'] as List?;
+        if (candidates != null && candidates.isNotEmpty) {
+          final content = candidates[0]['content'];
+          final parts = content['parts'] as List?;
+          if (parts != null && parts.isNotEmpty) {
+            return parts[0]['text'] as String;
+          }
+        }
+      }
+      return 'تعذر الحصول على إجابة من الذكاء الاصطناعي حالياً.';
+    } catch (e) {
+      return 'حدث خطأ في الاتصال بالذكاء الاصطناعي: $e';
+    }
+  }
+
+  return chatWithAi;
 });
 
 double _calculateDti(ClientModel client) {
