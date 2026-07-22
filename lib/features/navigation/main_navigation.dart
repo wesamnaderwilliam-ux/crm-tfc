@@ -495,6 +495,43 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                       child: Icon(Icons.home_rounded, color: Colors.cyan, size: 20),
                     ),
                   ),
+                  const SizedBox(width: 6),
+                  InteractiveHoverCard(
+                    onTap: () {
+                      final calcIdx = navItems.indexWhere((item) => item.label == 'حاسبة الدخل الائتماني');
+                      if (calcIdx != -1) {
+                        navigateToTab(calcIdx);
+                      } else {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          backgroundColor: const Color(0xFF16162A),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                          ),
+                          builder: (ctx) => DraggableScrollableSheet(
+                            initialChildSize: 0.85,
+                            minChildSize: 0.5,
+                            maxChildSize: 0.95,
+                            expand: false,
+                            builder: (_, scrollController) => SingleChildScrollView(
+                              controller: scrollController,
+                              padding: const EdgeInsets.all(16),
+                              child: const CreditCalculatorScreen(),
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    glowColor: Colors.amberAccent,
+                    backgroundColor: Colors.amber.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                    padding: const EdgeInsets.all(8),
+                    child: const Tooltip(
+                      message: "حاسبة الدخل الائتماني 🧮",
+                      child: Icon(Icons.calculate_rounded, color: Colors.amberAccent, size: 20),
+                    ),
+                  ),
 
                   const SizedBox(width: 14),
                   // Logo Icon & Current Page Title
