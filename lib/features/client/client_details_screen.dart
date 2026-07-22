@@ -13,7 +13,7 @@ import 'operations_widget.dart';
 import 'document_upload_helper.dart';
 import '../../core/utils/client_pdf_generator.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:html' as html;
+import '../../core/utils/web_helper.dart';
 
 
 class ClientDetailsScreen extends ConsumerStatefulWidget {
@@ -3233,11 +3233,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     </html>
     ''';
 
-    // 4. Create blob & open it in a printable tab
-    final blob = html.Blob([printHtml], 'text/html');
-    final url = html.Url.createObjectUrlFromBlob(blob);
-    html.window.open(url, '_blank');
-    html.Url.revokeObjectUrl(url);
+    // 4. Create blob & open it in a printable tab safely
+    openHtmlWindow(printHtml);
   }
 
   Widget _buildTabButton(int index, String label, IconData icon) {
