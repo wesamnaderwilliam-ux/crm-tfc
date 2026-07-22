@@ -17,6 +17,7 @@ import '../banks/banks_screen.dart';
 import '../settings/settings_screen.dart';
 import '../employees/employees_screen.dart';
 import '../ai_assistant/ai_assistant_screen.dart';
+import '../client/credit_calculator_screen.dart';
 
 class MainNavigationWrapper extends ConsumerStatefulWidget {
   const MainNavigationWrapper({super.key});
@@ -362,6 +363,13 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
         screen: const BanksScreen(),
       ));
     }
+
+    // Credit Calculator (standalone - available for all)
+    navItems.add(_NavItem(
+      label: 'حاسبة الدخل الائتماني',
+      icon: Icons.calculate_rounded,
+      screen: const CreditCalculatorScreen(),
+    ));
 
     // AI Assistant
     navItems.add(_NavItem(

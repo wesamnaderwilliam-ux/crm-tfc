@@ -17,7 +17,6 @@ import '../../core/utils/web_helper.dart';
 import '../../core/widgets/interactive_hover_card.dart';
 import '../../core/widgets/toggleable_filter_panel.dart';
 import '../../core/widgets/phone_action_widget.dart';
-import 'estimated_credit_calculator_widget.dart';
 
 
 class ClientDetailsScreen extends ConsumerStatefulWidget {
@@ -571,16 +570,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                               showDocuments,
                             ),
                           )
-                        : SingleChildScrollView(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                _buildClientsTable(filteredClients, showNationalId, showCreditScore),
-                                const SizedBox(height: 20),
-                                const EstimatedCreditCalculatorWidget(),
-                              ],
-                            ),
-                          ),
+                        : _buildClientsTable(filteredClients, showNationalId, showCreditScore),
                   ),
                 ],
               ),
@@ -773,39 +763,6 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           ),
                   ),
                 ],
-              ),
-            ),
-            floatingActionButton: FloatingActionButton.extended(
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  backgroundColor: const Color(0xFF1A1A2E),
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                  ),
-                  builder: (ctx) => DraggableScrollableSheet(
-                    initialChildSize: 0.85,
-                    minChildSize: 0.5,
-                    maxChildSize: 0.95,
-                    expand: false,
-                    builder: (_, scrollController) => SingleChildScrollView(
-                      controller: scrollController,
-                      padding: const EdgeInsets.all(16),
-                      child: const EstimatedCreditCalculatorWidget(),
-                    ),
-                  ),
-                );
-              },
-              backgroundColor: Colors.amber.withValues(alpha: 0.9),
-              icon: const Icon(Icons.calculate_rounded, color: Color(0xFF1A1A2E)),
-              label: const Text(
-                "حاسبة الائتمان",
-                style: TextStyle(
-                  color: Color(0xFF1A1A2E),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
               ),
             ),
           );
