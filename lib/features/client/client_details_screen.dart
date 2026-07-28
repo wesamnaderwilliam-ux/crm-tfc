@@ -17,6 +17,7 @@ import '../../core/utils/web_helper.dart';
 import '../../core/widgets/interactive_hover_card.dart';
 import '../../core/widgets/toggleable_filter_panel.dart';
 import '../../core/widgets/phone_action_widget.dart';
+import '../../core/utils/client_visibility_helper.dart';
 
 
 class ClientDetailsScreen extends ConsumerStatefulWidget {
@@ -224,42 +225,14 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     final permissions = rolePermissions;
 
     final clientState = ref.watch(clientProvider);
+    final employeesState = ref.watch(employeesProvider);
 
-    // 1. Role-based visibility filtering
-    final visibleClients = clientState.clients.where((client) {
-      if (authState.role == 'company_employee') {
-        final cleanUser = authState.fullName.replaceAll(RegExp(r'\s*\(تجريبي\)'), '').trim().toLowerCase();
-        final cleanRep = (client.representativeName ?? '').replaceAll(RegExp(r'\s*\(تجريبي\)'), '').trim().toLowerCase();
-        return cleanRep == cleanUser || cleanRep.contains(cleanUser) || cleanUser.contains(cleanRep);
-      } else if (authState.role == 'bank_employee') {
-        final cleanUser = authState.fullName.replaceAll(RegExp(r'\s*\(تجريبي\)'), '').trim().toLowerCase();
-        String bankKeyword = "";
-        if (cleanUser.contains("الأهلي") || cleanUser.contains("الاهلي")) {
-          bankKeyword = "الأهلي";
-        } else if (cleanUser.contains("الراجحي")) {
-          bankKeyword = "الراجحي";
-        } else if (cleanUser.contains("مصر")) {
-          bankKeyword = "مصر";
-        } else if (cleanUser.contains("الرياض")) {
-          bankKeyword = "الرياض";
-        } else {
-          bankKeyword = cleanUser.replaceAll("موظف البنك", "").trim();
-        }
-        
-        if (bankKeyword.isEmpty) return true;
-        
-        bool matchesBank(String bankName) {
-          final normalizedBank = bankName.replaceAll("إ", "ا").replaceAll("أ", "ا").replaceAll("آ", "ا").toLowerCase();
-          final normalizedKeyword = bankKeyword.replaceAll("إ", "ا").replaceAll("أ", "ا").replaceAll("آ", "ا").toLowerCase();
-          return normalizedBank.contains(normalizedKeyword);
-        }
-        
-        final hasLoanWithBank = client.existingLoans.any((l) => matchesBank(l.bankName));
-        final hasCardWithBank = client.creditCardsRequests.any((c) => matchesBank(c.bankName));
-        return hasLoanWithBank || hasCardWithBank;
-      }
-      return true;
-    }).toList();
+    // 1. Role & Manager-hierarchy based visibility filtering
+    final visibleClients = ClientVisibilityHelper.filterClients(
+      clients: clientState.clients,
+      authState: authState,
+      allEmployees: employeesState.employees,
+    );
 
     // 2. Local search query, status, & representative filtering
     final reps = visibleClients

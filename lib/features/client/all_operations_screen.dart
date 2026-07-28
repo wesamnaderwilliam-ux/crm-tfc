@@ -4,6 +4,8 @@ import '../../core/theme.dart';
 import '../../core/supabase_config.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/client_provider.dart';
+import '../../providers/employees_provider.dart';
+import '../../core/utils/client_visibility_helper.dart';
 import '../../core/widgets/toggleable_filter_panel.dart';
 import '../../core/widgets/interactive_hover_card.dart';
 
@@ -201,7 +203,14 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final isStrictAdmin = authState.role == 'admin';
-    final allowedClientIds = ref.watch(clientProvider).clients.map((c) => c.id).toSet();
+    final clientState = ref.watch(clientProvider);
+    final employeesState = ref.watch(employeesProvider);
+    final visibleClients = ClientVisibilityHelper.filterClients(
+      clients: clientState.clients,
+      authState: authState,
+      allEmployees: employeesState.employees,
+    );
+    final allowedClientIds = visibleClients.map((c) => c.id).toSet();
 
     // Collect unique banks and employees for filter dropdowns
     final uniqueBanks = <String, String>{};

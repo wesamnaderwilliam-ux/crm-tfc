@@ -4,7 +4,9 @@ import '../../core/theme.dart';
 import '../../core/supabase_config.dart';
 import '../../providers/banks_provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/permissions_provider.dart';
+import '../../providers/client_provider.dart';
+import '../../providers/employees_provider.dart';
+import '../../core/utils/client_visibility_helper.dart';
 import '../../core/widgets/toggleable_filter_panel.dart';
 import '../../core/widgets/interactive_hover_card.dart';
 
@@ -184,8 +186,20 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
     final banksAsync = ref.watch(allBanksProvider);
     final programsAsync = ref.watch(coreProgramsProvider);
 
+    final clientState = ref.watch(clientProvider);
+    final employeesState = ref.watch(employeesProvider);
+    final visibleClients = ClientVisibilityHelper.filterClients(
+      clients: clientState.clients,
+      authState: authState,
+      allEmployees: employeesState.employees,
+    );
+    final visibleClientIds = visibleClients.map((c) => c.id).toSet();
+
     // Apply Filters locally
     final filtered = _distributions.where((d) {
+      if (authState.role != 'admin' && !visibleClientIds.contains(d['client_id'])) {
+        return false;
+      }
       if (_selectedBankFilter != 'all' && d['bank_id'] != _selectedBankFilter) {
         return false;
       }

@@ -13,6 +13,7 @@ import '../accounts/accounts_screen.dart';
 import '../employees/employee_targets_panel.dart';
 import '../../core/widgets/interactive_hover_card.dart';
 import '../client/credit_calculator_screen.dart';
+import '../../core/utils/client_visibility_helper.dart';
 import '../../models/client_model.dart';
 
 
@@ -47,41 +48,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           child: CircularProgressIndicator(color: TfcColors.primary));
     }
 
-    // Role-based visibility filtering
-    final visibleClients = clientState.clients.where((client) {
-      if (authState.role == 'company_employee') {
-        final cleanUser = authState.fullName.replaceAll(RegExp(r'\s*\(تجريبي\)'), '').trim().toLowerCase();
-        final cleanRep = (client.representativeName ?? '').replaceAll(RegExp(r'\s*\(تجريبي\)'), '').trim().toLowerCase();
-        return cleanRep == cleanUser || cleanRep.contains(cleanUser) || cleanUser.contains(cleanRep);
-      } else if (authState.role == 'bank_employee') {
-        final cleanUser = authState.fullName.replaceAll(RegExp(r'\s*\(تجريبي\)'), '').trim().toLowerCase();
-        String bankKeyword = "";
-        if (cleanUser.contains("الأهلي") || cleanUser.contains("الاهلي")) {
-          bankKeyword = "الأهلي";
-        } else if (cleanUser.contains("الراجحي")) {
-          bankKeyword = "الراجحي";
-        } else if (cleanUser.contains("مصر")) {
-          bankKeyword = "مصر";
-        } else if (cleanUser.contains("الرياض")) {
-          bankKeyword = "الرياض";
-        } else {
-          bankKeyword = cleanUser.replaceAll("موظف البنك", "").trim();
-        }
-        
-        if (bankKeyword.isEmpty) return true;
-        
-        bool matchesBank(String bankName) {
-          final normalizedBank = bankName.replaceAll("إ", "ا").replaceAll("أ", "ا").replaceAll("آ", "ا").toLowerCase();
-          final normalizedKeyword = bankKeyword.replaceAll("إ", "ا").replaceAll("أ", "ا").replaceAll("آ", "ا").toLowerCase();
-          return normalizedBank.contains(normalizedKeyword);
-        }
-        
-        final hasLoanWithBank = client.existingLoans.any((l) => matchesBank(l.bankName));
-        final hasCardWithBank = client.creditCardsRequests.any((c) => matchesBank(c.bankName));
-        return hasLoanWithBank || hasCardWithBank;
-      }
-      return true;
-    }).toList();
+    final employeesState = ref.watch(employeesProvider);
+
+    // Role & Manager-hierarchy based visibility filtering
+    final visibleClients = ClientVisibilityHelper.filterClients(
+      clients: clientState.clients,
+      authState: authState,
+      allEmployees: employeesState.employees,
+    );
 
     // Search and Status Filter logic on top of visible clients
     final filteredClients = visibleClients.where((client) {

@@ -11,6 +11,7 @@ import '../../core/widgets/toggleable_filter_panel.dart';
 import '../../core/widgets/interactive_hover_card.dart';
 import '../../core/widgets/phone_action_widget.dart';
 import '../../providers/client_provider.dart';
+import '../../core/utils/client_visibility_helper.dart';
 
 class ProspectsScreen extends ConsumerStatefulWidget {
   final Function(String clientId)? onNavigateToClientDetails;
@@ -285,26 +286,25 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
               Expanded(
                 child: prospectsState.when(
                   data: (prospects) {
-                    // Filter according to user scope & filters
-                    final filtered = prospects.where((p) {
-                      // 1. Employee Scope Filter: If not Admin, show only assigned prospects
-                      if (!isAdmin) {
-                        final isAssignedToMe = p.assignedToId == currentUserName ||
-                            p.assignedToId == currentUserEmail ||
-                            p.assignedToName == currentUserName;
-                        if (!isAssignedToMe) return false;
-                      } else {
-                        // Admin Employee Filter
-                        if (_selectedEmployeeFilter != 'all') {
-                          if (_selectedEmployeeFilter == 'unassigned') {
-                            if (p.assignedToId != null && p.assignedToId!.isNotEmpty) {
-                              return false;
-                            }
-                          } else {
-                            if (p.assignedToId != _selectedEmployeeFilter &&
-                                p.assignedToName != _selectedEmployeeFilter) {
-                              return false;
-                            }
+                    // First filter prospects by role & manager hierarchy
+                    final scopeFiltered = ClientVisibilityHelper.filterProspects(
+                      prospects: prospects,
+                      authState: authState,
+                      allEmployees: employeesState.employees,
+                    );
+
+                    // Filter according to selected UI filters
+                    final filtered = scopeFiltered.where((p) {
+                      // Employee Filter (for Admin / Manager)
+                      if (_selectedEmployeeFilter != 'all') {
+                        if (_selectedEmployeeFilter == 'unassigned') {
+                          if (p.assignedToId != null && p.assignedToId!.isNotEmpty) {
+                            return false;
+                          }
+                        } else {
+                          if (p.assignedToId != _selectedEmployeeFilter &&
+                              p.assignedToName != _selectedEmployeeFilter) {
+                            return false;
                           }
                         }
                       }
