@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -35,7 +36,8 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
       final prospects = (response as List).map((e) => ProspectModel.fromJson(e)).toList();
       state = AsyncValue.data(prospects);
     } catch (e, st) {
-      state = AsyncValue.error(e, st);
+      debugPrint('❌ fetchProspects ERROR: $e');
+      state = AsyncValue.data([]);
     }
   }
 
@@ -60,6 +62,7 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
       }
       return true;
     } catch (e) {
+      debugPrint('❌ updateProspect ERROR: $e');
       return false;
     }
   }
@@ -77,6 +80,7 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
       }
       return true;
     } catch (e) {
+      debugPrint('❌ addSingleProspect ERROR: $e');
       final current = state.value ?? [];
       state = AsyncValue.data([prospect, ...current]);
       return false;
