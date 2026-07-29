@@ -221,6 +221,57 @@ class _EstimatedCreditCalculatorWidgetState
           const Divider(color: Colors.white10),
           const SizedBox(height: 10),
 
+          // Section 0: Salary Input
+          Row(
+            textDirection: TextDirection.rtl,
+            children: [
+              const Icon(Icons.attach_money_rounded,
+                  color: Colors.greenAccent, size: 18),
+              const SizedBox(width: 6),
+              const Text(
+                "المرتب الشهري:",
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                    color: Colors.white),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Directionality(
+            textDirection: TextDirection.rtl,
+            child: TextField(
+              controller: _salaryController,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(
+                  color: Colors.greenAccent,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13),
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                hintText: "أدخل المرتب الشهري...",
+                hintStyle:
+                    const TextStyle(color: TfcColors.outline, fontSize: 11),
+                filled: true,
+                fillColor: Colors.green.withValues(alpha: 0.05),
+                contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 8),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(
+                      color: Colors.greenAccent.withValues(alpha: 0.3)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: Colors.greenAccent),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Divider(color: Colors.white10),
+          const SizedBox(height: 10),
+
           // Section 1: Existing Loans
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -707,268 +758,6 @@ class _EstimatedCreditCalculatorWidgetState
               ),
             ),
           ],
-          const SizedBox(height: 16),
-
-          // Section 2: Existing Loans
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            textDirection: TextDirection.rtl,
-            children: [
-              const Row(
-                textDirection: TextDirection.rtl,
-                children: [
-                  Icon(Icons.account_balance_wallet_outlined,
-                      color: Colors.cyanAccent, size: 18),
-                  SizedBox(width: 6),
-                  Text(
-                    "أقساط القروض القائمة:",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Colors.white),
-                  ),
-                ],
-              ),
-              InkWell(
-                onTap: _addLoanRow,
-                borderRadius: BorderRadius.circular(6),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  child: Row(
-                    children: [
-                      Icon(Icons.add_circle, color: Colors.cyanAccent, size: 16),
-                      SizedBox(width: 4),
-                      Text("إضافة قسط",
-                          style: TextStyle(
-                              color: Colors.cyanAccent,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          if (_loanInstallmentControllers.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                "لا توجد أقساط قروض مضافة حالياً",
-                style: TextStyle(color: TfcColors.outline, fontSize: 11),
-                textDirection: TextDirection.rtl,
-              ),
-            )
-          else
-            Column(
-              children: _loanInstallmentControllers.asMap().entries.map((ent) {
-                final idx = ent.key;
-                final ctrl = ent.value;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    textDirection: TextDirection.rtl,
-                    children: [
-                      Expanded(
-                        child: Directionality(
-                          textDirection: TextDirection.rtl,
-                          child: TextField(
-                            controller: ctrl,
-                            keyboardType: TextInputType.number,
-                            style: const TextStyle(
-                                color: Colors.white, fontSize: 12),
-                            onChanged: (_) => setState(() {}),
-                            decoration: InputDecoration(
-                              hintText: "قسط القرض #${idx + 1}...",
-                              hintStyle: const TextStyle(
-                                  color: TfcColors.outline, fontSize: 11),
-                              filled: true,
-                              fillColor: Colors.white.withValues(alpha: 0.03),
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 8),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                borderSide: BorderSide(
-                                    color:
-                                        Colors.white.withValues(alpha: 0.08)),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.remove_circle_outline,
-                            color: Colors.redAccent, size: 18),
-                        onPressed: () => _removeLoanRow(idx),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-          const SizedBox(height: 16),
-
-          // Section 3: Credit Cards
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            textDirection: TextDirection.rtl,
-            children: [
-              const Row(
-                textDirection: TextDirection.rtl,
-                children: [
-                  Icon(Icons.credit_card_rounded,
-                      color: Colors.orangeAccent, size: 18),
-                  SizedBox(width: 6),
-                  Text(
-                    "البطاقات الائتمانية (الليميت والقسط):",
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                        color: Colors.white),
-                  ),
-                ],
-              ),
-              InkWell(
-                onTap: _addCardRow,
-                borderRadius: BorderRadius.circular(6),
-                child: const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  child: Row(
-                    children: [
-                      Icon(Icons.add_circle,
-                          color: Colors.orangeAccent, size: 16),
-                      SizedBox(width: 4),
-                      Text("إضافة بطاقة",
-                          style: TextStyle(
-                              color: Colors.orangeAccent,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          if (_cardControllers.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 4),
-              child: Text(
-                "لا توجد بطاقات ائتمانية مضافة حالياً",
-                style: TextStyle(color: TfcColors.outline, fontSize: 11),
-                textDirection: TextDirection.rtl,
-              ),
-            )
-          else
-            Column(
-              children: _cardControllers.asMap().entries.map((ent) {
-                final idx = ent.key;
-                final card = ent.value;
-                final limitCtrl = card['limit']!;
-                final instCtrl = card['installment']!;
-                final double limitVal =
-                    double.tryParse(limitCtrl.text) ?? 0.0;
-                final double calc5Pct = limitVal * 0.05;
-
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.03),
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(
-                        color: Colors.orangeAccent.withValues(alpha: 0.2)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        textDirection: TextDirection.rtl,
-                        children: [
-                          Text("بطاقة #${idx + 1}",
-                              style: const TextStyle(
-                                  color: Colors.orangeAccent,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 11)),
-                          IconButton(
-                            icon: const Icon(Icons.remove_circle_outline,
-                                color: Colors.redAccent, size: 16),
-                            onPressed: () => _removeCardRow(idx),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        textDirection: TextDirection.rtl,
-                        children: [
-                          Expanded(
-                            child: Directionality(
-                              textDirection: TextDirection.rtl,
-                              child: TextField(
-                                controller: limitCtrl,
-                                keyboardType: TextInputType.number,
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 11),
-                                onChanged: (_) => setState(() {}),
-                                decoration: InputDecoration(
-                                  labelText: "الليميت (الحد)",
-                                  labelStyle: const TextStyle(
-                                      color: TfcColors.outline, fontSize: 10),
-                                  filled: true,
-                                  fillColor:
-                                      Colors.white.withValues(alpha: 0.02),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 6),
-                                  border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6)),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Directionality(
-                              textDirection: TextDirection.rtl,
-                              child: TextField(
-                                controller: instCtrl,
-                                keyboardType: TextInputType.number,
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 11),
-                                onChanged: (_) => setState(() {}),
-                                decoration: InputDecoration(
-                                  labelText: "القسط الفعلي",
-                                  labelStyle: const TextStyle(
-                                      color: TfcColors.outline, fontSize: 10),
-                                  filled: true,
-                                  fillColor:
-                                      Colors.white.withValues(alpha: 0.02),
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 6),
-                                  border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(6)),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "عبء الدين المحسوب (5%): ${_formatNumber(calc5Pct)} ج.م",
-                        style: const TextStyle(
-                            color: Colors.orangeAccent,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold),
-                        textDirection: TextDirection.rtl,
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
           const SizedBox(height: 16),
           const Divider(color: Colors.white10),
           const SizedBox(height: 10),
