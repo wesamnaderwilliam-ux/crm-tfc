@@ -110,14 +110,12 @@ class _EstimatedCreditCalculatorWidgetState
 
     // Calculate DBR Limit based on Card or Valu formula:
     // Option 1: Card  -> DBR = (قيمة الكرت ÷ النسبة)
-    // Option 2: Valu  -> DBR = (قيمة الكرت × النسبة)
+    // Option 2: Valu  -> DBR = (قيمة الكرت × النسبة) ÷ 2
     double calculatedDbrLimit = 0.0;
     if (_incomeType == 'card') {
       calculatedDbrLimit = ratio > 0 ? (customLimit / ratio) : 0.0;
     } else {
-      // If user enters percentage e.g., 35 for 35%, convert to factor 0.35, or if 0.35 use directly
-      final double ratioFactor = ratio > 1 ? (ratio / 100.0) : ratio;
-      calculatedDbrLimit = customLimit * ratioFactor;
+      calculatedDbrLimit = (customLimit * ratio) / 2.0;
     }
 
     // 3. Calculate Loans total installments
@@ -701,7 +699,7 @@ class _EstimatedCreditCalculatorWidgetState
                   Text(
                     _incomeType == 'card'
                         ? "معادلة البطاقات: DBR = (قيمة الكرت $customLimit ÷ النسبة $ratio) = ${_formatNumber(calculatedDbrLimit)} ج.م"
-                        : "معادلة فاليو: DBR = (قيمة الكرت $customLimit × النسبة ${ratio > 1 ? '$ratio%' : ratio}) = ${_formatNumber(calculatedDbrLimit)} ج.م",
+                        : "معادلة فاليو: DBR = (قيمة الكرت $customLimit × النسبة $ratio) ÷ 2 = ${_formatNumber(calculatedDbrLimit)} ج.م",
                     style: const TextStyle(color: Colors.white54, fontSize: 9),
                     textDirection: TextDirection.rtl,
                   ),
