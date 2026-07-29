@@ -15,8 +15,10 @@ class _EstimatedCreditCalculatorWidgetState
     extends State<EstimatedCreditCalculatorWidget> {
   final _salaryController = TextEditingController();
 
-  // Custom Card or Valu Limit for Default Income Calculation
-  final _customCardValuLimitController = TextEditingController();
+  // Custom Default Income parameters (Matching client details formulas)
+  String _incomeType = 'card'; // 'card' or 'valu'
+  final _customLimitController = TextEditingController();
+  final _ratioController = TextEditingController(text: '1.5'); // Default ratio 1.5
 
   // Loans list
   final List<TextEditingController> _loanInstallmentControllers = [];
@@ -30,7 +32,8 @@ class _EstimatedCreditCalculatorWidgetState
   @override
   void dispose() {
     _salaryController.dispose();
-    _customCardValuLimitController.dispose();
+    _customLimitController.dispose();
+    _ratioController.dispose();
     for (var c in _loanInstallmentControllers) {
       c.dispose();
     }
@@ -74,7 +77,9 @@ class _EstimatedCreditCalculatorWidgetState
   void _resetAll() {
     setState(() {
       _salaryController.clear();
-      _customCardValuLimitController.clear();
+      _customLimitController.clear();
+      _ratioController.text = '1.5';
+      _incomeType = 'card';
       for (var c in _loanInstallmentControllers) {
         c.dispose();
       }
@@ -96,23 +101,30 @@ class _EstimatedCreditCalculatorWidgetState
 
   @override
   Widget build(BuildContext context) {
-    // 1. Calculate Salary
+    // 1. Explicit Salary Input
     final double explicitSalary = double.tryParse(_salaryController.text) ?? 0.0;
 
-    // 1.b Calculate Custom Card / Valu Default Income (Default Income = Card/Valu Limit / 3)
-    final double customCardValuLimit = double.tryParse(_customCardValuLimitController.text) ?? 0.0;
-    final double calculatedDefaultIncome = customCardValuLimit > 0 ? (customCardValuLimit / 3.0) : 0.0;
+    // 2. Custom Card / Valu Limit & Ratio (Matching Client Details formulas)
+    final double customLimit = double.tryParse(_customLimitController.text) ?? 0.0;
+    final double ratio = double.tryParse(_ratioController.text) ?? 0.0;
 
-    // Effective Salary used for DTI & Capacity
-    final double salary = explicitSalary > 0 ? explicitSalary : calculatedDefaultIncome;
+    // Calculate DBR Limit based on Card or Valu formula:
+    // Card formula:  dbr = ratio > 0 ? (limit / ratio) : 0
+    // Valu formula:  dbr = (limit * ratio) / 2
+    double calculatedDbrLimit = 0.0;
+    if (_incomeType == 'card') {
+      calculatedDbrLimit = ratio > 0 ? (customLimit / ratio) : 0.0;
+    } else {
+      calculatedDbrLimit = (customLimit * ratio) / 2.0;
+    }
 
-    // 2. Calculate Loans total installments
+    // 3. Calculate Loans total installments
     double totalLoansInstallments = 0.0;
     for (var ctrl in _loanInstallmentControllers) {
       totalLoansInstallments += double.tryParse(ctrl.text) ?? 0.0;
     }
 
-    // 3. Calculate Cards total limit, 5% obligation, and manual installments
+    // 4. Calculate Cards total limit, 5% obligation, and manual installments
     double totalCardsLimit = 0.0;
     double totalCardsFivePercent = 0.0;
     double totalCardsManualInstallments = 0.0;
@@ -131,19 +143,27 @@ class _EstimatedCreditCalculatorWidgetState
     final double totalObligations =
         totalLoansInstallments + totalCardsFivePercent;
 
+    // Effective Salary used for DTI & Capacity
+    // If explicit salary is given, use it. Otherwise, infer salary from DBR Limit / (DTI Cap %)
+    final double inferredSalaryFromDbr = calculatedDbrLimit / (_maxDtiPercent / 100.0);
+    final double salary = explicitSalary > 0 ? explicitSalary : inferredSalaryFromDbr;
+
     // Current DTI %
     final double currentDti =
         salary > 0 ? (totalObligations / salary) * 100 : 0.0;
 
     // Allowed Max Monthly Obligation Capacity based on DTI Target Cap
-    final double maxAllowedObligation = salary * (_maxDtiPercent / 100.0);
+    final double maxAllowedObligation = explicitSalary > 0
+        ? (explicitSalary * (_maxDtiPercent / 100.0))
+        : calculatedDbrLimit;
 
-    // Available Monthly Installment Capacity for New Loan
+    // Available Monthly Installment Capacity after Obligations: (DBR Limit - Total Obligations)
     final double availableMonthlyMargin =
-        (maxAllowedObligation - totalObligations).clamp(0.0, double.infinity);
+        (maxAllowedObligation - totalObligations).clamp(-double.infinity, double.infinity);
 
-    // Estimated Loan Amount Potential (approx 60 months multiplier as default estimate)
-    final double estimatedAvailableLoan = availableMonthlyMargin * 50.0;
+    // Estimated Loan Amount Potential (approx 50 months multiplier)
+    final double estimatedAvailableLoan =
+        availableMonthlyMargin > 0 ? availableMonthlyMargin * 50.0 : 0.0;
 
     return InteractiveHoverCard(
       glowColor: Colors.amberAccent,
@@ -252,7 +272,7 @@ class _EstimatedCreditCalculatorWidgetState
           ),
           const SizedBox(height: 14),
 
-          // Section 1.b: Card / Valu Default Income Calculation
+          // Section 1.b: Custom Card / Valu Default Income Calculation (Matching Client Details formulas)
           Row(
             textDirection: TextDirection.rtl,
             children: [
@@ -270,53 +290,151 @@ class _EstimatedCreditCalculatorWidgetState
               ),
             ],
           ),
-          const SizedBox(height: 4),
-          const Text(
-            "أدخل ليميت الكارت أو فاليو لحساب الدخل الافتراضي تلقائياً (الدخل = ليميت الكارت ÷ 3)",
-            style: TextStyle(color: TfcColors.outline, fontSize: 10),
+          const SizedBox(height: 6),
+          // Type Toggle (Card vs Valu)
+          Row(
             textDirection: TextDirection.rtl,
+            children: [
+              Row(
+                textDirection: TextDirection.rtl,
+                children: [
+                  Radio<String>(
+                    value: 'card',
+                    groupValue: _incomeType,
+                    activeColor: Colors.amberAccent,
+                    onChanged: (val) {
+                      if (val != null) setState(() => _incomeType = val);
+                    },
+                  ),
+                  const Text("بطاقة", style: TextStyle(color: Colors.white, fontSize: 12)),
+                ],
+              ),
+              const SizedBox(width: 16),
+              Row(
+                textDirection: TextDirection.rtl,
+                children: [
+                  Radio<String>(
+                    value: 'valu',
+                    groupValue: _incomeType,
+                    activeColor: Colors.amberAccent,
+                    onChanged: (val) {
+                      if (val != null) setState(() => _incomeType = val);
+                    },
+                  ),
+                  const Text("فاليو", style: TextStyle(color: Colors.white, fontSize: 12)),
+                ],
+              ),
+            ],
           ),
           const SizedBox(height: 6),
-          Directionality(
+
+          // Limit & Ratio Inputs Row
+          Row(
             textDirection: TextDirection.rtl,
-            child: TextField(
-              controller: _customCardValuLimitController,
-              keyboardType: TextInputType.number,
-              style: const TextStyle(
-                  color: Colors.amberAccent,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14),
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                hintText: "أدخل قيمة ليميت الكارت أو فاليو...",
-                hintStyle:
-                    const TextStyle(color: TfcColors.outline, fontSize: 11),
-                filled: true,
-                fillColor: Colors.amber.withValues(alpha: 0.05),
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(
-                      color: Colors.amberAccent.withValues(alpha: 0.3)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: Colors.amberAccent),
+            children: [
+              // Value / Limit Input
+              Expanded(
+                flex: 2,
+                child: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: TextField(
+                    controller: _customLimitController,
+                    keyboardType: TextInputType.number,
+                    style: const TextStyle(
+                        color: Colors.amberAccent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13),
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      hintText: _incomeType == 'card' ? "قيمة البطاقة..." : "قيمة فاليو...",
+                      hintStyle:
+                          const TextStyle(color: TfcColors.outline, fontSize: 11),
+                      filled: true,
+                      fillColor: Colors.amber.withValues(alpha: 0.05),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                            color: Colors.amberAccent.withValues(alpha: 0.3)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Colors.amberAccent),
+                      ),
+                    ),
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(width: 8),
+              // Ratio Input
+              Expanded(
+                flex: 1,
+                child: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: TextField(
+                    controller: _ratioController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    style: const TextStyle(
+                        color: Colors.cyanAccent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13),
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      labelText: "النسبة",
+                      labelStyle: const TextStyle(color: TfcColors.outline, fontSize: 10),
+                      hintText: "مثال 1.5",
+                      hintStyle:
+                          const TextStyle(color: TfcColors.outline, fontSize: 10),
+                      filled: true,
+                      fillColor: Colors.cyan.withValues(alpha: 0.05),
+                      contentPadding:
+                          const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(
+                            color: Colors.cyanAccent.withValues(alpha: 0.3)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Colors.cyanAccent),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-          if (customCardValuLimit > 0) ...[
-            const SizedBox(height: 4),
-            Text(
-              "الدخل الافتراضي المحسوب من الكارت/فاليو: ${_formatNumber(calculatedDefaultIncome)} ج.م/شهرياً",
-              style: const TextStyle(
-                color: Colors.cyanAccent,
-                fontSize: 11,
-                fontWeight: FontWeight.bold,
+          if (customLimit > 0) ...[
+            const SizedBox(height: 6),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.cyan.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.cyanAccent.withValues(alpha: 0.3)),
               ),
-              textDirection: TextDirection.rtl,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    "حد الـ DBR المحسوب من ${_incomeType == 'card' ? 'البطاقة' : 'فاليو'}: ${_formatNumber(calculatedDbrLimit)} ج.م/شهرياً",
+                    style: const TextStyle(
+                      color: Colors.cyanAccent,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textDirection: TextDirection.rtl,
+                  ),
+                  Text(
+                    _incomeType == 'card'
+                        ? "معادلة الكارت: (القيمة $customLimit ÷ النسبة $ratio) = ${_formatNumber(calculatedDbrLimit)} ج.م"
+                        : "معادلة فاليو: (القيمة $customLimit × النسبة $ratio) ÷ 2 = ${_formatNumber(calculatedDbrLimit)} ج.م",
+                    style: const TextStyle(color: Colors.white70, fontSize: 10),
+                    textDirection: TextDirection.rtl,
+                  ),
+                ],
+              ),
             ),
           ],
           const SizedBox(height: 16),
@@ -643,16 +761,13 @@ class _EstimatedCreditCalculatorWidgetState
                         fontSize: 13,
                         color: Colors.amberAccent)),
                 const SizedBox(height: 8),
-                _buildSummaryRow(
-                  explicitSalary > 0
-                      ? "الراتب المستخدَم:"
-                      : (customCardValuLimit > 0
-                          ? "الدخل الافتراضي (من كارت/فاليو):"
-                          : "الدخل الشهري المعتمد:"),
-                  "${_formatNumber(salary)} ج.م",
-                  isBold: true,
-                  color: Colors.cyanAccent,
-                ),
+                if (customLimit > 0)
+                  _buildSummaryRow(
+                    "حد الـ DBR المحسوب (${_incomeType == 'card' ? 'بطاقة' : 'فاليو'}):",
+                    "${_formatNumber(calculatedDbrLimit)} ج.م",
+                    isBold: true,
+                    color: Colors.cyanAccent,
+                  ),
                 _buildSummaryRow(
                   "إجمالي أقساط القروض:",
                   "${_formatNumber(totalLoansInstallments)} ج.م",
@@ -668,17 +783,17 @@ class _EstimatedCreditCalculatorWidgetState
                   color: Colors.orangeAccent,
                 ),
                 const Divider(color: Colors.white10, height: 12),
+                if (explicitSalary > 0)
+                  _buildSummaryRow(
+                    "نسبة عبء الدين الحالي (DTI):",
+                    "${currentDti.toStringAsFixed(1)}%",
+                    isBold: true,
+                    color: currentDti > _maxDtiPercent
+                        ? Colors.redAccent
+                        : Colors.greenAccent,
+                  ),
                 _buildSummaryRow(
-                  "نسبة عبء الدين الحالي (DTI):",
-                  "${currentDti.toStringAsFixed(1)}%",
-                  isBold: true,
-                  color: currentDti > _maxDtiPercent
-                      ? Colors.redAccent
-                      : Colors.greenAccent,
-                ),
-                const SizedBox(height: 6),
-                _buildSummaryRow(
-                  "القسط الشهري المتاح حالياً:",
+                  "المتاح لقسط جديد بعد الالتزامات:",
                   "${_formatNumber(availableMonthlyMargin)} ج.م",
                   isBold: true,
                   color: Colors.greenAccent,
