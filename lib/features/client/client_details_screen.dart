@@ -5836,16 +5836,16 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     final fivePercentCtrl = TextEditingController(
         text: card?.fivePercentCalc != null
             ? card!.fivePercentCalc.toString()
-            : '0.00');
+            : '');
     final instCtrl = TextEditingController(
         text: card?.installment != null ? card!.installment.toString() : '');
     final highestCtrl = TextEditingController(
         text: card?.highestValue != null
             ? card!.highestValue.toString()
-            : '0.00');
+            : '');
     final notesCtrl = TextEditingController(text: card?.notes ?? '');
     final durationCtrl =
-        TextEditingController(text: card?.duration ?? '12 شهر');
+        TextEditingController(text: card?.duration ?? '');
 
     String type = card?.type ?? 'card';
 
