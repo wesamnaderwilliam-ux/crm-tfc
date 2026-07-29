@@ -42,9 +42,13 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
   Future<bool> updateProspect(ProspectModel prospect) async {
     try {
       if (SupabaseConfig.isInitialized) {
+        final data = prospect.toJson();
+        data.remove('id');
+        data.remove('created_at');
+        data['updated_at'] = DateTime.now().toIso8601String();
         await SupabaseConfig.client
             .from('prospects')
-            .update(prospect.toJson())
+            .update(data)
             .eq('id', prospect.id);
       }
 
@@ -56,6 +60,25 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
       }
       return true;
     } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> addSingleProspect(ProspectModel prospect) async {
+    try {
+      if (SupabaseConfig.isInitialized) {
+        final data = prospect.toJson();
+        data.remove('id');
+        await SupabaseConfig.client.from('prospects').insert(data);
+        await fetchProspects();
+      } else {
+        final current = state.value ?? [];
+        state = AsyncValue.data([prospect, ...current]);
+      }
+      return true;
+    } catch (e) {
+      final current = state.value ?? [];
+      state = AsyncValue.data([prospect, ...current]);
       return false;
     }
   }

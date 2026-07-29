@@ -163,7 +163,7 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                             Expanded(
                               flex: isWide ? 2 : 0,
                               child: DropdownButtonFormField<String>(
-                                initialValue: _selectedStatusFilter,
+                                value: _selectedStatusFilter,
                                 dropdownColor: const Color(0xFF1E2430),
                                 style: const TextStyle(color: Colors.white),
                                 decoration: InputDecoration(
@@ -197,7 +197,7 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                               Expanded(
                                 flex: isWide ? 2 : 0,
                                 child: DropdownButtonFormField<String>(
-                                  initialValue: _selectedEmployeeFilter,
+                                  value: _selectedEmployeeFilter,
                                   dropdownColor: const Color(0xFF1E2430),
                                   style: const TextStyle(color: Colors.white),
                                   decoration: InputDecoration(
@@ -451,53 +451,34 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                 )),
                                 DataCell(Text(prospect.governorate ?? 'غير محدد', style: const TextStyle(color: Colors.white70))),
                                 DataCell(
-                                  isAdmin
-                                      ? DropdownButtonHideUnderline(
-                                          child: DropdownButton<String>(
-                                            value: (prospect.assignedToId != null && prospect.assignedToId!.isNotEmpty)
-                                                ? prospect.assignedToId
-                                                : 'unassigned',
-                                            dropdownColor: const Color(0xFF1E2430),
-                                            style: const TextStyle(color: Colors.white, fontSize: 12),
-                                            items: [
-                                              const DropdownMenuItem(value: 'unassigned', child: Text('غير مسند')),
-                                              ...employeesState.employees
-                                                  .where((emp) => emp.role != 'bank_employee')
-                                                  .map((emp) => DropdownMenuItem(
-                                                        value: emp.id,
-                                                        child: Text(emp.fullName),
-                                                      )),
-                                            ],
-                                            onChanged: (newEmpId) async {
-                                              if (newEmpId == 'unassigned') {
-                                                final updated = prospect.copyWith(assignedToId: '', assignedToName: '');
-                                                await ref.read(prospectsProvider.notifier).updateProspect(updated);
-                                              } else if (newEmpId != null) {
-                                                final emp = employeesState.employees.firstWhere((e) => e.id == newEmpId);
-                                                final updated = prospect.copyWith(assignedToId: emp.id, assignedToName: emp.fullName);
-                                                await ref.read(prospectsProvider.notifier).updateProspect(updated);
-                                              }
-                                            },
-                                          ),
-                                        )
-                                      : Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: (prospect.assignedToName != null && prospect.assignedToName!.isNotEmpty)
-                                                ? Colors.blue.withValues(alpha: 0.15)
-                                                : Colors.orange.withValues(alpha: 0.15),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: Text(
-                                            prospect.assignedToName ?? 'غير مسند',
-                                            style: TextStyle(
-                                              color: (prospect.assignedToName != null && prospect.assignedToName!.isNotEmpty)
-                                                  ? Colors.lightBlueAccent
-                                                  : Colors.orangeAccent,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                        ),
+                                  DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: (prospect.assignedToId != null && prospect.assignedToId!.isNotEmpty)
+                                          ? prospect.assignedToId
+                                          : 'unassigned',
+                                      dropdownColor: const Color(0xFF1E2430),
+                                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                                      items: [
+                                        const DropdownMenuItem(value: 'unassigned', child: Text('غير مسند')),
+                                        ...employeesState.employees
+                                            .where((emp) => emp.role != 'bank_employee')
+                                            .map((emp) => DropdownMenuItem(
+                                                  value: emp.id,
+                                                  child: Text(emp.fullName),
+                                                )),
+                                      ],
+                                      onChanged: (newEmpId) async {
+                                        if (newEmpId == 'unassigned') {
+                                          final updated = prospect.copyWith(assignedToId: '', assignedToName: '');
+                                          await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                        } else if (newEmpId != null) {
+                                          final emp = employeesState.employees.firstWhere((e) => e.id == newEmpId);
+                                          final updated = prospect.copyWith(assignedToId: emp.id, assignedToName: emp.fullName);
+                                          await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                        }
+                                      },
+                                    ),
+                                  ),
                                 ),
                                 DataCell(
                                   DropdownButtonHideUnderline(
@@ -1057,84 +1038,130 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
   // Add / Edit Dialog
   void _showAddOrEditProspectDialog(BuildContext context, {ProspectModel? prospect}) {
     final isEdit = prospect != null;
+    final employeesState = ref.read(employeesProvider);
     final nameCtrl = TextEditingController(text: prospect?.fullName ?? '');
     final phoneCtrl = TextEditingController(text: prospect?.phoneNumber ?? '');
     final companyCtrl = TextEditingController(text: prospect?.companyName ?? '');
     final jobCtrl = TextEditingController(text: prospect?.jobTitle ?? '');
     final govCtrl = TextEditingController(text: prospect?.governorate ?? '');
     String status = prospect?.status ?? 'pending';
+    String? assignedEmployeeId = prospect?.assignedToId;
+    String? assignedEmployeeName = prospect?.assignedToName;
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E2430),
-        title: Text(isEdit ? 'تعديل بيانات العميل المحتمل' : 'إضافة عميل محتمل جديد', style: const TextStyle(color: Colors.white)),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(controller: nameCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'الاسم الكامل', labelStyle: TextStyle(color: Colors.white70))),
-              const SizedBox(height: 12),
-              TextField(controller: phoneCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'رقم الهاتف', labelStyle: TextStyle(color: Colors.white70))),
-              const SizedBox(height: 12),
-              TextField(controller: companyCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'جهة العمل / الشركة', labelStyle: TextStyle(color: Colors.white70))),
-              const SizedBox(height: 12),
-              TextField(controller: jobCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'المسمى الوظيفي', labelStyle: TextStyle(color: Colors.white70))),
-              const SizedBox(height: 12),
-              TextField(controller: govCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'المحافظة', labelStyle: TextStyle(color: Colors.white70))),
-              const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: status,
-                dropdownColor: const Color(0xFF1E2430),
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(labelText: 'الحالة', labelStyle: TextStyle(color: Colors.white70)),
-                items: const [
-                  DropdownMenuItem(value: 'pending', child: Text('قيد الانتظار')),
-                  DropdownMenuItem(value: 'contacted', child: Text('تم التواصل')),
-                  DropdownMenuItem(value: 'rejected', child: Text('مرفوض / غير مهتم')),
-                ],
-                onChanged: (val) {
-                  if (val != null) status = val;
-                },
-              ),
-            ],
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: const Color(0xFF1E2430),
+          title: Text(isEdit ? 'تعديل بيانات العميل المحتمل' : 'إضافة عميل محتمل جديد', style: const TextStyle(color: Colors.white)),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(controller: nameCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'الاسم الكامل', labelStyle: TextStyle(color: Colors.white70))),
+                const SizedBox(height: 12),
+                TextField(controller: phoneCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'رقم الهاتف', labelStyle: TextStyle(color: Colors.white70))),
+                const SizedBox(height: 12),
+                TextField(controller: companyCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'جهة العمل / الشركة', labelStyle: TextStyle(color: Colors.white70))),
+                const SizedBox(height: 12),
+                TextField(controller: jobCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'المسمى الوظيفي', labelStyle: TextStyle(color: Colors.white70))),
+                const SizedBox(height: 12),
+                TextField(controller: govCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'المحافظة', labelStyle: TextStyle(color: Colors.white70))),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: (assignedEmployeeId != null && assignedEmployeeId!.isNotEmpty) ? assignedEmployeeId : null,
+                  dropdownColor: const Color(0xFF1E2430),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(labelText: 'الموظف المسند إليه', labelStyle: TextStyle(color: Colors.white70)),
+                  items: [
+                    const DropdownMenuItem(value: null, child: Text('غير مسند')),
+                    ...employeesState.employees
+                        .where((emp) => emp.role != 'bank_employee')
+                        .map((emp) => DropdownMenuItem(
+                              value: emp.id,
+                              child: Text(emp.fullName),
+                            )),
+                  ],
+                  onChanged: (val) {
+                    setDialogState(() {
+                      assignedEmployeeId = val;
+                      if (val != null) {
+                        final emp = employeesState.employees.firstWhere((e) => e.id == val);
+                        assignedEmployeeName = emp.fullName;
+                      } else {
+                        assignedEmployeeName = null;
+                      }
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: status,
+                  dropdownColor: const Color(0xFF1E2430),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(labelText: 'الحالة', labelStyle: TextStyle(color: Colors.white70)),
+                  items: const [
+                    DropdownMenuItem(value: 'pending', child: Text('قيد الانتظار')),
+                    DropdownMenuItem(value: 'contacted', child: Text('تم التواصل')),
+                    DropdownMenuItem(value: 'rejected', child: Text('مرفوض / غير مهتم')),
+                  ],
+                  onChanged: (val) {
+                    if (val != null) {
+                      setDialogState(() => status = val);
+                    }
+                  },
+                ),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+            ElevatedButton(
+              onPressed: () async {
+                if (nameCtrl.text.trim().isEmpty) return;
+                final navigator = Navigator.of(ctx);
+                final messenger = ScaffoldMessenger.of(context);
+                navigator.pop();
+                if (isEdit) {
+                  final updated = prospect.copyWith(
+                    fullName: nameCtrl.text.trim(),
+                    phoneNumber: phoneCtrl.text.trim(),
+                    companyName: companyCtrl.text.trim(),
+                    jobTitle: jobCtrl.text.trim(),
+                    governorate: govCtrl.text.trim(),
+                    assignedToId: assignedEmployeeId ?? '',
+                    assignedToName: assignedEmployeeName ?? '',
+                    status: status,
+                  );
+                  final success = await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(success ? 'تم تحديث بيانات العميل المحتمل بنجاح!' : 'فشل في تحديث البيانات')),
+                  );
+                } else {
+                  final newP = ProspectModel(
+                    id: '',
+                    fullName: nameCtrl.text.trim(),
+                    phoneNumber: phoneCtrl.text.trim(),
+                    companyName: companyCtrl.text.trim(),
+                    jobTitle: jobCtrl.text.trim(),
+                    governorate: govCtrl.text.trim(),
+                    assignedToId: assignedEmployeeId,
+                    assignedToName: assignedEmployeeName,
+                    status: status,
+                    createdAt: DateTime.now(),
+                    updatedAt: DateTime.now(),
+                  );
+                  final success = await ref.read(prospectsProvider.notifier).addSingleProspect(newP);
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(success ? 'تم إضافة العميل المحتمل بنجاح وحفظه في قاعدة البيانات!' : 'فشل في إضافة العميل - تم حفظه محلياً')),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: TfcColors.primary),
+              child: const Text('حفظ', style: TextStyle(color: Colors.black)),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
-          ElevatedButton(
-            onPressed: () async {
-              if (nameCtrl.text.trim().isEmpty) return;
-              Navigator.pop(ctx);
-              if (isEdit) {
-                final updated = prospect.copyWith(
-                  fullName: nameCtrl.text.trim(),
-                  phoneNumber: phoneCtrl.text.trim(),
-                  companyName: companyCtrl.text.trim(),
-                  jobTitle: jobCtrl.text.trim(),
-                  governorate: govCtrl.text.trim(),
-                  status: status,
-                );
-                await ref.read(prospectsProvider.notifier).updateProspect(updated);
-              } else {
-                final newP = ProspectModel(
-                  id: '',
-                  fullName: nameCtrl.text.trim(),
-                  phoneNumber: phoneCtrl.text.trim(),
-                  companyName: companyCtrl.text.trim(),
-                  jobTitle: jobCtrl.text.trim(),
-                  governorate: govCtrl.text.trim(),
-                  status: status,
-                  createdAt: DateTime.now(),
-                  updatedAt: DateTime.now(),
-                );
-                await ref.read(prospectsProvider.notifier).addProspectsList([newP]);
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: TfcColors.primary),
-            child: const Text('حفظ', style: TextStyle(color: Colors.black)),
-          ),
-        ],
       ),
     );
   }
