@@ -76,40 +76,41 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                       ),
                     ],
                   ),
-                  Row(
-                    children: [
-                      // Sync button from Google Sheets
-                      ElevatedButton.icon(
-                        onPressed: () => _handleSyncFromGoogleSheets(context),
-                        icon: const Icon(Icons.sync_rounded, size: 18),
-                        label: const Text('مزامنة من جوجل شيت'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: TfcColors.primary.withValues(alpha: 0.2),
-                          foregroundColor: TfcColors.primary,
-                          side: const BorderSide(color: TfcColors.primary),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                  if (isAdmin)
+                    Row(
+                      children: [
+                        // Sync button from Google Sheets
+                        ElevatedButton.icon(
+                          onPressed: () => _handleSyncFromGoogleSheets(context),
+                          icon: const Icon(Icons.sync_rounded, size: 18),
+                          label: const Text('مزامنة من جوجل شيت'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: TfcColors.primary.withValues(alpha: 0.2),
+                            foregroundColor: TfcColors.primary,
+                            side: const BorderSide(color: TfcColors.primary),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      // Add Manual Prospect
-                      ElevatedButton.icon(
-                        onPressed: () => _showAddOrEditProspectDialog(context),
-                        icon: const Icon(Icons.person_add_alt_1, size: 18),
-                        label: const Text('إضافة عميل محتمل'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: TfcColors.primary,
-                          foregroundColor: Colors.black,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        const SizedBox(width: 12),
+                        // Add Manual Prospect
+                        ElevatedButton.icon(
+                          onPressed: () => _showAddOrEditProspectDialog(context),
+                          icon: const Icon(Icons.person_add_alt_1, size: 18),
+                          label: const Text('إضافة عميل محتمل'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: TfcColors.primary,
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
                 ],
               ),
               const SizedBox(height: 20),
@@ -450,26 +451,75 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                 )),
                                 DataCell(Text(prospect.governorate ?? 'غير محدد', style: const TextStyle(color: Colors.white70))),
                                 DataCell(
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: (prospect.assignedToName != null && prospect.assignedToName!.isNotEmpty)
-                                          ? Colors.blue.withValues(alpha: 0.15)
-                                          : Colors.orange.withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Text(
-                                      prospect.assignedToName ?? 'غير مسند',
-                                      style: TextStyle(
-                                        color: (prospect.assignedToName != null && prospect.assignedToName!.isNotEmpty)
-                                            ? Colors.lightBlueAccent
-                                            : Colors.orangeAccent,
-                                        fontSize: 12,
-                                      ),
+                                  isAdmin
+                                      ? DropdownButtonHideUnderline(
+                                          child: DropdownButton<String>(
+                                            value: (prospect.assignedToId != null && prospect.assignedToId!.isNotEmpty)
+                                                ? prospect.assignedToId
+                                                : 'unassigned',
+                                            dropdownColor: const Color(0xFF1E2430),
+                                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                                            items: [
+                                              const DropdownMenuItem(value: 'unassigned', child: Text('غير مسند')),
+                                              ...employeesState.employees
+                                                  .where((emp) => emp.role != 'bank_employee')
+                                                  .map((emp) => DropdownMenuItem(
+                                                        value: emp.id,
+                                                        child: Text(emp.fullName),
+                                                      )),
+                                            ],
+                                            onChanged: (newEmpId) async {
+                                              if (newEmpId == 'unassigned') {
+                                                final updated = prospect.copyWith(assignedToId: '', assignedToName: '');
+                                                await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                              } else if (newEmpId != null) {
+                                                final emp = employeesState.employees.firstWhere((e) => e.id == newEmpId);
+                                                final updated = prospect.copyWith(assignedToId: emp.id, assignedToName: emp.fullName);
+                                                await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                              }
+                                            },
+                                          ),
+                                        )
+                                      : Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: (prospect.assignedToName != null && prospect.assignedToName!.isNotEmpty)
+                                                ? Colors.blue.withValues(alpha: 0.15)
+                                                : Colors.orange.withValues(alpha: 0.15),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            prospect.assignedToName ?? 'غير مسند',
+                                            style: TextStyle(
+                                              color: (prospect.assignedToName != null && prospect.assignedToName!.isNotEmpty)
+                                                  ? Colors.lightBlueAccent
+                                                  : Colors.orangeAccent,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                        ),
+                                ),
+                                DataCell(
+                                  DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: prospect.status,
+                                      dropdownColor: const Color(0xFF1E2430),
+                                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                                      items: const [
+                                        DropdownMenuItem(value: 'pending', child: Text('قيد الانتظار')),
+                                        DropdownMenuItem(value: 'contacted', child: Text('تم التواصل')),
+                                        DropdownMenuItem(value: 'converted', child: Text('تم التحويل')),
+                                        DropdownMenuItem(value: 'rejected', child: Text('مرفوض')),
+                                      ],
+                                      onChanged: (newStatus) async {
+                                        if (newStatus != null) {
+                                          final updated = prospect.copyWith(status: newStatus);
+                                          await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                        }
+                                      },
                                     ),
                                   ),
                                 ),
-                                DataCell(_buildStatusBadge(prospect.status)),
                                 DataCell(
                                   Row(
                                     children: [
@@ -479,12 +529,40 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                         tooltip: 'عرض تفاصيل العميل',
                                         onPressed: () => _showProspectDetailsDialog(context, prospect),
                                       ),
-                                      // Edit Action
-                                      IconButton(
-                                        icon: const Icon(Icons.edit_outlined, color: Colors.white70, size: 20),
-                                        tooltip: 'تعديل البيانات',
-                                        onPressed: () => _showAddOrEditProspectDialog(context, prospect: prospect),
-                                      ),
+                                      // Edit Action - Admin Only
+                                      if (isAdmin)
+                                        IconButton(
+                                          icon: const Icon(Icons.edit_outlined, color: Colors.white70, size: 20),
+                                          tooltip: 'تعديل البيانات',
+                                          onPressed: () => _showAddOrEditProspectDialog(context, prospect: prospect),
+                                        ),
+                                      // Delete Action - Admin Only
+                                      if (isAdmin)
+                                        IconButton(
+                                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                                          tooltip: 'حذف العميل',
+                                          onPressed: () async {
+                                            final confirm = await showDialog<bool>(
+                                              context: context,
+                                              builder: (ctx) => AlertDialog(
+                                                backgroundColor: const Color(0xFF1E2430),
+                                                title: const Text('حذف عميل محتمل', style: TextStyle(color: Colors.white)),
+                                                content: const Text('هل أنت متأكد من حذف هذا العميل المحتمل نهائياً؟', style: TextStyle(color: Colors.white70)),
+                                                actions: [
+                                                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
+                                                  ElevatedButton(
+                                                    onPressed: () => Navigator.pop(ctx, true),
+                                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                                    child: const Text('تأكيد الحذف', style: TextStyle(color: Colors.white)),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                            if (confirm == true) {
+                                              await ref.read(prospectsProvider.notifier).deleteProspect(prospect.id);
+                                            }
+                                          },
+                                        ),
 
                                       // Convert to Client Button
                                       if (!prospect.isConverted)
