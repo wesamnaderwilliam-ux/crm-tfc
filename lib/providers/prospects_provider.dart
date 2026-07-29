@@ -74,15 +74,14 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
         data.remove('id');
         await SupabaseConfig.client.from('prospects').insert(data);
         await fetchProspects();
+        return true;
       } else {
         final current = state.value ?? [];
         state = AsyncValue.data([prospect, ...current]);
+        return true;
       }
-      return true;
     } catch (e) {
       debugPrint('❌ addSingleProspect ERROR: $e');
-      final current = state.value ?? [];
-      state = AsyncValue.data([prospect, ...current]);
       return false;
     }
   }
@@ -111,6 +110,7 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
       state = AsyncValue.data(updated);
       return true;
     } catch (e) {
+      debugPrint('❌ assignProspectsBulk ERROR: $e');
       return false;
     }
   }
@@ -124,6 +124,7 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
       state = AsyncValue.data(current.where((p) => p.id != id).toList());
       return true;
     } catch (e) {
+      debugPrint('❌ deleteProspect ERROR: $e');
       return false;
     }
   }

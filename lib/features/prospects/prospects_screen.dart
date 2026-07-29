@@ -474,8 +474,11 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                         } else if (newEmpId != null) {
                                           final emp = employeesState.employees.firstWhere((e) => e.id == newEmpId);
                                           final updated = prospect.copyWith(assignedToId: emp.id, assignedToName: emp.fullName);
-                                          await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                          success = await ref.read(prospectsProvider.notifier).updateProspect(updated);
                                         }
+                                        messenger.showSnackBar(
+                                          SnackBar(content: Text(success ? 'تم تغيير الموظف المسند إليه بنجاح!' : 'فشل في تحديث الموظف المسند')),
+                                        );
                                       },
                                     ),
                                   ),
@@ -494,8 +497,12 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                       ],
                                       onChanged: (newStatus) async {
                                         if (newStatus != null) {
+                                          final messenger = ScaffoldMessenger.of(context);
                                           final updated = prospect.copyWith(status: newStatus);
-                                          await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                          final success = await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                          messenger.showSnackBar(
+                                            SnackBar(content: Text(success ? 'تم تغيير حالة العميل بنجاح!' : 'فشل في تحديث الحالة')),
+                                          );
                                         }
                                       },
                                     ),
