@@ -468,9 +468,11 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                                 )),
                                       ],
                                       onChanged: (newEmpId) async {
+                                        final messenger = ScaffoldMessenger.of(context);
+                                        bool success = false;
                                         if (newEmpId == 'unassigned') {
                                           final updated = prospect.copyWith(assignedToId: '', assignedToName: '');
-                                          await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                          success = await ref.read(prospectsProvider.notifier).updateProspect(updated);
                                         } else if (newEmpId != null) {
                                           final emp = employeesState.employees.firstWhere((e) => e.id == newEmpId);
                                           final updated = prospect.copyWith(assignedToId: emp.id, assignedToName: emp.fullName);
