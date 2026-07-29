@@ -15,6 +15,9 @@ class _EstimatedCreditCalculatorWidgetState
     extends State<EstimatedCreditCalculatorWidget> {
   final _salaryController = TextEditingController();
 
+  // Custom Card or Valu Limit for Default Income Calculation
+  final _customCardValuLimitController = TextEditingController();
+
   // Loans list
   final List<TextEditingController> _loanInstallmentControllers = [];
 
@@ -27,6 +30,7 @@ class _EstimatedCreditCalculatorWidgetState
   @override
   void dispose() {
     _salaryController.dispose();
+    _customCardValuLimitController.dispose();
     for (var c in _loanInstallmentControllers) {
       c.dispose();
     }
@@ -70,6 +74,7 @@ class _EstimatedCreditCalculatorWidgetState
   void _resetAll() {
     setState(() {
       _salaryController.clear();
+      _customCardValuLimitController.clear();
       for (var c in _loanInstallmentControllers) {
         c.dispose();
       }
@@ -92,7 +97,14 @@ class _EstimatedCreditCalculatorWidgetState
   @override
   Widget build(BuildContext context) {
     // 1. Calculate Salary
-    final double salary = double.tryParse(_salaryController.text) ?? 0.0;
+    final double explicitSalary = double.tryParse(_salaryController.text) ?? 0.0;
+
+    // 1.b Calculate Custom Card / Valu Default Income (Default Income = Card/Valu Limit / 3)
+    final double customCardValuLimit = double.tryParse(_customCardValuLimitController.text) ?? 0.0;
+    final double calculatedDefaultIncome = customCardValuLimit > 0 ? (customCardValuLimit / 3.0) : 0.0;
+
+    // Effective Salary used for DTI & Capacity
+    final double salary = explicitSalary > 0 ? explicitSalary : calculatedDefaultIncome;
 
     // 2. Calculate Loans total installments
     double totalLoansInstallments = 0.0;
@@ -238,6 +250,75 @@ class _EstimatedCreditCalculatorWidgetState
               ),
             ),
           ),
+          const SizedBox(height: 14),
+
+          // Section 1.b: Card / Valu Default Income Calculation
+          Row(
+            textDirection: TextDirection.rtl,
+            children: [
+              const Icon(Icons.credit_card_rounded,
+                  color: Colors.amberAccent, size: 18),
+              const SizedBox(width: 6),
+              const Text(
+                "حسبة الدخل الافتراضي (بطاقة ائتمان / فاليو):",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12,
+                  color: Colors.amberAccent,
+                ),
+                textDirection: TextDirection.rtl,
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            "أدخل ليميت الكارت أو فاليو لحساب الدخل الافتراضي تلقائياً (الدخل = ليميت الكارت ÷ 3)",
+            style: TextStyle(color: TfcColors.outline, fontSize: 10),
+            textDirection: TextDirection.rtl,
+          ),
+          const SizedBox(height: 6),
+          Directionality(
+            textDirection: TextDirection.rtl,
+            child: TextField(
+              controller: _customCardValuLimitController,
+              keyboardType: TextInputType.number,
+              style: const TextStyle(
+                  color: Colors.amberAccent,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14),
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                hintText: "أدخل قيمة ليميت الكارت أو فاليو...",
+                hintStyle:
+                    const TextStyle(color: TfcColors.outline, fontSize: 11),
+                filled: true,
+                fillColor: Colors.amber.withValues(alpha: 0.05),
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                      color: Colors.amberAccent.withValues(alpha: 0.3)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: Colors.amberAccent),
+                ),
+              ),
+            ),
+          ),
+          if (customCardValuLimit > 0) ...[
+            const SizedBox(height: 4),
+            Text(
+              "الدخل الافتراضي المحسوب من الكارت/فاليو: ${_formatNumber(calculatedDefaultIncome)} ج.م/شهرياً",
+              style: const TextStyle(
+                color: Colors.cyanAccent,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+              textDirection: TextDirection.rtl,
+            ),
+          ],
           const SizedBox(height: 16),
 
           // Section 2: Existing Loans
@@ -562,6 +643,16 @@ class _EstimatedCreditCalculatorWidgetState
                         fontSize: 13,
                         color: Colors.amberAccent)),
                 const SizedBox(height: 8),
+                _buildSummaryRow(
+                  explicitSalary > 0
+                      ? "الراتب المستخدَم:"
+                      : (customCardValuLimit > 0
+                          ? "الدخل الافتراضي (من كارت/فاليو):"
+                          : "الدخل الشهري المعتمد:"),
+                  "${_formatNumber(salary)} ج.م",
+                  isBold: true,
+                  color: Colors.cyanAccent,
+                ),
                 _buildSummaryRow(
                   "إجمالي أقساط القروض:",
                   "${_formatNumber(totalLoansInstallments)} ج.م",

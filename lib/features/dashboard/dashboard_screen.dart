@@ -122,57 +122,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ),
                   ],
                 ),
-                Row(
-                  children: [
-                    InteractiveHoverCard(
-                      onTap: () {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          backgroundColor: const Color(0xFF16162A),
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                          ),
-                          builder: (ctx) => DraggableScrollableSheet(
-                            initialChildSize: 0.85,
-                            minChildSize: 0.5,
-                            maxChildSize: 0.95,
-                            expand: false,
-                            builder: (_, scrollController) => SingleChildScrollView(
-                              controller: scrollController,
-                              padding: const EdgeInsets.all(16),
-                              child: const CreditCalculatorScreen(),
-                            ),
-                          ),
-                        );
-                      },
-                      glowColor: Colors.amberAccent,
-                      backgroundColor: Colors.amber.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.calculate_rounded, color: Colors.amberAccent, size: 20),
-                          SizedBox(width: 6),
-                          Text(
-                            "فتح حاسبة الائتمان 🧮",
-                            style: TextStyle(
-                              color: Colors.amberAccent,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      icon: const Icon(Icons.refresh, color: TfcColors.primary),
-                      onPressed: () =>
-                          ref.read(clientProvider.notifier).fetchClients(),
-                    ),
-                  ],
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: TfcColors.primary),
+                  onPressed: () =>
+                      ref.read(clientProvider.notifier).fetchClients(),
                 ),
               ],
             ),
