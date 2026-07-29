@@ -495,7 +495,7 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                       onChanged: (newStatus) async {
                                         if (newStatus != null) {
                                           final updated = prospect.copyWith(status: newStatus);
-                                          );
+                                           await ref.read(prospectsProvider.notifier).updateProspect(updated);
                                         }
                                       },
                                     ),
