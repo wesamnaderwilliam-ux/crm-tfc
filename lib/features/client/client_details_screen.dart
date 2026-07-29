@@ -955,14 +955,6 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 authState.role == 'admin',
                 showCreditScore,
               ),
-              const SizedBox(height: 16),
-              _buildCreditSummaryBento(client, permissions),
-              const SizedBox(height: 16),
-              VirtualIncomeBento(
-                client: client,
-                staffName: authState.fullName,
-                permissions: permissions,
-              ),
             ],
           ),
         ),
@@ -1875,6 +1867,20 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               ],
             ),
           ],
+
+          // ----------------------------------------------------
+          // Credit Obligations Summary & Virtual Income
+          // ----------------------------------------------------
+          const SizedBox(height: 16),
+          const Divider(color: Colors.white10),
+          const SizedBox(height: 12),
+          _buildCreditSummaryBento(client, permissions),
+          const SizedBox(height: 16),
+          VirtualIncomeBento(
+            client: client,
+            staffName: staffName,
+            permissions: permissions,
+          ),
 
           // ----------------------------------------------------
           // Compound units section
