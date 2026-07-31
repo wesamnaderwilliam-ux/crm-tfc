@@ -205,64 +205,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             const _DashboardWalletWidget(),
             const SizedBox(height: 12),
 
-            // 2. Search & Filter Bar
-            GlassCard(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-              borderRadius: 12,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isMobile = constraints.maxWidth < 700;
-
-                  return Column(
-                    children: [
-                      Row(
-                        textDirection: TextDirection.rtl,
-                        children: [
-                          const Icon(Icons.filter_list,
-                              color: TfcColors.primary, size: 20),
-                          const SizedBox(width: 8),
-                          const Text("البحث والتصفية السريعة",
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          const Spacer(),
-                          if (!isMobile) _buildStatusDropdown(),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      if (isMobile) ...[
-                        _buildStatusDropdown(),
-                        const SizedBox(height: 12),
-                      ],
-                      TextField(
-                        controller: _searchController,
-                        onChanged: (val) {
-                          setState(() {
-                            _searchQuery = val;
-                          });
-                        },
-                        textAlign: TextAlign.right,
-                        decoration: InputDecoration(
-                          hintText:
-                              "ابحث بالاسم، الهاتف أو الرقم القومي للعميل...",
-                          prefixIcon: const Icon(Icons.search,
-                              color: TfcColors.outline),
-                          suffixIcon: _searchQuery.isNotEmpty
-                              ? IconButton(
-                                  icon: const Icon(Icons.clear,
-                                      color: TfcColors.outline),
-                                  onPressed: () {
-                                    _searchController.clear();
-                                    setState(() {
-                                      _searchQuery = "";
-                                    });
-                                  },
-                                )
-                              : null,
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
+            // 2. Comprehensive Status Breakdown Widget (توزيع حالات الطلبات)
+            _DashboardStatusBreakdownWidget(
+              visibleClients: visibleClients,
+              onViewClient: widget.onViewClient,
             ),
             const SizedBox(height: 24),
 
@@ -1749,6 +1695,382 @@ class _DashboardWalletWidgetState extends ConsumerState<_DashboardWalletWidget> 
               },
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DashboardStatusBreakdownWidget extends StatefulWidget {
+  final List<ClientModel> visibleClients;
+  final Function(String) onViewClient;
+
+  const _DashboardStatusBreakdownWidget({
+    required this.visibleClients,
+    required this.onViewClient,
+  });
+
+  @override
+  State<_DashboardStatusBreakdownWidget> createState() =>
+      __DashboardStatusBreakdownWidgetState();
+}
+
+class __DashboardStatusBreakdownWidgetState
+    extends State<_DashboardStatusBreakdownWidget> {
+  static const Map<String, Map<String, dynamic>> _statusMeta = {
+    'pending': {
+      'label': 'قيد الانتظار',
+      'icon': Icons.hourglass_empty,
+      'color': Colors.amber,
+    },
+    'iscore_inquiry': {
+      'label': 'استعلام أي سكور',
+      'icon': Icons.search,
+      'color': Colors.cyan,
+    },
+    'preparing_documents': {
+      'label': 'تحضير الأوراق',
+      'icon': Icons.folder_open,
+      'color': Colors.blueAccent,
+    },
+    'under_review': {
+      'label': 'قيد الدراسة والمراجعة',
+      'icon': Icons.fact_check_outlined,
+      'color': Colors.purpleAccent,
+    },
+    'at_bank': {
+      'label': 'في البنك',
+      'icon': Icons.account_balance,
+      'color': Colors.orangeAccent,
+    },
+    'approved': {
+      'label': 'موافق عليه',
+      'icon': Icons.check_circle_outline,
+      'color': TfcColors.success,
+    },
+    'rejected': {
+      'label': 'مرفوض',
+      'icon': Icons.cancel_outlined,
+      'color': Colors.redAccent,
+    },
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final totalCount = widget.visibleClients.length;
+
+    // Map each status to list of clients
+    final Map<String, List<ClientModel>> statusClientsMap = {};
+    for (var key in _statusMeta.keys) {
+      statusClientsMap[key] = [];
+    }
+    for (var client in widget.visibleClients) {
+      if (statusClientsMap.containsKey(client.status)) {
+        statusClientsMap[client.status]!.add(client);
+      } else {
+        // Fallback for unexpected status string
+        statusClientsMap['pending']?.add(client);
+      }
+    }
+
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
+      borderRadius: 16,
+      borderColor: TfcColors.primary.withValues(alpha: 0.15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            textDirection: TextDirection.rtl,
+            children: [
+              Row(
+                textDirection: TextDirection.rtl,
+                children: [
+                  const Icon(Icons.pie_chart_outline,
+                      color: TfcColors.primary, size: 22),
+                  const SizedBox(width: 8),
+                  const Text(
+                    "توزيع حالات الطلبات الحالية",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: TfcColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: TfcColors.primary.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Text(
+                  "إجمالي الطلبات: $totalCount",
+                  style: const TextStyle(
+                    color: TfcColors.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isMobile = constraints.maxWidth < 600;
+              final isTablet =
+                  constraints.maxWidth >= 600 && constraints.maxWidth < 1000;
+              final crossAxisCount = isMobile ? 1 : (isTablet ? 2 : 4);
+
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: isMobile ? 2.8 : 2.2,
+                ),
+                itemCount: _statusMeta.keys.length,
+                itemBuilder: (context, index) {
+                  final statusKey = _statusMeta.keys.elementAt(index);
+                  final meta = _statusMeta[statusKey]!;
+                  final clients = statusClientsMap[statusKey] ?? [];
+                  final count = clients.length;
+                  final percentage = totalCount > 0
+                      ? ((count / totalCount) * 100).toStringAsFixed(1)
+                      : "0.0";
+                  final Color color = meta['color'] as Color;
+
+                  return InteractiveHoverCard(
+                    onTap: () => _showStatusClientsDialog(
+                      context,
+                      meta['label'] as String,
+                      color,
+                      clients,
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: color.withValues(alpha: 0.2),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            textDirection: TextDirection.rtl,
+                            children: [
+                              Row(
+                                textDirection: TextDirection.rtl,
+                                children: [
+                                  Icon(meta['icon'] as IconData,
+                                      color: color, size: 18),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    meta['label'] as String,
+                                    style: TextStyle(
+                                      color: color,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Icon(Icons.touch_app_outlined,
+                                  color: color.withValues(alpha: 0.5), size: 14),
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            textDirection: TextDirection.rtl,
+                            children: [
+                              Row(
+                                textBaseline: TextBaseline.alphabetic,
+                                crossAxisAlignment: CrossAxisAlignment.baseline,
+                                children: [
+                                  Text(
+                                    "$count",
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: color,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4),
+                                  const Text(
+                                    "طلب",
+                                    style: TextStyle(
+                                        fontSize: 10, color: Colors.white60),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: color.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  "%$percentage",
+                                  style: TextStyle(
+                                    color: color,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 11,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showStatusClientsDialog(
+    BuildContext context,
+    String statusTitle,
+    Color statusColor,
+    List<ClientModel> clients,
+  ) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          width: 500,
+          constraints: const BoxConstraints(maxHeight: 600),
+          child: GlassCard(
+            padding: const EdgeInsets.all(20),
+            borderRadius: 16,
+            borderColor: statusColor.withValues(alpha: 0.4),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  textDirection: TextDirection.rtl,
+                  children: [
+                    Row(
+                      textDirection: TextDirection.rtl,
+                      children: [
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: statusColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "عملاء حالة: $statusTitle",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: statusColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white60),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const Divider(color: Colors.white10),
+                const SizedBox(height: 8),
+                if (clients.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Center(
+                      child: Text(
+                        "لا يوجد عملاء حالياً في حالة ($statusTitle)",
+                        style: const TextStyle(color: TfcColors.outline),
+                      ),
+                    ),
+                  )
+                else
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      itemCount: clients.length,
+                      separatorBuilder: (ctx, i) =>
+                          const Divider(color: Colors.white10, height: 1),
+                      itemBuilder: (ctx, index) {
+                        final client = clients[index];
+                        return ListTile(
+                          contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          title: Text(
+                            client.fullName,
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: Colors.white,
+                            ),
+                          ),
+                          subtitle: Text(
+                            "الهاتف: ${client.phoneNumber} | المبلغ: ${client.requestedAmount.toStringAsFixed(0)} ج.م",
+                            textAlign: TextAlign.right,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: TfcColors.outline,
+                            ),
+                          ),
+                          leading: const Icon(
+                            Icons.arrow_back_ios_new,
+                            size: 14,
+                            color: TfcColors.primary,
+                          ),
+                          trailing: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              client.representativeName ?? "غير محدد",
+                              style: const TextStyle(
+                                  fontSize: 10, color: Colors.white70),
+                            ),
+                          ),
+                          onTap: () {
+                            Navigator.pop(ctx);
+                            widget.onViewClient(client.id);
+                          },
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
     );
