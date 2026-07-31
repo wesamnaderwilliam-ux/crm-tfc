@@ -733,13 +733,16 @@ class _AiSettingsCardState extends ConsumerState<_AiSettingsCard> {
                     final key = _apiKeyController.text.trim();
                     final rules = _rulesController.text.trim();
                     
-                    await ref.read(aiSettingsProvider.notifier).setApiKey(key);
-                    await ref.read(aiSettingsProvider.notifier).setMatchingRules(rules);
+                    await ref.read(aiSettingsProvider.notifier).saveAllSettings(
+                      apiKey: key,
+                      model: settings.model,
+                      matchingRules: rules,
+                    );
 
                     if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text("✅ تم حفظ إعدادات المساعد الائتماني بنجاح", textAlign: TextAlign.right),
+                          content: Text("✅ تم حفظ وتفعيل إعدادات المساعد الائتماني لكل مستخدمي النظام بنجاح", textAlign: TextAlign.right),
                           backgroundColor: TfcColors.success,
                         ),
                       );

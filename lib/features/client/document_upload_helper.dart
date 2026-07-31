@@ -3,10 +3,60 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/theme.dart';
+import '../../core/supabase_config.dart';
 import '../../core/utils/web_helper.dart';
 
 class DocumentUploadHelper {
+  /// Upload binary file to Supabase Storage bucket 'client-documents' and return public URL
+  static Future<String> uploadToSupabaseStorage({
+    required String fileName,
+    required Uint8List bytes,
+  }) async {
+    if (!SupabaseConfig.isInitialized) {
+      final mime = _getMimeTypeStatic(fileName);
+      return kIsWeb ? createBlobUrl(bytes, mime) : 'data:$mime;base64,${base64Encode(bytes)}';
+    }
+
+    try {
+      final cleanName = fileName.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
+      final path = 'docs/${DateTime.now().millisecondsSinceEpoch}_$cleanName';
+      final contentType = _getMimeTypeStatic(fileName);
+
+      await SupabaseConfig.client.storage
+          .from('client-documents')
+          .uploadBinary(
+            path,
+            bytes,
+            fileOptions: FileOptions(contentType: contentType, upsert: true),
+          );
+
+      final publicUrl = SupabaseConfig.client.storage
+          .from('client-documents')
+          .getPublicUrl(path);
+
+      return publicUrl;
+    } catch (e) {
+      debugPrint("Supabase Storage upload fallback: $e");
+      final mime = _getMimeTypeStatic(fileName);
+      return kIsWeb ? createBlobUrl(bytes, mime) : 'data:$mime;base64,${base64Encode(bytes)}';
+    }
+  }
+
+  static String _getMimeTypeStatic(String fileName) {
+    final ext = fileName.split('.').last.toLowerCase();
+    switch (ext) {
+      case 'pdf': return 'application/pdf';
+      case 'jpg':
+      case 'jpeg': return 'image/jpeg';
+      case 'png': return 'image/png';
+      case 'gif': return 'image/gif';
+      case 'webp': return 'image/webp';
+      default: return 'application/octet-stream';
+    }
+  }
+
   /// Open a premium glassmorphic dialog to upload documents via Device or Camera
   static Future<void> showUploadDialog(
     BuildContext context, {
@@ -53,8 +103,6 @@ class _UploadDialogWidgetState extends State<_UploadDialogWidget> with SingleTic
   late AnimationController _cameraAnimationController;
   bool _cameraCaptured = false;
 
-
-
   @override
   void initState() {
     super.initState();
@@ -72,26 +120,14 @@ class _UploadDialogWidgetState extends State<_UploadDialogWidget> with SingleTic
     super.dispose();
   }
 
-  void _startMockUpload() {
-    setState(() {
-      _isUploading = true;
-      _uploadProgress = 0.0;
-    });
-
-    Timer.periodic(const Duration(milliseconds: 30), (timer) {
-      if (!mounted) {
-        timer.cancel();
-        return;
-      }
-      setState(() {
-        _uploadProgress += 0.03;
-        if (_uploadProgress >= 1.0) {
-          _uploadProgress = 1.0;
-          _isUploading = false;
-          timer.cancel();
-        }
-      });
-    });
+  Future<String> _processFileAndUpload(PlatformFile file) async {
+    if (file.bytes != null) {
+      return await DocumentUploadHelper.uploadToSupabaseStorage(
+        fileName: file.name,
+        bytes: file.bytes!,
+      );
+    }
+    return file.path ?? "storage/${file.name}";
   }
 
   String _getFileUrl(PlatformFile file) {
@@ -108,16 +144,7 @@ class _UploadDialogWidgetState extends State<_UploadDialogWidget> with SingleTic
   }
 
   String _getMimeType(String fileName) {
-    final ext = fileName.split('.').last.toLowerCase();
-    switch (ext) {
-      case 'pdf': return 'application/pdf';
-      case 'jpg':
-      case 'jpeg': return 'image/jpeg';
-      case 'png': return 'image/png';
-      case 'gif': return 'image/gif';
-      case 'webp': return 'image/webp';
-      default: return 'application/octet-stream';
-    }
+    return DocumentUploadHelper._getMimeTypeStatic(fileName);
   }
 
   Future<void> _simulateDeviceSelection() async {
@@ -132,24 +159,33 @@ class _UploadDialogWidgetState extends State<_UploadDialogWidget> with SingleTic
           final file = result.files.first;
           setState(() {
             _selectedFileName = file.name;
-            _selectedFileUrl = _getFileUrl(file);
-            if (_nameController.text.isEmpty) {
-              _nameController.text = file.name.replaceAll(RegExp(r'\.[a-zA-Z0-9]+$'), '').replaceAll('_', ' ');
-            }
+            _isUploading = true;
+            _uploadProgress = 0.3;
           });
-          _startMockUpload();
+
+          final uploadedUrl = await _processFileAndUpload(file);
+
+          if (mounted) {
+            setState(() {
+              _selectedFileUrl = uploadedUrl;
+              _uploadProgress = 1.0;
+              _isUploading = false;
+              if (_nameController.text.isEmpty) {
+                _nameController.text = file.name.replaceAll(RegExp(r'\.[a-zA-Z0-9]+$'), '').replaceAll('_', ' ');
+              }
+            });
+          }
         } else {
-          // If multiple files selected, upload them all and return immediately
+          // If multiple files selected, upload them all to Supabase Storage and return immediately
           setState(() {
             _isUploading = true;
+            _uploadProgress = 0.5;
           });
-          
-          // Simulate short delay for upload feel
-          await Future.delayed(const Duration(milliseconds: 1500));
           
           for (var file in result.files) {
             final fileName = file.name.replaceAll(RegExp(r'\.[a-zA-Z0-9]+$'), '').replaceAll('_', ' ');
-            widget.onUploadComplete(fileName, _getFileUrl(file));
+            final uploadedUrl = await _processFileAndUpload(file);
+            widget.onUploadComplete(fileName, uploadedUrl);
           }
           if (mounted) {
             Navigator.pop(context);
@@ -158,6 +194,11 @@ class _UploadDialogWidgetState extends State<_UploadDialogWidget> with SingleTic
       }
     } catch (e) {
       debugPrint("File picker error: $e");
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+      }
     }
   }
 
@@ -327,7 +368,6 @@ class _UploadDialogWidgetState extends State<_UploadDialogWidget> with SingleTic
                       _nameController.text = "مستند كاميرا";
                     }
                   });
-                  _startMockUpload();
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: TfcColors.primary,

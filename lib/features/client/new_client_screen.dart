@@ -349,11 +349,11 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
 
     setState(() {
       _cardsList.add({
-        'bank': TextEditingController(text: 'بنك مصر'),
+        'bank': TextEditingController(text: ''),
         'value': valueController,
         'fivePercent': fivePercentController,
         'type': 'card',
-        'duration': TextEditingController(text: '12 شهر'),
+        'duration': TextEditingController(text: ''),
         'installment': installmentController,
         'highest': highestController,
         'notes': TextEditingController(),
@@ -1779,13 +1779,6 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                   const Text("البطاقات الائتمانية والطلبات المفتوحة",
                       style:
                           TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
-                        foregroundColor: TfcColors.primary),
-                    onPressed: _addCardRow,
-                    icon: const Icon(Icons.add_circle, size: 16),
-                    label: const Text("إضافة بطاقة / طلب"),
-                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -2028,6 +2021,17 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                     );
                   },
                 ),
+              const SizedBox(height: 12),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                      foregroundColor: TfcColors.primary),
+                  onPressed: _addCardRow,
+                  icon: const Icon(Icons.add_circle, size: 16),
+                  label: const Text("إضافة بطاقة / طلب"),
+                ),
+              ),
             ],
           ),
         )),

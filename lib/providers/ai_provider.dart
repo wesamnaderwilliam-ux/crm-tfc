@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import '../models/client_model.dart';
+import '../core/supabase_config.dart';
 import 'package:logger/logger.dart';
 
 final Logger _logger = Logger();
@@ -60,31 +61,83 @@ class AiSettingsNotifier extends StateNotifier<AiSettings> {
   Future<void> _loadSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final apiKey = prefs.getString('tfc_gemini_api_key') ?? '';
-      final model = prefs.getString('tfc_gemini_model') ?? 'gemini-1.5-flash';
-      final matchingRules = prefs.getString('tfc_gemini_rules') ?? _defaultRules;
+      String apiKey = prefs.getString('tfc_gemini_api_key') ?? '';
+      String model = prefs.getString('tfc_gemini_model') ?? 'gemini-1.5-flash';
+      String matchingRules = prefs.getString('tfc_gemini_rules') ?? _defaultRules;
+
+      // Try loading global settings from Supabase if initialized
+      if (SupabaseConfig.isInitialized) {
+        try {
+          final res = await SupabaseConfig.client
+              .from('app_settings')
+              .select('value')
+              .eq('key', 'ai_settings')
+              .maybeSingle();
+
+          if (res != null && res['value'] != null) {
+            final Map<String, dynamic> data = Map<String, dynamic>.from(res['value']);
+            if (data['api_key'] != null && (data['api_key'] as String).isNotEmpty) {
+              apiKey = data['api_key'];
+            }
+            if (data['model'] != null && (data['model'] as String).isNotEmpty) {
+              model = data['model'];
+            }
+            if (data['matching_rules'] != null && (data['matching_rules'] as String).isNotEmpty) {
+              matchingRules = data['matching_rules'];
+            }
+          }
+        } catch (e) {
+          _logger.w('Supabase app_settings fetch skipped or table missing: $e');
+        }
+      }
+
       state = AiSettings(apiKey: apiKey, model: model, matchingRules: matchingRules);
     } catch (e) {
       _logger.e('Error loading AI settings: $e');
     }
   }
 
+  Future<void> saveAllSettings({required String apiKey, required String model, required String matchingRules}) async {
+    state = AiSettings(apiKey: apiKey, model: model, matchingRules: matchingRules);
+    
+    // Save to local SharedPreferences
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('tfc_gemini_api_key', apiKey);
+      await prefs.setString('tfc_gemini_model', model);
+      await prefs.setString('tfc_gemini_rules', matchingRules);
+    } catch (e) {
+      _logger.e('Error saving AI settings locally: $e');
+    }
+
+    // Save globally to Supabase table `app_settings` for all users
+    if (SupabaseConfig.isInitialized) {
+      try {
+        await SupabaseConfig.client.from('app_settings').upsert({
+          'key': 'ai_settings',
+          'value': {
+            'api_key': apiKey,
+            'model': model,
+            'matching_rules': matchingRules,
+            'updated_at': DateTime.now().toIso8601String(),
+          }
+        }, onConflict: 'key');
+      } catch (e) {
+        _logger.e('Error saving AI settings to Supabase app_settings: $e');
+      }
+    }
+  }
+
   Future<void> setApiKey(String apiKey) async {
-    state = state.copyWith(apiKey: apiKey);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('tfc_gemini_api_key', apiKey);
+    await saveAllSettings(apiKey: apiKey, model: state.model, matchingRules: state.matchingRules);
   }
 
   Future<void> setModel(String model) async {
-    state = state.copyWith(model: model);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('tfc_gemini_model', model);
+    await saveAllSettings(apiKey: state.apiKey, model: model, matchingRules: state.matchingRules);
   }
 
   Future<void> setMatchingRules(String rules) async {
-    state = state.copyWith(matchingRules: rules);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('tfc_gemini_rules', rules);
+    await saveAllSettings(apiKey: state.apiKey, model: state.model, matchingRules: rules);
   }
 }
 
