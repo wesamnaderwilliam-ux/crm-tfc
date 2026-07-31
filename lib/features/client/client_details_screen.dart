@@ -2854,12 +2854,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     final sortedLogs = List<InteractionLogModel>.from(client.history)
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
-    // 2. Filter based on selected tab
+    // 2. Filter based on selected tab (0: الكل, 1: تفاعلات الملف, 2: المتابعات, 3: مراسلات البنك)
     final filteredLogs = sortedLogs.where((log) {
-      if (_selectedHistoryTab == 0) return log.logType == 'file_interaction';
-      if (_selectedHistoryTab == 1) return log.logType == 'follow_up';
-      if (_selectedHistoryTab == 2) return log.logType == 'bank_follow_up';
-      return false;
+      if (_selectedHistoryTab == 0) return true; // الكل
+      if (_selectedHistoryTab == 1) return log.logType == 'file_interaction';
+      if (_selectedHistoryTab == 2) return log.logType == 'follow_up';
+      if (_selectedHistoryTab == 3) return log.logType == 'bank_follow_up';
+      return true;
     }).toList();
 
     return GlassCard(
@@ -2880,17 +2881,23 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           const SizedBox(height: 20),
 
           // Tab selectors
-          Row(
-            textDirection: TextDirection.rtl,
-            children: [
-              _buildTabButton(0, "تفاعلات الملف", Icons.description_outlined),
-              const SizedBox(width: 8),
-              _buildTabButton(1, "المتابعات", Icons.calendar_month_outlined),
-              if (showBankFollowUpTab) ...[
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            reverse: true,
+            child: Row(
+              textDirection: TextDirection.rtl,
+              children: [
+                _buildTabButton(0, "الكل", Icons.view_list_outlined),
                 const SizedBox(width: 8),
-                _buildTabButton(2, "مراسلات البنك", Icons.contact_mail_outlined),
+                _buildTabButton(1, "تفاعلات الملف", Icons.description_outlined),
+                const SizedBox(width: 8),
+                _buildTabButton(2, "المتابعات", Icons.calendar_month_outlined),
+                if (showBankFollowUpTab) ...[
+                  const SizedBox(width: 8),
+                  _buildTabButton(3, "مراسلات البنك", Icons.contact_mail_outlined),
+                ],
               ],
-            ],
+            ),
           ),
           const SizedBox(height: 24),
 
@@ -3496,48 +3503,48 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   Widget _buildTabButton(int index, String label, IconData icon) {
     final isSelected = _selectedHistoryTab == index;
     final activeColor = index == 0
-        ? TfcColors.primary
+        ? const Color(0xFF64FFDA) // الكل - cyan accent
         : index == 1
-            ? const Color(0xFF7B61FF)
-            : const Color(0xFF00F5D4);
+            ? TfcColors.primary // تفاعلات الملف - gold
+            : index == 2
+                ? const Color(0xFF7B61FF) // المتابعات - purple
+                : const Color(0xFF00F5D4); // مراسلات البنك - turquoise
 
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedHistoryTab = index;
-          });
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedHistoryTab = index;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? activeColor.withValues(alpha: 0.15)
+              : Colors.white.withValues(alpha: 0.02),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
             color: isSelected
-                ? activeColor.withValues(alpha: 0.15)
-                : Colors.white.withValues(alpha: 0.02),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isSelected
-                  ? activeColor.withValues(alpha: 0.4)
-                  : Colors.white.withValues(alpha: 0.05),
-            ),
+                ? activeColor.withValues(alpha: 0.4)
+                : Colors.white.withValues(alpha: 0.05),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            textDirection: TextDirection.rtl,
-            children: [
-              Icon(icon, size: 14, color: isSelected ? activeColor : TfcColors.outline),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? activeColor : TfcColors.outline,
-                  fontSize: 11,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          textDirection: TextDirection.rtl,
+          children: [
+            Icon(icon, size: 14, color: isSelected ? activeColor : TfcColors.outline),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? activeColor : TfcColors.outline,
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
