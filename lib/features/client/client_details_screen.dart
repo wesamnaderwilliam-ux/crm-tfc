@@ -2749,7 +2749,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   // Bento Box 5: Add Follow-up log form
   Widget _buildAddLogBento(String staffName) {
     final role = ref.read(authProvider).role;
-    final showBankFollowUp = role == 'admin' || role == 'manager' || role == 'bank_employee';
+    // Only admin can create bank follow-ups (مراسلة البنك)
+    final canCreateBankFollowUp = role == 'admin';
 
     return GlassCard(
       padding: const EdgeInsets.all(24),
@@ -2819,8 +2820,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   label: const Text("متابعة", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
                 ),
 
-                if (showBankFollowUp)
-                  // Button 3: Bank Follow-up
+                if (canCreateBankFollowUp)
+                  // Button 3: Bank Follow-up (Admin Only)
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF00F5D4),
@@ -2846,8 +2847,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
 
   // Bento Box 6: Logs History Timeline
   Widget _buildLogsHistoryBento(ClientModel client) {
-    final role = ref.read(authProvider).role;
-    final showBankFollowUpTab = role == 'admin' || role == 'manager' || role == 'bank_employee';
+    // All users can view bank follow-up tab
+    const showBankFollowUpTab = true;
 
     // 1. Sort from newest to oldest
     final sortedLogs = List<InteractionLogModel>.from(client.history)
@@ -2904,18 +2905,24 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               itemCount: filteredLogs.length,
               itemBuilder: (context, idx) {
                 final log = filteredLogs[idx];
+                final logColor = log.logType == 'file_interaction'
+                    ? TfcColors.primary
+                    : log.logType == 'follow_up'
+                        ? const Color(0xFF7B61FF)
+                        : const Color(0xFF00F5D4);
+
                 return IntrinsicHeight(
                   child: Row(
                     textDirection: TextDirection.rtl,
                     children: [
-                      // Timeline dot and line
+                      // Timeline dot and line with distinct logType colors
                       Column(
                         children: [
                           Container(
                             width: 10,
                             height: 10,
-                            decoration: const BoxDecoration(
-                              color: TfcColors.primary,
+                            decoration: BoxDecoration(
+                              color: logColor,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -2940,7 +2947,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             color: Colors.white.withValues(alpha: 0.02),
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.04)),
+                                color: logColor.withValues(alpha: 0.15)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
@@ -2952,9 +2959,9 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                 children: [
                                   Text(
                                     log.actionType,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontWeight: FontWeight.bold,
-                                        color: TfcColors.primary,
+                                        color: logColor,
                                         fontSize: 13),
                                   ),
                                   Text(

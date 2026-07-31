@@ -69,7 +69,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           _selectedStatus == "all" || client.status == _selectedStatus;
 
       return matchesSearch && matchesStatus;
-    }).toList();
+    }).toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     // Financial calculations based on visible clients
     double totalRequestedAmount = 0;

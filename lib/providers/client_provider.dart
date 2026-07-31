@@ -237,7 +237,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
             credit_cards_requests(*),
             interaction_history(*),
             documents(*)
-          ''');
+          ''').order('created_at', ascending: false);
 
       final List<ClientModel> list = [];
       for (var item in response) {
