@@ -91,6 +91,14 @@ class ProspectModel {
     };
   }
 
+  /// Returns JSON suitable for Supabase INSERT (no 'id' or 'created_at' so DB generates them)
+  Map<String, dynamic> toInsertJson() {
+    final data = toJson();
+    data.remove('id');
+    data.remove('created_at');
+    return data;
+  }
+
   ProspectModel copyWith({
     String? fullName,
     String? phoneNumber,

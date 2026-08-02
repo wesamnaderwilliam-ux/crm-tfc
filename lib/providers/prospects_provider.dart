@@ -42,63 +42,84 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
   }
 
   Future<bool> updateProspect(ProspectModel prospect) async {
-    final current = state.value ?? [];
-    final idx = current.indexWhere((p) => p.id == prospect.id);
-    if (idx != -1) {
-      current[idx] = prospect;
-      state = AsyncValue.data([...current]);
-    }
-
     try {
-      if (SupabaseConfig.isInitialized) {
-        final data = prospect.toJson();
-        data.remove('id');
-        data.remove('created_at');
-        data['updated_at'] = DateTime.now().toIso8601String();
-        await SupabaseConfig.client
-            .from('prospects')
-            .update(data)
-            .eq('id', prospect.id);
+      if (!SupabaseConfig.isInitialized || prospect.id.isEmpty) {
+        debugPrint('⚠️ updateProspect: Supabase not initialized or prospect id is empty');
+        return false;
+      }
+
+      final data = prospect.toJson();
+      data.remove('id');
+      data.remove('created_at');
+      data['updated_at'] = DateTime.now().toIso8601String();
+
+      await SupabaseConfig.client
+          .from('prospects')
+          .update(data)
+          .eq('id', prospect.id);
+
+      // DB succeeded → update local state
+      final current = state.value ?? [];
+      final idx = current.indexWhere((p) => p.id == prospect.id);
+      if (idx != -1) {
+        current[idx] = prospect;
+        state = AsyncValue.data([...current]);
+      } else {
+        // If not found locally, refetch
+        await fetchProspects();
       }
       return true;
     } catch (e) {
-      debugPrint('⚠️ Supabase updateProspect failed (applied locally): $e');
-      // Local state is already updated, so return true for uninterrupted UX
-      return true;
+      debugPrint('❌ Supabase updateProspect FAILED: $e');
+      return false;
     }
   }
 
   Future<bool> addSingleProspect(ProspectModel prospect) async {
-    final current = state.value ?? [];
-    state = AsyncValue.data([prospect, ...current]);
-
     try {
-      if (SupabaseConfig.isInitialized) {
-        final data = prospect.toJson();
-        if (prospect.id.isEmpty) {
-          data.remove('id');
-        }
-        await SupabaseConfig.client.from('prospects').insert(data);
+      if (!SupabaseConfig.isInitialized) {
+        debugPrint('⚠️ addSingleProspect: Supabase not initialized');
+        return false;
       }
+
+      // Insert into DB and get back the full record with real id
+      final insertData = prospect.toInsertJson();
+      final response = await SupabaseConfig.client
+          .from('prospects')
+          .insert(insertData)
+          .select()
+          .single();
+
+      // Parse the returned record (with real DB-generated id)
+      final savedProspect = ProspectModel.fromJson(response);
+
+      // Update local state with the real prospect from DB
+      final current = state.value ?? [];
+      state = AsyncValue.data([savedProspect, ...current]);
+
       return true;
     } catch (e) {
-      debugPrint('⚠️ Supabase addSingleProspect failed (applied locally): $e');
-      return true;
+      debugPrint('❌ Supabase addSingleProspect FAILED: $e');
+      return false;
     }
   }
 
   Future<bool> assignProspectsBulk(List<String> prospectIds, String employeeId, String employeeName) async {
-    final current = state.value ?? [];
-    final updated = current.map((p) {
-      if (prospectIds.contains(p.id)) {
-        return p.copyWith(assignedToId: employeeId, assignedToName: employeeName);
-      }
-      return p;
-    }).toList();
-    state = AsyncValue.data(updated);
+    // Filter out empty ids
+    final validIds = prospectIds.where((id) => id.isNotEmpty).toList();
+    if (validIds.isEmpty) {
+      debugPrint('⚠️ assignProspectsBulk: No valid prospect ids');
+      return false;
+    }
 
     try {
-      if (SupabaseConfig.isInitialized) {
+      if (!SupabaseConfig.isInitialized) {
+        debugPrint('⚠️ assignProspectsBulk: Supabase not initialized');
+        return false;
+      }
+
+      // Update each prospect in DB
+      for (final id in validIds) {
         await SupabaseConfig.client
             .from('prospects')
             .update({
@@ -106,42 +127,65 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
               'assigned_to_name': employeeName,
               'updated_at': DateTime.now().toIso8601String(),
             })
-            .filter('id', 'in', prospectIds);
+            .eq('id', id);
       }
+
+      // DB succeeded → update local state
+      final current = state.value ?? [];
+      final updated = current.map((p) {
+        if (validIds.contains(p.id)) {
+          return p.copyWith(assignedToId: employeeId, assignedToName: employeeName);
+        }
+        return p;
+      }).toList();
+      state = AsyncValue.data(updated);
+
       return true;
     } catch (e) {
-      debugPrint('⚠️ Supabase assignProspectsBulk failed (applied locally): $e');
-      return true;
+      debugPrint('❌ Supabase assignProspectsBulk FAILED: $e');
+      return false;
     }
   }
 
   Future<bool> deleteProspect(String id) async {
-    final current = state.value ?? [];
-    state = AsyncValue.data(current.where((p) => p.id != id).toList());
+    if (id.isEmpty) {
+      debugPrint('⚠️ deleteProspect: Empty id');
+      return false;
+    }
 
     try {
-      if (SupabaseConfig.isInitialized) {
-        await SupabaseConfig.client.from('prospects').delete().eq('id', id);
+      if (!SupabaseConfig.isInitialized) {
+        debugPrint('⚠️ deleteProspect: Supabase not initialized');
+        return false;
       }
+
+      await SupabaseConfig.client.from('prospects').delete().eq('id', id);
+
+      // DB succeeded → remove from local state
+      final current = state.value ?? [];
+      state = AsyncValue.data(current.where((p) => p.id != id).toList());
       return true;
     } catch (e) {
-      debugPrint('⚠️ Supabase deleteProspect failed (applied locally): $e');
-      return true;
+      debugPrint('❌ Supabase deleteProspect FAILED: $e');
+      return false;
     }
   }
 
   Future<void> addProspectsList(List<ProspectModel> newProspects) async {
     if (newProspects.isEmpty) return;
     try {
-      if (SupabaseConfig.isInitialized) {
-        final data = newProspects.map((p) => p.toJson()..remove('id')).toList();
-        await SupabaseConfig.client.from('prospects').insert(data);
-        await fetchProspects();
-      } else {
-        final current = state.value ?? [];
-        state = AsyncValue.data([...newProspects, ...current]);
+      if (!SupabaseConfig.isInitialized) {
+        debugPrint('⚠️ addProspectsList: Supabase not initialized');
+        return;
       }
+
+      final data = newProspects.map((p) => p.toInsertJson()).toList();
+      await SupabaseConfig.client.from('prospects').insert(data);
+      // Refetch to get real ids from DB
+      await fetchProspects();
     } catch (e) {
+      debugPrint('❌ Supabase addProspectsList FAILED: $e');
+      // Fallback: add locally without real ids (not ideal but prevents data loss)
       final current = state.value ?? [];
       state = AsyncValue.data([...newProspects, ...current]);
     }
