@@ -252,51 +252,85 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                 builder: (context, constraints) {
                   final isWide = constraints.maxWidth >= 600;
                   final children = [
-                    // Bank Filter
+                    // Bank Filter - only banks present in distributions
                     Expanded(
                       flex: isWide ? 1 : 0,
-                      child: banksAsync.when(
-                        data: (banks) => _buildFilterDropdown(
-                          value: _selectedBankFilter,
-                          hint: "كل البنوك",
-                          items: [
-                            const DropdownMenuItem(value: 'all', child: Text("كل البنوك", textDirection: TextDirection.rtl)),
-                            ...banks.map((b) => DropdownMenuItem(
-                                  value: b['id'].toString(),
-                                  child: Text(b['bank_name'] ?? '', textDirection: TextDirection.rtl),
-                                ))
-                          ],
-                          onChanged: (val) {
-                            if (val != null) setState(() => _selectedBankFilter = val);
-                          },
-                        ),
-                        loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                        error: (_, __) => const Text("خطأ في تحميل البنوك"),
+                      child: Builder(
+                        builder: (context) {
+                          // Extract unique banks from actual distributions data
+                          final uniqueBanks = <String, String>{};
+                          for (final d in _distributions) {
+                            final bankId = d['bank_id']?.toString() ?? '';
+                            final bankName = d['bank_name']?.toString() ?? '';
+                            if (bankId.isNotEmpty && bankName.isNotEmpty) {
+                              uniqueBanks[bankId] = bankName;
+                            }
+                          }
+                          // Reset filter if selected bank no longer exists in data
+                          if (_selectedBankFilter != 'all' && !uniqueBanks.containsKey(_selectedBankFilter)) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) setState(() => _selectedBankFilter = 'all');
+                            });
+                          }
+                          return _buildFilterDropdown(
+                            value: uniqueBanks.containsKey(_selectedBankFilter) || _selectedBankFilter == 'all'
+                                ? _selectedBankFilter
+                                : 'all',
+                            hint: "كل البنوك",
+                            items: [
+                              const DropdownMenuItem(value: 'all', child: Text("كل البنوك", textDirection: TextDirection.rtl)),
+                              ...uniqueBanks.entries.map((e) => DropdownMenuItem(
+                                    value: e.key,
+                                    child: Text(e.value, textDirection: TextDirection.rtl),
+                                  ))
+                            ],
+                            onChanged: (val) {
+                              if (val != null) setState(() => _selectedBankFilter = val);
+                            },
+                          );
+                        },
                       ),
                     ),
                     if (!isWide) const SizedBox(height: 12),
                     if (isWide) const SizedBox(width: 12),
 
-                    // Program Filter
+                    // Program Filter - only programs present in distributions
                     Expanded(
                       flex: isWide ? 1 : 0,
-                      child: programsAsync.when(
-                        data: (programs) => _buildFilterDropdown(
-                          value: _selectedProgramFilter,
-                          hint: "كل البرامج",
-                          items: [
-                            const DropdownMenuItem(value: 'all', child: Text("كل البرامج", textDirection: TextDirection.rtl)),
-                            ...programs.map((p) => DropdownMenuItem(
-                                  value: p['id'].toString(),
-                                  child: Text(p['program_name'] ?? '', textDirection: TextDirection.rtl),
-                                ))
-                          ],
-                          onChanged: (val) {
-                            if (val != null) setState(() => _selectedProgramFilter = val);
-                          },
-                        ),
-                        loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                        error: (_, __) => const Text("خطأ في تحميل البرامج"),
+                      child: Builder(
+                        builder: (context) {
+                          // Extract unique programs from actual distributions data
+                          final uniquePrograms = <String, String>{};
+                          for (final d in _distributions) {
+                            final progId = d['program_id']?.toString() ?? '';
+                            final progName = d['program_name']?.toString() ?? '';
+                            if (progId.isNotEmpty && progName.isNotEmpty) {
+                              uniquePrograms[progId] = progName;
+                            }
+                          }
+                          // Reset filter if selected program no longer exists in data
+                          if (_selectedProgramFilter != 'all' && !uniquePrograms.containsKey(_selectedProgramFilter)) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) setState(() => _selectedProgramFilter = 'all');
+                            });
+                          }
+                          return _buildFilterDropdown(
+                            value: uniquePrograms.containsKey(_selectedProgramFilter) || _selectedProgramFilter == 'all'
+                                ? _selectedProgramFilter
+                                : 'all',
+                            hint: "كل البرامج",
+                            items: [
+                              const DropdownMenuItem(value: 'all', child: Text("كل البرامج", textDirection: TextDirection.rtl)),
+                              ...uniquePrograms.entries.map((e) => DropdownMenuItem(
+                                    value: e.key,
+                                    child: Text(e.value, textDirection: TextDirection.rtl),
+                                  ))
+                            ],
+                            onChanged: (val) {
+                              if (val != null) setState(() => _selectedProgramFilter = val);
+                            },
+                          );
+                        },
                       ),
                     ),
                     if (!isWide) const SizedBox(height: 12),
