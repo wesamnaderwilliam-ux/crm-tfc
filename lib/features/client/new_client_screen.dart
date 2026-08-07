@@ -62,6 +62,7 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
   final _amountController = TextEditingController();
   String _governorate = "القاهرة";
   final _repNameController = TextEditingController();
+  bool _isSubmitting = false;
 
   // Documents list for creation
   final List<ClientDocumentModel> _uploadedDocuments = [];
@@ -426,7 +427,12 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
   }
 
   Future<void> _submitForm() async {
+    if (_isSubmitting) return;
     if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isSubmitting = true;
+    });
 
     final creditScore = 400 +
         (double.tryParse(_amountController.text) != null
@@ -595,6 +601,12 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
         .read(clientProvider.notifier)
         .addClient(newClient, loans, cards, customNotes: customNotes);
 
+    if (mounted) {
+      setState(() {
+        _isSubmitting = false;
+      });
+    }
+
     if (errorMsg == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -713,9 +725,18 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                             TfcColors.primary.withAlpha((0.4 * 255).toInt()),
                         elevation: 6,
                       ),
-                      onPressed: _submitForm,
-                      child: const Text("حفظ ومتابعة",
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      onPressed: _isSubmitting ? null : _submitForm,
+                      child: _isSubmitting
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.black,
+                              ),
+                            )
+                          : const Text("حفظ ومتابعة",
+                              style: TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   if (_activeStep > 0)
                     OutlinedButton(
