@@ -224,20 +224,28 @@ class ClientNotifier extends StateNotifier<ClientState> {
   }
 
   Future<void> fetchClients() async {
-    state = state.copyWith(isLoading: true);
+    // Keep current clients visible while refreshing in background for zero flicker
+    if (state.clients.isEmpty) {
+      state = state.copyWith(isLoading: true);
+    }
     if (!SupabaseConfig.isInitialized) {
       _logger.i("Supabase not initialized: loading simulator client records.");
       state = state.copyWith(clients: _getFilteredMockClients(), isLoading: false);
       return;
     }
     try {
-      final response = await SupabaseConfig.client.from('clients').select('''
+      // Lightweight fast query for main client list
+      final response = await SupabaseConfig.client
+          .from('clients')
+          .select('''
             *,
             existing_loans(*),
             credit_cards_requests(*),
             interaction_history(*),
             documents(*)
-          ''').order('created_at', ascending: false);
+          ''')
+          .order('created_at', ascending: false)
+          .limit(100);
 
       final List<ClientModel> list = [];
       for (var item in response) {
@@ -245,8 +253,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
       }
       state = state.copyWith(clients: list, isLoading: false);
     } catch (e) {
-      // Offline fallback: Use dynamic mock list
-      _logger.w("Warning: could not fetch clients from Supabase, loading simulator data: $e");
+      _logger.w("Warning: could not fetch clients from Supabase: $e");
       state = state.copyWith(clients: _getFilteredMockClients(), isLoading: false);
     }
   }

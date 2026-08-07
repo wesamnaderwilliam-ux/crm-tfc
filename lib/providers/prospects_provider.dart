@@ -21,7 +21,9 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
   }
 
   Future<void> fetchProspects() async {
-    state = const AsyncValue.loading();
+    if (!state.hasValue) {
+      state = const AsyncValue.loading();
+    }
     try {
       if (!SupabaseConfig.isInitialized) {
         state = const AsyncValue.data([]);
