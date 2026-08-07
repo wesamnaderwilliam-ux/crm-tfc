@@ -127,6 +127,7 @@ class TfcGlassBackground extends StatelessWidget {
       ),
       child: Stack(
         children: [
+          // Radial Top Glow
           Positioned(
             top: -150,
             left: MediaQuery.sizeOf(context).width * 0.25,
@@ -140,6 +141,20 @@ class TfcGlassBackground extends StatelessWidget {
                     TfcColors.primary.withValues(alpha: 0.04),
                     Colors.transparent,
                   ],
+                ),
+              ),
+            ),
+          ),
+          // Subtle Centered Watermark Logo (non-intrusive)
+          Center(
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: 0.04,
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: MediaQuery.sizeOf(context).width * 0.45,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
                 ),
               ),
             ),
