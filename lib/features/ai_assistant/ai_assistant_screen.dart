@@ -764,7 +764,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
           ),
           const SizedBox(height: 16),
           _buildProfileDetail("المحافظة والسكن", client.governorate),
-          _buildProfileDetail("القطاع الوظيفي", client.employmentType == 'government_sector' ? 'قطاع حكومي' : (client.employmentType == 'private_sector' ? 'قطاع خاص' : 'أعمال حرة')),
+          _buildProfileDetail("نوع التوظيف", client.employmentType == 'government_sector' ? 'قطاع حكومي' : (client.employmentType == 'private_sector' ? 'قطاع خاص' : 'أعمال حرة')),
           _buildProfileDetail("المسمى الوظيفي والجهة", "${client.jobTitle ?? 'غير محدد'} (${client.companyName ?? 'غير محدد'})"),
           _buildProfileDetail("إجمالي الراتب الموثق", "${_fmt(totalSalary)} ج.م (${client.salaryTransferMethod == 'bank_transfer' ? 'تحويل بنكي' : 'كاش / نقدي'})"),
           _buildProfileDetail("حالة التأمينات الاجتماعية", client.isInsured ? "مؤمن عليه بالقطاع" : "غير مؤمن عليه"),

@@ -132,7 +132,7 @@ class ClientPdfGenerator {
                   ),
                   pw.SizedBox(height: 2),
                   pw.Text(
-                    'مستند رسمي مخصص للمشاركة والمطابقة البنكية',
+                    'مستند للاطلاع فقط، ولا تتحمل الشركة أي مسؤولية',
                     style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 10),
                   ),
                 ],
@@ -160,7 +160,7 @@ class ClientPdfGenerator {
                       _buildPdfInfoTile('الاسم الكامل', client.fullName),
                       _buildPdfInfoTile('الرقم القومي', client.nationalId),
                       _buildPdfInfoTile('تاريخ الميلاد', client.birthDate),
-                      _buildPdfInfoTile('القطاع الوظيفي', client.employmentType == 'government_sector' ? 'قطاع حكومي' : (client.employmentType == 'private_sector' ? 'قطاع خاص' : 'أعمال حرة')),
+                      _buildPdfInfoTile('نوع التوظيف', client.employmentType == 'government_sector' ? 'قطاع حكومي' : (client.employmentType == 'private_sector' ? 'قطاع خاص' : 'أعمال حرة')),
                       _buildPdfInfoTile('جهة العمل / الشركة', client.companyName ?? 'غير محدد'),
                       _buildPdfInfoTile('المسمى الوظيفي', client.jobTitle ?? 'غير محدد'),
                       _buildPdfInfoTile('التأمينات الاجتماعية', client.isInsured ? 'مؤمن عليه' : 'غير مؤمن عليه'),
