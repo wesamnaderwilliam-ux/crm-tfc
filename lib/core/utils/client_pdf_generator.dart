@@ -160,7 +160,7 @@ class ClientPdfGenerator {
                       _buildPdfInfoTile('الاسم الكامل', client.fullName),
                       _buildPdfInfoTile('الرقم القومي', client.nationalId),
                       _buildPdfInfoTile('تاريخ الميلاد', client.birthDate),
-                      _buildPdfInfoTile('نوع التوظيف', client.employmentType == 'government_sector' ? 'قطاع حكومي' : (client.employmentType == 'private_sector' ? 'قطاع خاص' : 'أعمال حرة')),
+                      _buildPdfInfoTile('نوع التوظيف', _parseEmploymentType(client.employmentType)),
                       _buildPdfInfoTile('جهة العمل / الشركة', client.companyName ?? 'غير محدد'),
                       _buildPdfInfoTile('المسمى الوظيفي', client.jobTitle ?? 'غير محدد'),
                       _buildPdfInfoTile('التأمينات الاجتماعية', client.isInsured ? 'مؤمن عليه' : 'غير مؤمن عليه'),
@@ -262,9 +262,11 @@ class ClientPdfGenerator {
                     runSpacing: 8,
                     children: [
                       _buildPdfInfoTile('إجمالي الراتب الشهر الموثق', '${totalSalary.toStringAsFixed(0)} ج.م'),
+                      _buildPdfInfoTile('الحد الائتماني المتاح (50%)', '${(totalSalary / 2).toStringAsFixed(0)} ج.م'),
                       _buildPdfInfoTile('إجمالي أقساط القروض', '${totalLoansInstallments.toStringAsFixed(0)} ج.م'),
                       _buildPdfInfoTile('إجمالي استقطاع البطاقات (5%)', '${totalCardsFivePercent.toStringAsFixed(0)} ج.م'),
                       _buildPdfInfoTile('إجمالي الالتزامات الشهرية القائمة', '${totalMonthlyObligations.toStringAsFixed(0)} ج.م'),
+                      _buildPdfInfoTile('المتبقي من الحد الائتماني', '${((totalSalary / 2) - totalMonthlyObligations).toStringAsFixed(0)} ج.م'),
                       _buildPdfInfoTile('نسبة العبء الائتماني (DTI)', '${dtiPercent.toStringAsFixed(1)}%'),
                     ],
                   ),
@@ -332,6 +334,40 @@ class ClientPdfGenerator {
     );
 
     return pdf.save();
+  }
+
+  static String _parseEmploymentType(String type) {
+    switch (type) {
+      case 'government_employee':
+      case 'government_sector':
+        return 'موظف حكومى';
+      case 'private_sector':
+        return 'موظف قطاع خاص';
+      case 'business_owner':
+        return 'صاحب عمل';
+      case 'doctor_clinic':
+        return 'دكتور عيادة';
+      case 'doctor_hospital':
+        return 'دكتور مستشفى';
+      case 'pharmacist':
+        return 'صيدلى';
+      case 'pharmacist_owner':
+        return 'صيدلى صاحب صيدلية';
+      case 'military':
+        return 'قوات مسلحة';
+      case 'faculty':
+        return 'هيئة تدريس';
+      case 'teacher':
+        return 'مدرس';
+      case 'freelance':
+        return 'فريلانس';
+      case 'retired':
+        return 'معاش';
+      case 'other':
+        return 'أخرى';
+      default:
+        return type.isNotEmpty ? type : 'غير محدد';
+    }
   }
 
   static pw.Widget _buildPdfInfoTile(String title, String value) {
