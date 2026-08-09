@@ -5,6 +5,9 @@ import '../../core/widgets/interactive_hover_card.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../providers/employees_provider.dart';
+import '../../providers/client_provider.dart';
+import '../../providers/prospects_provider.dart';
+import '../../providers/banks_provider.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../client/new_client_screen.dart';
 import '../client/client_details_screen.dart';
@@ -521,6 +524,34 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                     child: const Tooltip(
                       message: "حاسبة الدخل الائتماني 🧮",
                       child: Icon(Icons.calculate_rounded, color: Colors.amberAccent, size: 20),
+                    ),
+                  ),
+
+                  const SizedBox(width: 6),
+                  // Global Refresh Button
+                  InteractiveHoverCard(
+                    onTap: () {
+                      // Refresh all providers
+                      ref.read(clientProvider.notifier).fetchClients();
+                      ref.read(prospectsProvider.notifier).fetchProspects();
+                      ref.read(employeesProvider.notifier).fetchEmployees();
+                      ref.invalidate(allBanksProvider);
+                      ref.invalidate(coreProgramsProvider);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("جاري تحديث جميع البيانات... ✅", textAlign: TextAlign.right),
+                          duration: Duration(seconds: 2),
+                          backgroundColor: Color(0xFF00CEC9),
+                        ),
+                      );
+                    },
+                    glowColor: Colors.greenAccent,
+                    backgroundColor: Colors.greenAccent.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                    padding: const EdgeInsets.all(8),
+                    child: const Tooltip(
+                      message: "تحديث البيانات 🔄",
+                      child: Icon(Icons.refresh_rounded, color: Colors.greenAccent, size: 20),
                     ),
                   ),
 
