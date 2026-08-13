@@ -241,7 +241,7 @@ class GlassCard extends StatelessWidget {
   const GlassCard({
     super.key,
     required this.child,
-    this.blur = 20,
+    this.blur = 0,
     this.borderRadius = 12,
     this.borderColor = const Color(0xFF1E2633), // Subtle solid border color
     this.fillColor = const Color(0xFF0F1217), // Deep dark surface matching design
@@ -253,6 +253,11 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Widget content = Padding(
+      padding: padding ?? const EdgeInsets.all(24),
+      child: child,
+    );
+
     return Container(
       width: width,
       height: height,
@@ -265,21 +270,20 @@ class GlassCard extends StatelessWidget {
         ),
         boxShadow: shadow ?? [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: 0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-          child: Padding(
-            padding: padding ?? const EdgeInsets.all(24),
-            child: child,
-          ),
-        ),
+        child: blur > 0
+            ? BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+                child: content,
+              )
+            : content,
       ),
     );
   }
