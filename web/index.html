@@ -51,6 +51,18 @@
       align-items: center;
       justify-content: center;
       z-index: 9999;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: #0b0f19;
+      transition: opacity 0.4s ease-out, visibility 0.4s ease-out;
+    }
+    .loading-container.fade-out {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
     }
     .logo-avatar {
       width: 110px;
@@ -127,6 +139,22 @@
         for (let name of names) caches.delete(name);
       });
     }
+    function hideLoadingScreen() {
+      var loader = document.getElementById('loading-screen');
+      if (loader) {
+        loader.classList.add('fade-out');
+        setTimeout(function() {
+          if (loader && loader.parentNode) {
+            loader.parentNode.removeChild(loader);
+          }
+        }, 450);
+      }
+    }
+
+    // Hide loader when Flutter app first frame is rendered or after max 3.5 seconds
+    window.addEventListener('flutter-first-frame', hideLoadingScreen);
+    setTimeout(hideLoadingScreen, 3500);
+
     var script = document.createElement('script');
     script.src = 'flutter_bootstrap.js?v=' + new Date().getTime();
     script.async = true;
