@@ -125,11 +125,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   }
 
   Future<void> _handleGoogleSignUp() async {
-    // Validate name and role before launching Google OAuth
+    // Required fields: Full Name and Role (Account Type)
     if (_fullNameController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("يرجى إدخال الاسم الكامل أولاً قبل التسجيل بواسطة Google", textAlign: TextAlign.right),
+          backgroundColor: Colors.orangeAccent,
+        ),
+      );
+      return;
+    }
+
+    if (_fullNameController.text.trim().length < 3) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("الاسم الكامل يجب أن يكون 3 أحرف على الأقل", textAlign: TextAlign.right),
           backgroundColor: Colors.orangeAccent,
         ),
       );
@@ -381,21 +391,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                   textAlign: TextAlign.right,
                                   textDirection: TextDirection.ltr,
                                   decoration: const InputDecoration(
-                                    hintText: "05xxxxxxxx",
+                                    hintText: "05xxxxxxxx (اختياري)",
                                     prefixIcon: Icon(Icons.phone, color: TfcColors.outline),
                                   ),
-                                  validator: (value) {
-                                    if (!_isSignUpMode) return null;
-                                    if (value == null || value.trim().isEmpty) {
-                                      return "يرجى إدخال رقم الهاتف";
-                                    }
-                                    return null;
-                                  },
                                 ),
                                 const SizedBox(height: 20),
 
-                                // National ID Field
-                                _buildFieldLabel("الرقم القومي", Icons.badge_outlined),
+                                // National ID Field (Optional)
+                                _buildFieldLabel("الرقم القومي (اختياري)", Icons.badge_outlined),
                                 const SizedBox(height: 8),
                                 TextFormField(
                                   controller: _nationalIdController,
@@ -403,16 +406,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                   textAlign: TextAlign.right,
                                   textDirection: TextDirection.ltr,
                                   decoration: const InputDecoration(
-                                    hintText: "الرقم القومي (14 رقم)",
+                                    hintText: "الرقم القومي - 14 رقم (اختياري)",
                                     prefixIcon: Icon(Icons.badge, color: TfcColors.outline),
                                   ),
-                                  validator: (value) {
-                                    if (!_isSignUpMode) return null;
-                                    if (value == null || value.trim().isEmpty) {
-                                      return "يرجى إدخال الرقم القومي";
-                                    }
-                                    return null;
-                                  },
                                 ),
                                 const SizedBox(height: 20),
 
