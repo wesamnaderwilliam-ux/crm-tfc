@@ -25,6 +25,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   double _bgOffset = 0.0;
   bool _isSignUpMode = false;
   String _selectedRole = 'company_employee';
+  String? _selectedBankName;
 
   // Role options with Arabic labels
   static const List<Map<String, String>> _roleOptions = [
@@ -69,6 +70,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         confirmPassword: _confirmPasswordController.text.trim(),
         fullName: _fullNameController.text.trim(),
         role: _selectedRole,
+        bankName: _selectedRole == 'bank_employee' ? _selectedBankName : null,
         phoneNumber: _phoneController.text.trim(),
         nationalId: _nationalIdController.text.trim(),
         hiringDate: _hiringDateController.text.trim(),
@@ -149,6 +151,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     await ref.read(authProvider.notifier).signInWithGoogle(
       fullName: _fullNameController.text.trim(),
       role: _selectedRole,
+      bankName: _selectedRole == 'bank_employee' ? _selectedBankName : null,
     );
 
     if (mounted) {
@@ -354,7 +357,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                     border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                                   ),
                                   child: DropdownButtonFormField<String>(
-                                    initialValue: _selectedRole,
+                                    value: _selectedRole,
                                     dropdownColor: TfcColors.surfaceContainer,
                                     isExpanded: true,
                                     icon: const Icon(Icons.keyboard_arrow_down_rounded, color: TfcColors.primary),

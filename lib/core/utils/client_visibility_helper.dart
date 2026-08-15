@@ -86,9 +86,13 @@ class ClientVisibilityHelper {
 
     // 2. Bank Employee filtering logic
     if (role == 'bank_employee') {
+      final userBank = authState.bankName ?? '';
       final cleanUser = _clean(currentUserFullName);
       String bankKeyword = "";
-      if (cleanUser.contains("الأهلي") || cleanUser.contains("الاهلي")) {
+
+      if (userBank.isNotEmpty) {
+        bankKeyword = _clean(userBank);
+      } else if (cleanUser.contains("الأهلي") || cleanUser.contains("الاهلي")) {
         bankKeyword = "الأهلي";
       } else if (cleanUser.contains("الراجحي")) {
         bankKeyword = "الراجحي";

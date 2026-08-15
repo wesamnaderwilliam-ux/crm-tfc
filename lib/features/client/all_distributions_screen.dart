@@ -122,8 +122,20 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
       }).toList();
 
       if (mounted) {
+        // If user is a Bank Employee, isolate distributions to their specific bank
+        List<Map<String, dynamic>> finalDistributions = loaded;
+        if (authState.role == 'bank_employee') {
+          final userBank = authState.bankName ?? '';
+          if (userBank.isNotEmpty) {
+            finalDistributions = loaded.where((d) {
+              final bName = (d['bank_name'] ?? '').toString();
+              return bName.contains(userBank) || userBank.contains(bName);
+            }).toList();
+          }
+        }
+
         setState(() {
-          _distributions = loaded;
+          _distributions = finalDistributions;
           _isLoading = false;
         });
       }
