@@ -372,9 +372,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
       _logger.i('Saved pending profile: name=$fullName, role=$role');
 
-      // Launch Google OAuth flow with dynamic redirect URL for Web/Mobile
-      final Uri? currentUri = Uri.base;
-      final String webRedirectTo = currentUri.toString();
+      // Launch Google OAuth flow with clean redirect URL for Web/Mobile
+      final String origin = Uri.base.origin;
+      final String path = Uri.base.path;
+      final String webRedirectTo = (origin.contains('localhost') || origin.contains('127.0.0.1'))
+          ? Uri.base.toString()
+          : '$origin$path';
+      
+      _logger.i('Launching Google OAuth with redirectTo: $webRedirectTo');
       
       await SupabaseConfig.client.auth.signInWithOAuth(
         OAuthProvider.google,
