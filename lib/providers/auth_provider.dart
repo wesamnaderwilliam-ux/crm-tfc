@@ -115,6 +115,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final pendingRole = prefs.getString(_kPendingRole);
       final pendingBank = prefs.getString(_kPendingBankName);
 
+      final isAdmin = (user.email?.toLowerCase() == 'wezonader@gmail.com') || (pendingRole == 'admin');
+
       if (pendingName != null && pendingRole != null) {
         _logger.i('Syncing pending Google profile: name=$pendingName, role=$pendingRole, bank=$pendingBank');
 
@@ -124,6 +126,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           'full_name': pendingName,
           'role': pendingRole,
           if (pendingBank != null && pendingBank.isNotEmpty) 'bank_name': pendingBank,
+          'is_confirmed': isAdmin,
         });
 
         // Clear pending data
@@ -132,6 +135,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
         await prefs.remove(_kPendingBankName);
 
         _logger.i('Pending Google profile synced successfully.');
+      } else if (user.email?.toLowerCase() == 'wezonader@gmail.com') {
+        // If logging in via Google without pending metadata, ensure admin profile exists & confirmed
+        await SupabaseConfig.client.from('profiles').upsert({
+          'id': user.id,
+          'full_name': user.userMetadata?['full_name'] ?? 'وسام نادر وليم',
+          'role': 'admin',
+          'is_confirmed': true,
+        });
       }
     } catch (e) {
       _logger.e('Error syncing pending Google profile: $e');
@@ -147,24 +158,34 @@ class AuthNotifier extends StateNotifier<AuthState> {
           .eq('id', user.id)
           .single();
 
+      final role = response['role'] ?? ((user.email?.toLowerCase() == 'wezonader@gmail.com') ? 'admin' : 'company_employee');
+      final isAdmin = (user.email?.toLowerCase() == 'wezonader@gmail.com') || (role == 'admin');
+      final isConfirmed = isAdmin ? true : (response['is_confirmed'] ?? false);
+
+      // Auto update in DB if admin but is_confirmed was false
+      if (isAdmin && response['is_confirmed'] != true) {
+        SupabaseConfig.client.from('profiles').update({'is_confirmed': true, 'role': 'admin'}).eq('id', user.id).then((_) {}).catchError((_) {});
+      }
+
       state = state.copyWith(
         user: user,
-        role: response['role'] ?? 'company_employee',
-        fullName: response['full_name'] ?? 'مستخدم',
+        role: role,
+        fullName: response['full_name'] ?? (isAdmin ? 'وسام نادر وليم' : 'مستخدم'),
         bankName: response['bank_name'],
-        isConfirmed: response['is_confirmed'] ?? false,
+        isConfirmed: isConfirmed,
         isAuthenticated: true,
         isLoading: false,
       );
     } catch (e) {
       _logger.e('Error fetching profile: $e');
+      final isAdmin = (user.email?.toLowerCase() == 'wezonader@gmail.com');
       // Fallback for simulation if profile query fails
       state = state.copyWith(
         user: user,
-        role: 'company_employee',
-        fullName: user.userMetadata?['full_name'] ?? 'مستخدم جديد',
+        role: isAdmin ? 'admin' : 'company_employee',
+        fullName: user.userMetadata?['full_name'] ?? (isAdmin ? 'وسام نادر وليم' : 'مستخدم جديد'),
         bankName: user.userMetadata?['bank_name'],
-        isConfirmed: false,
+        isConfirmed: isAdmin ? true : false,
         isAuthenticated: true,
         isLoading: false,
       );
