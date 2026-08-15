@@ -152,26 +152,87 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> _fetchProfile(User user) async {
     if (!SupabaseConfig.isInitialized) return;
     try {
-      final response = await SupabaseConfig.client
+      final userEmail = user.email?.toLowerCase().trim();
+      Map<String, dynamic>? profileData;
+
+      // 1. Try to find profile by user ID
+      final idResponse = await SupabaseConfig.client
           .from('profiles')
-          .select('full_name, role, bank_name, is_confirmed')
+          .select()
           .eq('id', user.id)
-          .single();
+          .maybeSingle();
 
-      final role = response['role'] ?? ((user.email?.toLowerCase() == 'wezonader@gmail.com') ? 'admin' : 'company_employee');
-      final isAdmin = (user.email?.toLowerCase() == 'wezonader@gmail.com') || (role == 'admin');
-      final isConfirmed = isAdmin ? true : (response['is_confirmed'] ?? false);
+      if (idResponse != null) {
+        profileData = Map<String, dynamic>.from(idResponse);
+      } else if (userEmail != null && userEmail.isNotEmpty) {
+        // 2. Fallback: match by email if ID mismatch occurred (e.g. manual profile insert or re-auth)
+        final emailResponse = await SupabaseConfig.client
+            .from('profiles')
+            .select()
+            .eq('email', userEmail)
+            .maybeSingle();
 
-      // Auto update in DB if admin but is_confirmed was false
-      if (isAdmin && response['is_confirmed'] != true) {
-        SupabaseConfig.client.from('profiles').update({'is_confirmed': true, 'role': 'admin'}).eq('id', user.id).then((_) {}).catchError((_) {});
+        if (emailResponse != null) {
+          profileData = Map<String, dynamic>.from(emailResponse);
+          // Link correct Auth User ID to this profile
+          await SupabaseConfig.client
+              .from('profiles')
+              .update({'id': user.id})
+              .eq('email', userEmail);
+          _logger.i('Linked auth user ${user.id} to profile with email $userEmail');
+        }
       }
+
+      if (profileData != null) {
+        final role = profileData['role'] ?? ((userEmail == 'wezonader@gmail.com') ? 'admin' : 'company_employee');
+        final isAdmin = (userEmail == 'wezonader@gmail.com') || (role == 'admin');
+        final isConfirmed = isAdmin ? true : (profileData['is_confirmed'] as bool? ?? false);
+
+        // Ensure email & confirmed status are synced in Supabase profiles
+        final updates = <String, dynamic>{};
+        if (userEmail != null && profileData['email'] != userEmail) {
+          updates['email'] = userEmail;
+        }
+        if (isAdmin && profileData['is_confirmed'] != true) {
+          updates['is_confirmed'] = true;
+          updates['role'] = 'admin';
+        }
+
+        if (updates.isNotEmpty) {
+          SupabaseConfig.client.from('profiles').update(updates).eq('id', user.id).then((_) {}).catchError((_) {});
+        }
+
+        state = state.copyWith(
+          user: user,
+          role: role,
+          fullName: profileData['full_name'] ?? (isAdmin ? 'وسام نادر وليم' : 'مستخدم'),
+          bankName: profileData['bank_name'],
+          isConfirmed: isConfirmed,
+          isAuthenticated: true,
+          isLoading: false,
+        );
+        return;
+      }
+
+      // If no profile found at all, check if user is admin or create a pending profile record
+      final isAdmin = (userEmail == 'wezonader@gmail.com');
+      final newRole = isAdmin ? 'admin' : 'company_employee';
+      final isConfirmed = isAdmin ? true : false;
+
+      // Auto-upsert profile for signed-in user so it exists in profiles table with their email
+      await SupabaseConfig.client.from('profiles').upsert({
+        'id': user.id,
+        'email': userEmail,
+        'full_name': user.userMetadata?['full_name'] ?? (isAdmin ? 'وسام نادر وليم' : 'مستخدم جديد'),
+        'role': newRole,
+        'is_confirmed': isConfirmed,
+      });
 
       state = state.copyWith(
         user: user,
-        role: role,
-        fullName: response['full_name'] ?? (isAdmin ? 'وسام نادر وليم' : 'مستخدم'),
-        bankName: response['bank_name'],
+        role: newRole,
+        fullName: user.userMetadata?['full_name'] ?? (isAdmin ? 'وسام نادر وليم' : 'مستخدم جديد'),
+        bankName: user.userMetadata?['bank_name'],
         isConfirmed: isConfirmed,
         isAuthenticated: true,
         isLoading: false,
@@ -179,7 +240,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e) {
       _logger.e('Error fetching profile: $e');
       final isAdmin = (user.email?.toLowerCase() == 'wezonader@gmail.com');
-      // Fallback for simulation if profile query fails
       state = state.copyWith(
         user: user,
         role: isAdmin ? 'admin' : 'company_employee',
