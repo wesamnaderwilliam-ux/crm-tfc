@@ -402,6 +402,47 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return false;
   }
 
+  /// Sign in with Google for existing users (Login mode) — no name/role needed
+  Future<bool> signInWithGoogleOnly() async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+
+    if (!SupabaseConfig.isInitialized) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: "التطبيق يعمل حالياً في وضع التجربة. تسجيل Google غير متاح.",
+      );
+      return false;
+    }
+
+    try {
+      final String origin = Uri.base.origin;
+      final String path = Uri.base.path;
+      final String webRedirectTo = (origin.contains('localhost') || origin.contains('127.0.0.1'))
+          ? Uri.base.toString()
+          : '$origin$path';
+
+      _logger.i('Google Sign-In (login mode) with redirectTo: $webRedirectTo');
+
+      await SupabaseConfig.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: webRedirectTo,
+      );
+
+      return true;
+    } on AuthException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: "خطأ في تسجيل الدخول بواسطة Google: ${e.message}",
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: "فشل تسجيل الدخول بواسطة Google: $e",
+      );
+    }
+    return false;
+  }
+
   /// Update user password (works for both email/password users and Google OAuth users)
   Future<bool> updatePassword(String newPassword) async {
     state = state.copyWith(isLoading: true, errorMessage: null);

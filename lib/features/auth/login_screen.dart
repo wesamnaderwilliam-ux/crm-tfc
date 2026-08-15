@@ -164,6 +164,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     }
   }
 
+  /// Google Sign-In for existing users (Login mode) - no name/role needed
+  Future<void> _handleGoogleSignIn() async {
+    await ref.read(authProvider.notifier).signInWithGoogleOnly();
+
+    if (mounted) {
+      final errorMsg = ref.read(authProvider).errorMessage;
+      if (errorMsg != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMsg, textAlign: TextAlign.right),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
@@ -570,13 +587,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                               // Main Submit Button
                               _buildPrimaryButton(authState),
                               
-                              // Google Sign-Up/Sign-In button (Sign Up mode only)
-                              if (_isSignUpMode) ...[
-                                const SizedBox(height: 16),
-                                _buildDividerWithText("أو"),
-                                const SizedBox(height: 16),
-                                _buildGoogleButton(authState),
-                              ],
+                              // Google Sign-In/Sign-Up button (both modes)
+                              const SizedBox(height: 16),
+                              _buildDividerWithText("أو"),
+                              const SizedBox(height: 16),
+                              _buildGoogleButton(authState),
 
                               const SizedBox(height: 24),
                               
@@ -788,7 +803,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
         ),
         backgroundColor: Colors.white.withValues(alpha: 0.03),
       ),
-      onPressed: authState.isLoading ? null : _handleGoogleSignUp,
+      onPressed: authState.isLoading ? null : (_isSignUpMode ? _handleGoogleSignUp : _handleGoogleSignIn),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         textDirection: TextDirection.rtl,
@@ -813,9 +828,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             ),
           ),
           const SizedBox(width: 12),
-          const Text(
-            "التسجيل بواسطة Google",
-            style: TextStyle(
+          Text(
+            _isSignUpMode ? "التسجيل بواسطة Google" : "الدخول بواسطة Google",
+            style: const TextStyle(
               color: TfcColors.onSurface,
               fontWeight: FontWeight.w600,
               fontSize: 14,
