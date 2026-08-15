@@ -402,6 +402,54 @@ class AuthNotifier extends StateNotifier<AuthState> {
     return false;
   }
 
+  /// Update user password (works for both email/password users and Google OAuth users)
+  Future<bool> updatePassword(String newPassword) async {
+    state = state.copyWith(isLoading: true, errorMessage: null);
+
+    if (!SupabaseConfig.isInitialized) {
+      await Future.delayed(const Duration(milliseconds: 600));
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: "التطبيق يعمل في الوضع التجريبي Local Mode. تعذّر حفظ كلمة المرور.",
+      );
+      return false;
+    }
+
+    try {
+      final response = await SupabaseConfig.client.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+
+      if (response.user != null) {
+        // Also update profiles table fallback password field
+        try {
+          await SupabaseConfig.client.from('profiles').update({
+            'password': newPassword,
+            'confirm_password': newPassword,
+          }).eq('id', response.user!.id);
+        } catch (_) {}
+
+        state = state.copyWith(
+          user: response.user,
+          isLoading: false,
+          errorMessage: null,
+        );
+        return true;
+      }
+    } on AuthException catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: "فشل تحديث كلمة المرور: ${e.message}",
+      );
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        errorMessage: "حدث خطأ أثناء تغيير كلمة المرور: $e",
+      );
+    }
+    return false;
+  }
+
   Future<void> signOut() async {
     if (SupabaseConfig.isInitialized) {
       try {

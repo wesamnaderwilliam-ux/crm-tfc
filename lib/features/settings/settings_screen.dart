@@ -49,6 +49,12 @@ class SettingsScreen extends ConsumerWidget {
             const SizedBox(height: 32),
 
             // ─────────────────────────────────────────────
+            // 0. User Profile & Password Security Card
+            // ─────────────────────────────────────────────
+            const _UserProfileSecurityCard(),
+            const SizedBox(height: 24),
+
+            // ─────────────────────────────────────────────
             // 1. Simulator Switcher Card
             // ─────────────────────────────────────────────
             GlassCard(
@@ -1082,6 +1088,299 @@ class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSetting
         ),
       );
     }
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// USER PROFILE & PASSWORD MANAGEMENT CARD
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _UserProfileSecurityCard extends ConsumerStatefulWidget {
+  const _UserProfileSecurityCard();
+
+  @override
+  ConsumerState<_UserProfileSecurityCard> createState() => _UserProfileSecurityCardState();
+}
+
+class _UserProfileSecurityCardState extends ConsumerState<_UserProfileSecurityCard> {
+  final _formKey = GlobalKey<FormState>();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
+
+  @override
+  void dispose() {
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleUpdatePassword() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final success = await ref.read(authProvider.notifier).updatePassword(
+      _passwordController.text.trim(),
+    );
+
+    if (mounted) {
+      if (success) {
+        _passwordController.clear();
+        _confirmPasswordController.clear();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("تم تحديث وحفظ كلمة المرور بنجاح! 🔒✅", textAlign: TextAlign.right),
+            backgroundColor: TfcColors.primary,
+          ),
+        );
+      } else {
+        final error = ref.read(authProvider).errorMessage ?? "فشل حفظ كلمة المرور";
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(error, textAlign: TextAlign.right),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final user = authState.user;
+    final isGoogleUser = user?.appMetadata['provider'] == 'google' ||
+        (user?.identities?.any((id) => id.provider == 'google') ?? false);
+
+    return GlassCard(
+      borderColor: TfcColors.primary.withValues(alpha: 0.3),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Header
+          Row(
+            textDirection: TextDirection.rtl,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: TfcColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.manage_accounts, color: TfcColors.primary, size: 22),
+              ),
+              const SizedBox(width: 12),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    "الملف الشخصي وأمان الحساب",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    "إدارة بيانات الحساب وتعيين كلمة المرور الحاصة بك",
+                    style: TextStyle(color: TfcColors.outline, fontSize: 12),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // User Info Box
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.03),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            ),
+            child: Row(
+              textDirection: TextDirection.rtl,
+              children: [
+                CircleAvatar(
+                  radius: 24,
+                  backgroundColor: TfcColors.primary.withValues(alpha: 0.2),
+                  child: Text(
+                    authState.fullName.isNotEmpty ? authState.fullName[0] : 'U',
+                    style: const TextStyle(
+                      color: TfcColors.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          if (isGoogleUser)
+                            Container(
+                              margin: const EdgeInsets.only(right: 8),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF4285F4).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: const Color(0xFF4285F4).withValues(alpha: 0.4)),
+                              ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text("G ", style: TextStyle(color: Color(0xFF4285F4), fontWeight: FontWeight.bold, fontSize: 11)),
+                                  Text("حساب Google", style: TextStyle(color: Color(0xFF4285F4), fontSize: 11)),
+                                ],
+                              ),
+                            ),
+                          Text(
+                            authState.fullName,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        user?.email ?? 'لا يوجد بريد إلكتروني مسجل',
+                        style: const TextStyle(color: TfcColors.outline, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Password Update Form
+          Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      isGoogleUser
+                          ? "تعيين/تغيير كلمة مرور للحساب"
+                          : "تعديل كلمة المرور",
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: TfcColors.primary),
+                    ),
+                    const SizedBox(width: 6),
+                    const Icon(Icons.lock_outline, color: TfcColors.primary, size: 16),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  isGoogleUser
+                      ? "يمكنك إنشاء كلمة مرور خاصة بحسابك حتى تتمكن من تسجيل الدخول سواء بـ Google أو بالبريد الإلكتروني مباشرة"
+                      : "أدخل كلمة المرور الجديدة لحفظها وتحديث حماية حسابك",
+                  style: const TextStyle(color: TfcColors.outline, fontSize: 12),
+                  textAlign: TextAlign.right,
+                ),
+                const SizedBox(height: 16),
+
+                // New Password Input
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: _obscurePassword,
+                  textAlign: TextAlign.right,
+                  textDirection: TextDirection.ltr,
+                  decoration: InputDecoration(
+                    labelText: "كلمة المرور الجديدة",
+                    hintText: "••••••••",
+                    prefixIcon: const Icon(Icons.key, color: TfcColors.outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                        color: TfcColors.outline,
+                      ),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "يرجى إدخال كلمة المرور الجديدة";
+                    }
+                    if (value.trim().length < 6) {
+                      return "كلمة المرور يجب أن تكون 6 أحرف على الأقل";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Confirm Password Input
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  obscureText: _obscureConfirmPassword,
+                  textAlign: TextAlign.right,
+                  textDirection: TextDirection.ltr,
+                  decoration: InputDecoration(
+                    labelText: "تأكيد كلمة المرور الجديدة",
+                    hintText: "••••••••",
+                    prefixIcon: const Icon(Icons.lock_reset, color: TfcColors.outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                        color: TfcColors.outline,
+                      ),
+                      onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "يرجى تأكيد كلمة المرور";
+                    }
+                    if (value.trim() != _passwordController.text.trim()) {
+                      return "كلمتا المرور غير متطابقتين";
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 20),
+
+                // Save Password Button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: TfcColors.primary,
+                      foregroundColor: TfcColors.onPrimary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: authState.isLoading ? null : _handleUpdatePassword,
+                    child: authState.isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: TfcColors.onPrimary),
+                          )
+                        : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                "حفظ وتحديث كلمة المرور",
+                                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                              ),
+                              SizedBox(width: 8),
+                              Icon(Icons.save_outlined, size: 18),
+                            ],
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
