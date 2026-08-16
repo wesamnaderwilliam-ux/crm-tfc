@@ -5,6 +5,7 @@ import '../../providers/employees_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../models/profile.dart';
+import '../../providers/banks_provider.dart';
 import 'employee_permissions_panel.dart';
 import 'employee_targets_panel.dart';
 import '../../core/widgets/phone_action_widget.dart';
@@ -302,6 +303,10 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
               children: [
                 _buildProfileDetailRow(Icons.email_outlined, emp.email ?? '—'),
                 const SizedBox(height: 6),
+                if (isBankEmp) ...[
+                  _buildProfileDetailRow(Icons.account_balance_outlined, emp.bankName ?? 'لم يحدد بنك'),
+                  const SizedBox(height: 6),
+                ],
                 effectiveCanViewPhone
                     ? (emp.phoneNumber != null && emp.phoneNumber!.isNotEmpty
                         ? PhoneActionWidget(label: 'رقم الهاتف', phoneNumber: emp.phoneNumber!)
@@ -549,12 +554,16 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
     String selectedStatus = emp.employeeStatus;
     bool isConfirmed = emp.isConfirmed;
     String? selectedManagerId = emp.managerId;
+    String? selectedBankName = emp.bankName;
 
     final allEmployees = ref.read(employeesProvider).employees;
     // Potential managers = admins and managers (excluding self)
     final potentialManagers = allEmployees
         .where((e) => (e.role == 'admin' || e.role == 'manager') && e.id != emp.id)
         .toList();
+
+    final banksAsync = ref.watch(allBanksProvider);
+    final bankList = banksAsync.value ?? [];
 
     showDialog(
       context: context,
@@ -695,6 +704,41 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
                     ),
                     const SizedBox(height: 14),
 
+                    if (selectedRole == 'bank_employee') ...[
+                      // Bank dropdown
+                      _dialogFieldLabel('البنك التابع له'),
+                      const SizedBox(height: 6),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                        ),
+                        child: DropdownButtonFormField<String>(
+                          initialValue: bankList.any((b) => b['bank_name'] == selectedBankName) ? selectedBankName : null,
+                          dropdownColor: TfcColors.surfaceContainer,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            prefixIcon: Icon(Icons.account_balance, color: TfcColors.outline),
+                          ),
+                          hint: const Text('اختر البنك التابع له الموظف', textDirection: TextDirection.rtl, style: TextStyle(color: TfcColors.outline)),
+                          items: bankList.map((b) {
+                            final name = b['bank_name'] as String;
+                            return DropdownMenuItem<String>(
+                              value: name,
+                              child: Text(name, textDirection: TextDirection.rtl),
+                            );
+                          }).toList(),
+                          onChanged: (v) {
+                            setDialogState(() => selectedBankName = v);
+                          },
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                    ],
+
                     if (selectedRole == 'company_employee') ...[
                       // Manager dropdown
                       _dialogFieldLabel('المدير التابع له'),
@@ -821,6 +865,7 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
                             managerId: selectedManagerId,
                             employeeStatus: selectedStatus,
                             isConfirmed: isConfirmed,
+                            bankName: selectedRole == 'bank_employee' ? selectedBankName : null,
                           );
                           if (success && ctx.mounted) {
                             Navigator.of(ctx).pop();

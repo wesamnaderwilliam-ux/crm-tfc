@@ -13,6 +13,7 @@ class Profile {
   final String? managerId;
   final String employeeStatus; // active, on_leave, terminated
   final DateTime createdAt;
+  final String? bankName;
   /// Per-employee permission overrides set by admin.
   /// Keys match the permission keys in EmployeePermissionKeys.
   /// null means "use role default", true/false means explicit override.
@@ -31,6 +32,7 @@ class Profile {
     this.isConfirmed = false,
     this.managerId,
     this.employeeStatus = 'active',
+    this.bankName,
     required this.createdAt,
     this.customPermissions = const {},
   });
@@ -60,6 +62,7 @@ class Profile {
       isConfirmed: map['is_confirmed'] as bool? ?? false,
       managerId: map['manager_id'] as String?,
       employeeStatus: map['employee_status'] as String? ?? 'active',
+      bankName: map['bank_name'] as String?,
       createdAt: map['created_at'] != null
           ? DateTime.parse(map['created_at'] as String)
           : DateTime.now(),
@@ -80,6 +83,7 @@ class Profile {
         'is_confirmed': isConfirmed,
         'manager_id': managerId,
         'employee_status': employeeStatus,
+        'bank_name': bankName,
         'created_at': createdAt.toIso8601String(),
         'custom_permissions': customPermissions,
       };
@@ -95,6 +99,7 @@ class Profile {
     bool? isConfirmed,
     String? managerId,
     String? employeeStatus,
+    String? bankName,
   }) {
     return Profile(
       id: id,
@@ -109,6 +114,7 @@ class Profile {
       isConfirmed: isConfirmed ?? this.isConfirmed,
       managerId: managerId ?? this.managerId,
       employeeStatus: employeeStatus ?? this.employeeStatus,
+      bankName: bankName ?? this.bankName,
       createdAt: createdAt,
       customPermissions: customPermissions ?? this.customPermissions,
     );

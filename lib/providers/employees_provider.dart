@@ -161,6 +161,7 @@ class EmployeesNotifier extends StateNotifier<EmployeesState> {
     String? phoneNumber,
     String? nationalId,
     String? hiringDate,
+    String? bankName,
   }) async {
     if (!SupabaseConfig.isInitialized) {
       // Simulation mode: update locally
@@ -179,6 +180,7 @@ class EmployeesNotifier extends StateNotifier<EmployeesState> {
             isConfirmed: isConfirmed ?? e.isConfirmed,
             managerId: managerId ?? e.managerId,
             employeeStatus: employeeStatus ?? e.employeeStatus,
+            bankName: bankName ?? e.bankName,
             createdAt: e.createdAt,
           );
         }
@@ -199,11 +201,65 @@ class EmployeesNotifier extends StateNotifier<EmployeesState> {
       if (phoneNumber != null) updates['phone_number'] = phoneNumber;
       if (nationalId != null) updates['national_id'] = nationalId;
       if (hiringDate != null) updates['hiring_date'] = hiringDate;
+      if (bankName != null) updates['bank_name'] = bankName.isEmpty ? null : bankName;
 
       await SupabaseConfig.client
           .from('profiles')
           .update(updates)
           .eq('id', profileId);
+
+      // If role is bank_employee and bankName is provided, update or create bank_employees link
+      final effectiveRole = role ?? state.employees.firstWhere((e) => e.id == profileId).role;
+      final effectiveBankName = (bankName != null && bankName.isNotEmpty)
+          ? bankName
+          : state.employees.firstWhere((e) => e.id == profileId).bankName;
+      final effectiveFullName = fullName ?? state.employees.firstWhere((e) => e.id == profileId).fullName;
+      final effectivePhone = phoneNumber ?? state.employees.firstWhere((e) => e.id == profileId).phoneNumber ?? '';
+      final effectiveEmail = state.employees.firstWhere((e) => e.id == profileId).email;
+
+      if (effectiveRole == 'bank_employee' && effectiveBankName != null && effectiveBankName.isNotEmpty) {
+        try {
+          // Find bank_id from banks table
+          final bankRes = await SupabaseConfig.client
+              .from('banks')
+              .select('id')
+              .eq('bank_name', effectiveBankName)
+              .maybeSingle();
+
+          if (bankRes != null && bankRes['id'] != null) {
+            final String bankId = bankRes['id'];
+
+            // Check if record exists in bank_employees for this profile_id
+            final empRes = await SupabaseConfig.client
+                .from('bank_employees')
+                .select('id')
+                .eq('profile_id', profileId)
+                .maybeSingle();
+
+            if (empRes != null && empRes['id'] != null) {
+              // Update existing bank_employee record
+              await SupabaseConfig.client.from('bank_employees').update({
+                'bank_id': bankId,
+                'employee_name': effectiveFullName,
+                'phone_1': effectivePhone,
+                'email': effectiveEmail,
+              }).eq('profile_id', profileId);
+            } else {
+              // Insert new bank_employee record linked with profile_id
+              await SupabaseConfig.client.from('bank_employees').insert({
+                'bank_id': bankId,
+                'employee_name': effectiveFullName,
+                'phone_1': effectivePhone.isNotEmpty ? effectivePhone : '0000000000',
+                'email': effectiveEmail,
+                'job_title': 'مسؤول تحصيل/تمويل',
+                'profile_id': profileId,
+              });
+            }
+          }
+        } catch (linkError) {
+          _logger.w('Failed to link profile to bank_employees: $linkError');
+        }
+      }
 
       // Refresh the list
       await fetchEmployees();
