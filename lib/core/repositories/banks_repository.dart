@@ -41,8 +41,13 @@ class BanksRepository {
   // -------------------------------------------------------------------------
   // BANK CRUD
   // -------------------------------------------------------------------------
-  Future<void> createBank(String bankName) async {
-    await _supabase.from('banks').insert({'bank_name': bankName});
+  Future<Map<String, dynamic>> createBank(String bankName) async {
+    final res = await _supabase
+        .from('banks')
+        .insert({'bank_name': bankName})
+        .select('id, bank_name')
+        .single();
+    return Map<String, dynamic>.from(res);
   }
 
   Future<void> updateBank(String id, String bankName) async {
@@ -50,6 +55,9 @@ class BanksRepository {
   }
 
   Future<void> deleteBank(String id) async {
+    // Delete linked child records first to ensure clean cascade across schema constraints
+    await _supabase.from('bank_employees').delete().eq('bank_id', id);
+    await _supabase.from('bank_programs_details').delete().eq('bank_id', id);
     await _supabase.from('banks').delete().eq('id', id);
   }
 
@@ -75,20 +83,21 @@ class BanksRepository {
   // -------------------------------------------------------------------------
   // BANK PROGRAM DETAILS CRUD
   // -------------------------------------------------------------------------
-  Future<void> addProgramToBank({
+  Future<Map<String, dynamic>> addProgramToBank({
     required String bankId,
     required String coreProgramId,
     required String description,
     required double interestRate,
     required double maxLoanAmount,
   }) async {
-    await _supabase.from('bank_programs_details').insert({
+    final res = await _supabase.from('bank_programs_details').insert({
       'bank_id': bankId,
       'program_id': coreProgramId,
       'description': description,
       'interest_rate': interestRate,
       'max_loan_amount': maxLoanAmount,
-    });
+    }).select().single();
+    return Map<String, dynamic>.from(res);
   }
 
   Future<void> updateBankProgram({
@@ -111,7 +120,7 @@ class BanksRepository {
   // -------------------------------------------------------------------------
   // BANK EMPLOYEES CRUD
   // -------------------------------------------------------------------------
-  Future<void> addEmployee({
+  Future<Map<String, dynamic>> addEmployee({
     required String bankId,
     required String name,
     required String phone1,
@@ -120,16 +129,16 @@ class BanksRepository {
     String? email,
     String? notes,
   }) async {
-    await _supabase.from('bank_employees').insert({
+    final res = await _supabase.from('bank_employees').insert({
       'bank_id': bankId,
       'employee_name': name,
       'phone_1': phone1,
       'phone_2': (phone2 != null && phone2.trim().isNotEmpty) ? phone2 : null,
-      'job_title':
-          (jobTitle != null && jobTitle.trim().isNotEmpty) ? jobTitle : null,
+      'job_title': (jobTitle != null && jobTitle.trim().isNotEmpty) ? jobTitle : null,
       'email': (email != null && email.trim().isNotEmpty) ? email : null,
       'notes': (notes != null && notes.trim().isNotEmpty) ? notes : null,
-    });
+    }).select().single();
+    return Map<String, dynamic>.from(res);
   }
 
   Future<void> updateEmployee({
@@ -143,7 +152,7 @@ class BanksRepository {
     String? notes,
   }) async {
     await _supabase.from('bank_employees').update({
-      if (bankId != null) 'bank_id': bankId,
+      if (bankId != null && bankId.trim().isNotEmpty) 'bank_id': bankId,
       'employee_name': name,
       'phone_1': phone1,
       'phone_2': (phone2 != null && phone2.trim().isNotEmpty) ? phone2 : null,

@@ -462,7 +462,8 @@ class BanksScreen extends ConsumerWidget {
                   try {
                     final repo = ref.read(banksRepositoryProvider);
                     if (bank == null) {
-                      await repo.createBank(nameController.text.trim());
+                      final newBank = await repo.createBank(nameController.text.trim());
+                      ref.read(selectedBankIdProvider.notifier).state = newBank['id'];
                     } else {
                       await repo.updateBank(bank['id'], nameController.text.trim());
                     }
