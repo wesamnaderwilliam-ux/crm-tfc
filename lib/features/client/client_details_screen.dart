@@ -26,6 +26,7 @@ class ClientDetailsScreen extends ConsumerStatefulWidget {
   final Function(String)? onClientSelected;
   final Function(String)? onViewAiAnalysis;
   final VoidCallback? onOpenNewClientForm;
+  final bool bankEmployeeMode;
 
   const ClientDetailsScreen({
     super.key,
@@ -34,6 +35,7 @@ class ClientDetailsScreen extends ConsumerStatefulWidget {
     this.onClientSelected,
     this.onViewAiAnalysis,
     this.onOpenNewClientForm,
+    this.bankEmployeeMode = false,
   });
 
   @override
@@ -213,8 +215,9 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     final canDeleteClients = effectivePerms[EmployeePermissionKeys.deleteClient] ?? rolePermissions.canDeleteClients;
     final canAddNote = effectivePerms[EmployeePermissionKeys.addNote] ?? true;
     final canApproveLoans = effectivePerms[EmployeePermissionKeys.approveLoans] ?? rolePermissions.canApproveLoans;
-    final showPhone = authState.role == 'bank_employee'
-        ? (effectivePerms[EmployeePermissionKeys.fieldPhone] ?? false)
+    final isBankEmp = authState.role == 'bank_employee' || widget.bankEmployeeMode;
+    final showPhone = isBankEmp
+        ? false
         : (effectivePerms[EmployeePermissionKeys.fieldPhone] ?? true);
     final showNationalId = effectivePerms[EmployeePermissionKeys.fieldNationalId] ?? true;
     final showSalary = effectivePerms[EmployeePermissionKeys.fieldSalary] ?? true;

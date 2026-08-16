@@ -12,7 +12,12 @@ import '../../core/widgets/interactive_hover_card.dart';
 
 class AllDistributionsScreen extends ConsumerStatefulWidget {
   final Function(String) onViewClient;
-  const AllDistributionsScreen({super.key, required this.onViewClient});
+  final bool bankEmployeeMode;
+  const AllDistributionsScreen({
+    super.key,
+    required this.onViewClient,
+    this.bankEmployeeMode = false,
+  });
 
   @override
   ConsumerState<AllDistributionsScreen> createState() => _AllDistributionsScreenState();

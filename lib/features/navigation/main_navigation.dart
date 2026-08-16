@@ -276,123 +276,168 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
 
     _syncCurrentUserPermissions(authState.user?.id, authState.role);
 
+    final bool isBankEmployee = authState.role == 'bank_employee';
+
     final List<_NavItem> navItems = [];
 
-    // Dashboard (0)
-    if (isAdmin || (perms[EmployeePermissionKeys.viewDashboard] ?? true)) {
-      navItems.add(_NavItem(
-        label: 'لوحة التحكم الرئيسية',
-        icon: Icons.analytics_rounded,
-        screen: DashboardScreen(onViewClient: selectClient),
-      ));
-    }
-
-    // Prospects (1)
-    final bool showProspects = isAdmin || (perms[EmployeePermissionKeys.viewClients] ?? true);
-    if (showProspects) {
-      navItems.add(_NavItem(
-        label: 'العملاء المحتملين',
-        icon: Icons.recent_actors_rounded,
-        screen: ProspectsScreen(
-          onNavigateToClientDetails: (convertedClientId) {
-            selectClient(convertedClientId);
-          },
-        ),
-      ));
-    }
-
-    // Client Details (2) - Now consolidates Client Profile & New Request
-    final bool showClientDetails = isAdmin || (perms[EmployeePermissionKeys.viewClients] ?? true);
-    if (showClientDetails) {
+    if (isBankEmployee) {
+      // 1. تفاصيل وإدارة العملاء (العملاء الموزعين عليه فقط وبدون هاتف)
       navItems.add(_NavItem(
         label: 'تفاصيل وإدارة العملاء',
         icon: Icons.person_search_rounded,
-        screen: _showNewClientForm
-            ? NewClientScreen(onComplete: () {
-                setState(() => _showNewClientForm = false);
-              })
-            : ClientDetailsScreen(
-                clientId: _selectedClientId,
-                onBack: _goBack,
-                onClientSelected: selectClient,
-                onViewAiAnalysis: selectAiClient,
-                onOpenNewClientForm: () {
-                  setState(() => _showNewClientForm = true);
-                },
-              ),
+        screen: ClientDetailsScreen(
+          clientId: _selectedClientId,
+          onBack: _goBack,
+          onClientSelected: selectClient,
+          onViewAiAnalysis: null,
+          onOpenNewClientForm: null,
+          bankEmployeeMode: true,
+        ),
       ));
-    }
 
-    // All Distributions
-    if (isAdmin || (perms[EmployeePermissionKeys.viewClients] ?? true)) {
+      // 2. التوزيعات العامة (توزيعاتي الخاصة)
       navItems.add(_NavItem(
         label: 'التوزيعات العامة',
         icon: Icons.account_tree_rounded,
-        screen: AllDistributionsScreen(onViewClient: selectClient),
+        screen: AllDistributionsScreen(
+          onViewClient: selectClient,
+          bankEmployeeMode: true,
+        ),
       ));
-    }
 
-    // All Operations
-    if (isAdmin || (perms[EmployeePermissionKeys.viewClients] ?? true)) {
+      // 3. العمليات (عملياتي الخاصة)
       navItems.add(_NavItem(
-        label: 'العمليات العامة',
+        label: 'العمليات',
         icon: Icons.settings_suggest_rounded,
-        screen: AllOperationsScreen(onViewClient: selectClient),
+        screen: AllOperationsScreen(
+          onViewClient: selectClient,
+          bankEmployeeMode: true,
+        ),
       ));
-    }
 
-    // Invoices - Admin
-    if (isAdmin) {
-      navItems.add(_NavItem(
-        label: 'الفواتير والماليات',
-        icon: Icons.receipt_long_rounded,
-        screen: InvoicesScreen(onViewClient: selectClient),
-      ));
-    }
-
-    // Accounts - Admin
-    if (isAdmin) {
-      navItems.add(_NavItem(
-        label: 'الحسابات والميزانية',
-        icon: Icons.account_balance_wallet_rounded,
-        screen: AccountsScreen(onViewClient: selectClient),
-      ));
-    }
-
-    // Banks
-    if (isAdmin || (perms[EmployeePermissionKeys.viewBanks] ?? true)) {
+      // 4. دليل البنوك والبرامج (كما هو)
       navItems.add(_NavItem(
         label: 'دليل البنوك والبرامج',
         icon: Icons.account_balance_rounded,
         screen: const BanksScreen(),
       ));
-    }
 
+    } else {
+      // ─── STANDARD MENU FOR ADMIN / MANAGER / COMPANY_EMPLOYEE ──────────────
+      // Dashboard (0)
+      if (isAdmin || (perms[EmployeePermissionKeys.viewDashboard] ?? true)) {
+        navItems.add(_NavItem(
+          label: 'لوحة التحكم الرئيسية',
+          icon: Icons.analytics_rounded,
+          screen: DashboardScreen(onViewClient: selectClient),
+        ));
+      }
 
+      // Prospects (1)
+      final bool showProspects = isAdmin || (perms[EmployeePermissionKeys.viewClients] ?? true);
+      if (showProspects) {
+        navItems.add(_NavItem(
+          label: 'العملاء المحتملين',
+          icon: Icons.recent_actors_rounded,
+          screen: ProspectsScreen(
+            onNavigateToClientDetails: (convertedClientId) {
+              selectClient(convertedClientId);
+            },
+          ),
+        ));
+      }
 
-    // AI Assistant
-    navItems.add(_NavItem(
-      label: 'المساعد الذكي (AI)',
-      icon: Icons.psychology_rounded,
-      screen: AiAssistantScreen(initialClientId: _aiClientId),
-    ));
+      // Client Details (2)
+      final bool showClientDetails = isAdmin || (perms[EmployeePermissionKeys.viewClients] ?? true);
+      if (showClientDetails) {
+        navItems.add(_NavItem(
+          label: 'تفاصيل وإدارة العملاء',
+          icon: Icons.person_search_rounded,
+          screen: _showNewClientForm
+              ? NewClientScreen(onComplete: () {
+                  setState(() => _showNewClientForm = false);
+                })
+              : ClientDetailsScreen(
+                  clientId: _selectedClientId,
+                  onBack: _goBack,
+                  onClientSelected: selectClient,
+                  onViewAiAnalysis: selectAiClient,
+                  onOpenNewClientForm: () {
+                    setState(() => _showNewClientForm = true);
+                  },
+                ),
+        ));
+      }
 
-    // Employees
-    if (isAdmin || (perms[EmployeePermissionKeys.viewEmployees] ?? false)) {
+      // All Distributions
+      if (isAdmin || (perms[EmployeePermissionKeys.viewClients] ?? true)) {
+        navItems.add(_NavItem(
+          label: 'التوزيعات العامة',
+          icon: Icons.account_tree_rounded,
+          screen: AllDistributionsScreen(onViewClient: selectClient),
+        ));
+      }
+
+      // All Operations
+      if (isAdmin || (perms[EmployeePermissionKeys.viewClients] ?? true)) {
+        navItems.add(_NavItem(
+          label: 'العمليات العامة',
+          icon: Icons.settings_suggest_rounded,
+          screen: AllOperationsScreen(onViewClient: selectClient),
+        ));
+      }
+
+      // Invoices - Admin
+      if (isAdmin) {
+        navItems.add(_NavItem(
+          label: 'الفواتير والماليات',
+          icon: Icons.receipt_long_rounded,
+          screen: InvoicesScreen(onViewClient: selectClient),
+        ));
+      }
+
+      // Accounts - Admin
+      if (isAdmin) {
+        navItems.add(_NavItem(
+          label: 'الحسابات والميزانية',
+          icon: Icons.account_balance_wallet_rounded,
+          screen: AccountsScreen(onViewClient: selectClient),
+        ));
+      }
+
+      // Banks
+      if (isAdmin || (perms[EmployeePermissionKeys.viewBanks] ?? true)) {
+        navItems.add(_NavItem(
+          label: 'دليل البنوك والبرامج',
+          icon: Icons.account_balance_rounded,
+          screen: const BanksScreen(),
+        ));
+      }
+
+      // AI Assistant
       navItems.add(_NavItem(
-        label: 'موظفي الشركة',
-        icon: Icons.groups_rounded,
-        screen: const EmployeesScreen(),
+        label: 'المساعد الذكي (AI)',
+        icon: Icons.psychology_rounded,
+        screen: AiAssistantScreen(initialClientId: _aiClientId),
       ));
-    }
 
-    // Settings
-    if (isAdmin || rolePerms.canManageRoles || (perms[EmployeePermissionKeys.viewSettings] ?? false)) {
-      navItems.add(_NavItem(
-        label: 'الإعدادات والصلاحيات',
-        icon: Icons.settings_rounded,
-        screen: const SettingsScreen(),
-      ));
+      // Employees
+      if (isAdmin || (perms[EmployeePermissionKeys.viewEmployees] ?? false)) {
+        navItems.add(_NavItem(
+          label: 'موظفي الشركة',
+          icon: Icons.groups_rounded,
+          screen: const EmployeesScreen(),
+        ));
+      }
+
+      // Settings
+      if (isAdmin || rolePerms.canManageRoles || (perms[EmployeePermissionKeys.viewSettings] ?? false)) {
+        navItems.add(_NavItem(
+          label: 'الإعدادات والصلاحيات',
+          icon: Icons.settings_rounded,
+          screen: const SettingsScreen(),
+        ));
+      }
     }
 
     // Adjust selected client navigation helper
