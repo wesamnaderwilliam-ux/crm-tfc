@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme.dart';
 import '../../core/supabase_config.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/banks_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -401,6 +402,89 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                                   ),
                                 ),
                                 const SizedBox(height: 20),
+
+                                // Bank Selection Dropdown (visible only for bank_employee)
+                                if (_selectedRole == 'bank_employee') ...[
+                                  _buildFieldLabel("البنك التابع له", Icons.account_balance_outlined),
+                                  const SizedBox(height: 8),
+                                  Consumer(
+                                    builder: (context, ref, _) {
+                                      final banksAsync = ref.watch(allBanksProvider);
+                                      return banksAsync.when(
+                                        loading: () => Container(
+                                          padding: const EdgeInsets.all(16),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withValues(alpha: 0.04),
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                                          ),
+                                          child: const Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: TfcColors.primary)),
+                                              SizedBox(width: 8),
+                                              Text("جاري تحميل البنوك...", style: TextStyle(color: TfcColors.outline)),
+                                            ],
+                                          ),
+                                        ),
+                                        error: (err, _) => const Text("خطأ في تحميل البنوك", style: TextStyle(color: Colors.redAccent)),
+                                        data: (banks) {
+                                          final bankNames = banks
+                                              .map((b) => (b['bank_name'] ?? '').toString())
+                                              .where((name) => name.isNotEmpty)
+                                              .toList();
+                                          if (_selectedBankName != null && !bankNames.contains(_selectedBankName)) {
+                                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                                              setState(() => _selectedBankName = null);
+                                            });
+                                          }
+                                          return Container(
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withValues(alpha: 0.04),
+                                              borderRadius: BorderRadius.circular(10),
+                                              border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.2)),
+                                            ),
+                                            child: DropdownButtonFormField<String>(
+                                              value: _selectedBankName,
+                                              dropdownColor: TfcColors.surfaceContainer,
+                                              isExpanded: true,
+                                              icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.blueAccent),
+                                              decoration: const InputDecoration(
+                                                border: InputBorder.none,
+                                                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                                prefixIcon: Icon(Icons.account_balance, color: Colors.blueAccent),
+                                                hintText: "اختر البنك التابع له",
+                                                hintStyle: TextStyle(color: TfcColors.outline),
+                                              ),
+                                              items: bankNames.map((bankName) {
+                                                return DropdownMenuItem<String>(
+                                                  value: bankName,
+                                                  child: Text(
+                                                    bankName,
+                                                    style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.w600),
+                                                    textDirection: TextDirection.rtl,
+                                                  ),
+                                                );
+                                              }).toList(),
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  _selectedBankName = value;
+                                                });
+                                              },
+                                              validator: (value) {
+                                                if (_selectedRole == 'bank_employee' && (value == null || value.isEmpty)) {
+                                                  return "يرجى اختيار البنك التابع له";
+                                                }
+                                                return null;
+                                              },
+                                            ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
+                                  const SizedBox(height: 20),
+                                ],
 
                                 // Phone Number Field
                                 _buildFieldLabel("رقم الهاتف", Icons.phone_outlined),

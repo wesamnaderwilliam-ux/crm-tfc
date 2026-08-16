@@ -26,6 +26,8 @@ class BanksScreen extends ConsumerWidget {
     final isUserAdminRole = (role == 'admin' || role == 'manager' || authState.user?.email?.toLowerCase() == 'wezonader@gmail.com');
     final isAdmin = isUserAdminRole || (effectivePerms[EmployeePermissionKeys.manageBanks] ?? false);
     final canViewBankPhones = isUserAdminRole || (effectivePerms[EmployeePermissionKeys.viewBankPhones] ?? false);
+    final isBankEmployee = role == 'bank_employee';
+    final userBankName = authState.bankName;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -48,8 +50,13 @@ class BanksScreen extends ConsumerWidget {
           ),
         ),
         data: (banks) {
+          // If user is a bank employee, filter to only their bank
+          final visibleBanks = isBankEmployee && userBankName != null
+              ? banks.where((b) => (b['bank_name'] ?? '').toString() == userBankName).toList()
+              : banks;
+
           // Filter banks list based on search query with Arabic normalization
-          final filteredBanks = banks.where((bank) {
+          final filteredBanks = visibleBanks.where((bank) {
             if (searchQuery.isEmpty) return true;
             
             final query = _normalizeArabic(searchQuery.trim().toLowerCase());
@@ -98,15 +105,15 @@ class BanksScreen extends ConsumerWidget {
             });
           }
 
-          // Ensure selected bank still exists in full bank list
-          final hasSelectedBank = banks.any((b) => b['id'] == selectedBankId);
-          if (!hasSelectedBank && banks.isNotEmpty) {
+          // Ensure selected bank still exists in visible bank list
+          final hasSelectedBank = visibleBanks.any((b) => b['id'] == selectedBankId);
+          if (!hasSelectedBank && visibleBanks.isNotEmpty) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              ref.read(selectedBankIdProvider.notifier).state = banks[0]['id'];
+              ref.read(selectedBankIdProvider.notifier).state = visibleBanks[0]['id'];
             });
           }
 
-          final selectedBankData = banks.firstWhere(
+          final selectedBankData = visibleBanks.firstWhere(
             (b) => b['id'] == selectedBankId,
             orElse: () => <String, dynamic>{},
           );
@@ -207,6 +214,7 @@ class BanksScreen extends ConsumerWidget {
                             ? _BankDetailsPanel(
                                 bankData: selectedBankData,
                                 isAdmin: isAdmin,
+                                isBankEmployee: isBankEmployee,
                                 canViewBankPhones: canViewBankPhones,
                               )
                             : const Center(
@@ -559,11 +567,13 @@ class BanksScreen extends ConsumerWidget {
 class _BankDetailsPanel extends ConsumerStatefulWidget {
   final Map<String, dynamic> bankData;
   final bool isAdmin;
+  final bool isBankEmployee;
   final bool canViewBankPhones;
 
   const _BankDetailsPanel({
     required this.bankData,
     required this.isAdmin,
+    this.isBankEmployee = false,
     this.canViewBankPhones = true,
   });
 
@@ -666,35 +676,39 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
             ),
           ),
 
-          // Always show both tabs (Programs + Employees) for all users
-          TabBar(
-            controller: _tabController,
-            indicatorColor: TfcColors.primary,
-            indicatorSize: TabBarIndicatorSize.tab,
-            labelColor: TfcColors.primary,
-            unselectedLabelColor: TfcColors.outline,
-            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-            tabs: const [
-              Tab(
-                icon: Icon(Icons.assignment_turned_in, size: 18),
-                text: "البرامج الائتمانية والفوائد",
-              ),
-              Tab(
-                icon: Icon(Icons.badge, size: 18),
-                text: "مسؤولو قنوات الاتصال",
-              ),
-            ],
-          ),
-
-          Expanded(
-            child: TabBarView(
+          if (!widget.isBankEmployee) ...[
+            TabBar(
               controller: _tabController,
-              children: [
-                _buildProgramsTab(programs),
-                _buildEmployeesTab(employees),
+              indicatorColor: TfcColors.primary,
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelColor: TfcColors.primary,
+              unselectedLabelColor: TfcColors.outline,
+              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+              tabs: const [
+                Tab(
+                  icon: Icon(Icons.assignment_turned_in, size: 18),
+                  text: "البرامج الائتمانية والفوائد",
+                ),
+                Tab(
+                  icon: Icon(Icons.badge, size: 18),
+                  text: "مسؤولو قنوات الاتصال",
+                ),
               ],
             ),
-          ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildProgramsTab(programs),
+                  _buildEmployeesTab(employees),
+                ],
+              ),
+            ),
+          ] else ...[
+            Expanded(
+              child: _buildProgramsTab(programs),
+            ),
+          ],
         ],
       ),
     );
@@ -746,16 +760,11 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
                                 ),
                                 Row(
                                   children: [
-                                    if (widget.isAdmin) ...[
+                                    if (widget.isAdmin || widget.isBankEmployee) ...[
                                       IconButton(
                                         icon: const Icon(Icons.edit, size: 16, color: TfcColors.primary),
                                         onPressed: () => _showProgramFormDialog(context, ref, program: program),
                                         tooltip: "تعديل تفاصيل البرنامج",
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent),
-                                        onPressed: () => _confirmDeleteProgram(context, ref, program),
-                                        tooltip: "حذف البرنامج من البنك",
                                       ),
                                       const SizedBox(width: 8),
                                     ],
@@ -818,7 +827,7 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
                   },
                 ),
         ),
-        if (widget.isAdmin)
+        if (widget.isAdmin || widget.isBankEmployee)
           Padding(
             padding: const EdgeInsets.all(20),
             child: ElevatedButton.icon(
@@ -1696,6 +1705,8 @@ class _MobileBankDetailsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final banksAsync = ref.watch(allBanksProvider);
+    final authState = ref.watch(authProvider);
+    final isBankEmployee = authState.role == 'bank_employee';
 
     return Scaffold(
       appBar: AppBar(
@@ -1728,6 +1739,7 @@ class _MobileBankDetailsScreen extends ConsumerWidget {
           return _BankDetailsPanel(
             bankData: bank,
             isAdmin: isAdmin,
+            isBankEmployee: isBankEmployee,
             canViewBankPhones: canViewBankPhones,
           );
         },

@@ -213,7 +213,9 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     final canDeleteClients = effectivePerms[EmployeePermissionKeys.deleteClient] ?? rolePermissions.canDeleteClients;
     final canAddNote = effectivePerms[EmployeePermissionKeys.addNote] ?? true;
     final canApproveLoans = effectivePerms[EmployeePermissionKeys.approveLoans] ?? rolePermissions.canApproveLoans;
-    final showPhone = effectivePerms[EmployeePermissionKeys.fieldPhone] ?? true;
+    final showPhone = authState.role == 'bank_employee'
+        ? (effectivePerms[EmployeePermissionKeys.fieldPhone] ?? false)
+        : (effectivePerms[EmployeePermissionKeys.fieldPhone] ?? true);
     final showNationalId = effectivePerms[EmployeePermissionKeys.fieldNationalId] ?? true;
     final showSalary = effectivePerms[EmployeePermissionKeys.fieldSalary] ?? true;
     final showCreditScore = effectivePerms[EmployeePermissionKeys.fieldCreditScore] ?? true;
@@ -1110,6 +1112,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             if (client.secondaryPhoneNumber != null &&
                 client.secondaryPhoneNumber!.isNotEmpty)
               PhoneActionWidget(label: "هاتف إضافي", phoneNumber: client.secondaryPhoneNumber!),
+          ] else ...[
+            _buildInfoRow("الهاتف المحمول", "مخفي (يتطلب موافقة الأدمن/المدير لإظهاره)"),
           ],
           if (showNationalId)
             _buildInfoRow("الرقم القومي",

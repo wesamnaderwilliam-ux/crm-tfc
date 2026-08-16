@@ -86,46 +86,29 @@ class ClientVisibilityHelper {
 
     // 2. Bank Employee filtering logic
     if (role == 'bank_employee') {
-      final userBank = authState.bankName ?? '';
+      final userBank = _clean(authState.bankName);
       final cleanUser = _clean(currentUserFullName);
-      String bankKeyword = "";
-
-      if (userBank.isNotEmpty) {
-        bankKeyword = _clean(userBank);
-      } else if (cleanUser.contains("الأهلي") || cleanUser.contains("الاهلي")) {
-        bankKeyword = "الأهلي";
-      } else if (cleanUser.contains("الراجحي")) {
-        bankKeyword = "الراجحي";
-      } else if (cleanUser.contains("مصر")) {
-        bankKeyword = "مصر";
-      } else if (cleanUser.contains("الرياض")) {
-        bankKeyword = "الرياض";
-      } else {
-        bankKeyword = cleanUser.replaceAll("موظف البنك", "").trim();
-      }
-
-      if (bankKeyword.isEmpty) return clients;
-
-      bool matchesBank(String bankName) {
-        final normalizedBank = bankName
-            .replaceAll("إ", "ا")
-            .replaceAll("أ", "ا")
-            .replaceAll("آ", "ا")
-            .toLowerCase();
-        final normalizedKeyword = bankKeyword
-            .replaceAll("إ", "ا")
-            .replaceAll("أ", "ا")
-            .replaceAll("آ", "ا")
-            .toLowerCase();
-        return normalizedBank.contains(normalizedKeyword);
-      }
+      final cleanEmail = _clean(currentUserEmail);
+      final userId = currentUserId.toLowerCase();
 
       return clients.where((client) {
-        final hasLoanWithBank =
-            client.existingLoans.any((l) => matchesBank(l.bankName));
-        final hasCardWithBank =
-            client.creditCardsRequests.any((c) => matchesBank(c.bankName));
-        return hasLoanWithBank || hasCardWithBank;
+        final cleanRep = _clean(client.representativeName);
+        final cleanCreatedBy = _clean(client.createdBy);
+
+        // Check if assigned directly to bank employee name/email/id
+        final matchesUser = (cleanRep.isNotEmpty && (cleanRep == cleanUser || cleanRep == cleanEmail || cleanRep == userId)) ||
+            (cleanCreatedBy.isNotEmpty && (cleanCreatedBy == cleanUser || cleanCreatedBy == cleanEmail || cleanCreatedBy == userId));
+
+        if (matchesUser) return true;
+
+        // Check if bank name matches
+        if (userBank.isNotEmpty) {
+          final hasLoanWithBank = client.existingLoans.any((l) => _clean(l.bankName).contains(userBank) || userBank.contains(_clean(l.bankName)));
+          final hasCardWithBank = client.creditCardsRequests.any((c) => _clean(c.bankName).contains(userBank) || userBank.contains(_clean(c.bankName)));
+          if (hasLoanWithBank || hasCardWithBank) return true;
+        }
+
+        return false;
       }).toList();
     }
 
