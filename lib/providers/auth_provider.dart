@@ -18,6 +18,7 @@ class AuthState {
   final String role; // admin, manager, company_employee, bank_employee
   final String fullName;
   final String? bankName;
+  final String? bankEmployeeId;
   final bool isLoading;
   final bool isAuthenticated;
   final bool isConfirmed;
@@ -28,6 +29,7 @@ class AuthState {
     this.role = 'company_employee',
     this.fullName = '',
     this.bankName,
+    this.bankEmployeeId,
     this.isLoading = false,
     this.isAuthenticated = false,
     this.isConfirmed = false,
@@ -39,6 +41,7 @@ class AuthState {
     String? role,
     String? fullName,
     String? bankName,
+    String? bankEmployeeId,
     bool? isLoading,
     bool? isAuthenticated,
     bool? isConfirmed,
@@ -49,6 +52,7 @@ class AuthState {
       role: role ?? this.role,
       fullName: fullName ?? this.fullName,
       bankName: bankName ?? this.bankName,
+      bankEmployeeId: bankEmployeeId ?? this.bankEmployeeId,
       isLoading: isLoading ?? this.isLoading,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       isConfirmed: isConfirmed ?? this.isConfirmed,
@@ -207,6 +211,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           role: role,
           fullName: profileData['full_name'] ?? (isAdmin ? 'وسام نادر وليم' : 'مستخدم'),
           bankName: profileData['bank_name'],
+          bankEmployeeId: profileData['bank_employee_id']?.toString(),
           isConfirmed: isConfirmed,
           isAuthenticated: true,
           isLoading: false,

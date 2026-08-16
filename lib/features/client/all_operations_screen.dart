@@ -116,8 +116,26 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
       }).toList();
 
       if (mounted) {
+        List<Map<String, dynamic>> finalOperations = loaded;
+        if (authState.role == 'bank_employee') {
+          final userBank = authState.bankName ?? '';
+          final empName = authState.fullName.trim();
+          final empId = authState.bankEmployeeId ?? '';
+
+          finalOperations = loaded.where((op) {
+            final bName = (op['bank_name'] ?? '').toString();
+            final opEmpName = (op['employee_name'] ?? '').toString();
+            final matchesBank = userBank.isNotEmpty &&
+                (bName.contains(userBank) || userBank.contains(bName));
+            final matchesEmpName = empName.isNotEmpty &&
+                (opEmpName.contains(empName) || empName.contains(opEmpName));
+
+            return matchesEmpName || matchesBank;
+          }).toList();
+        }
+
         setState(() {
-          _operations = loaded;
+          _operations = finalOperations;
           _isLoading = false;
         });
       }

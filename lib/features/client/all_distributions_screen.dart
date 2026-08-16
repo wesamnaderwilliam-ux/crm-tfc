@@ -127,16 +127,24 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
       }).toList();
 
       if (mounted) {
-        // If user is a Bank Employee, isolate distributions to their specific bank
+        // If user is a Bank Employee, filter distributions assigned to them by bank_employee_id or employee_name
         List<Map<String, dynamic>> finalDistributions = loaded;
         if (authState.role == 'bank_employee') {
           final userBank = authState.bankName ?? '';
-          if (userBank.isNotEmpty) {
-            finalDistributions = loaded.where((d) {
-              final bName = (d['bank_name'] ?? '').toString();
-              return bName.contains(userBank) || userBank.contains(bName);
-            }).toList();
-          }
+          final empName = authState.fullName.trim();
+          final empId = authState.bankEmployeeId ?? '';
+
+          finalDistributions = loaded.where((d) {
+            final bName = (d['bank_name'] ?? '').toString();
+            final dEmpName = (d['employee_name'] ?? '').toString();
+            final matchesBank = userBank.isNotEmpty &&
+                (bName.contains(userBank) || userBank.contains(bName));
+            final matchesEmpName = empName.isNotEmpty &&
+                (dEmpName.contains(empName) || empName.contains(dEmpName));
+            final matchesEmpId = empId.isNotEmpty && d['employee_id']?.toString() == empId;
+
+            return matchesEmpId || matchesEmpName || matchesBank;
+          }).toList();
         }
 
         setState(() {

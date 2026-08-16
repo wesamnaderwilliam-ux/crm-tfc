@@ -90,26 +90,39 @@ class ClientVisibilityHelper {
       final cleanUser = _clean(currentUserFullName);
       final cleanEmail = _clean(currentUserEmail);
       final userId = currentUserId.toLowerCase();
+      final empId = authState.bankEmployeeId?.toString().toLowerCase() ?? '';
 
       return clients.where((client) {
         final cleanRep = _clean(client.representativeName);
         final cleanCreatedBy = _clean(client.createdBy);
 
-        // Check if assigned directly to bank employee name/email/id
-        final matchesUser = (cleanRep.isNotEmpty && (cleanRep == cleanUser || cleanRep == cleanEmail || cleanRep == userId)) ||
-            (cleanCreatedBy.isNotEmpty && (cleanCreatedBy == cleanUser || cleanCreatedBy == cleanEmail || cleanCreatedBy == userId));
+        // Check if assigned directly to bank employee name/email/id or bankEmployeeId
+        final matchesUser = (cleanRep.isNotEmpty &&
+                (cleanRep == cleanUser ||
+                    cleanRep == cleanEmail ||
+                    cleanRep == userId ||
+                    (empId.isNotEmpty && cleanRep == empId))) ||
+            (cleanCreatedBy.isNotEmpty &&
+                (cleanCreatedBy == cleanUser ||
+                    cleanCreatedBy == cleanEmail ||
+                    cleanCreatedBy == userId ||
+                    (empId.isNotEmpty && cleanCreatedBy == empId)));
 
         if (matchesUser) return true;
 
-        // Check if bank name matches
+        // Check if bank name matches in loans or credit cards
         if (userBank.isNotEmpty) {
-          final hasLoanWithBank = client.existingLoans.any((l) => _clean(l.bankName).contains(userBank) || userBank.contains(_clean(l.bankName)));
-          final hasCardWithBank = client.creditCardsRequests.any((c) => _clean(c.bankName).contains(userBank) || userBank.contains(_clean(c.bankName)));
+          final hasLoanWithBank = client.existingLoans.any((l) =>
+              _clean(l.bankName).contains(userBank) ||
+              userBank.contains(_clean(l.bankName)));
+          final hasCardWithBank = client.creditCardsRequests.any((c) =>
+              _clean(c.bankName).contains(userBank) ||
+              userBank.contains(_clean(c.bankName)));
           if (hasLoanWithBank || hasCardWithBank) return true;
         }
 
-        // If no bank specified or loans match failed, allow visibility so bank employee sees clients distributed to them
-        return true;
+        // Keep clients assigned to bank employee matching name
+        return false;
       }).toList();
     }
 
