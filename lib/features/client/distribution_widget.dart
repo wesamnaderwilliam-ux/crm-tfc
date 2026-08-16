@@ -238,7 +238,7 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
       });
       
       // Refresh client logs
-      ref.read(clientProvider.notifier).fetchClients();
+      ref.read(clientProvider.notifier).fetchClients(bankEmployeeId: ref.read(authProvider).bankEmployeeId);
     } catch (e) {
       debugPrint("Error deleting selection: $e");
     }
@@ -334,7 +334,7 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
       });
 
       // Refresh client logs
-      ref.read(clientProvider.notifier).fetchClients();
+      ref.read(clientProvider.notifier).fetchClients(bankEmployeeId: ref.read(authProvider).bankEmployeeId);
     } catch (e) {
       debugPrint("Error saving selection: $e");
       if (mounted) {

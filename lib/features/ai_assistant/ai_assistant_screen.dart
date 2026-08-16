@@ -269,7 +269,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
         });
 
         // Sync client list
-        ref.read(clientProvider.notifier).fetchClients();
+        ref.read(clientProvider.notifier).fetchClients(bankEmployeeId: ref.read(authProvider).bankEmployeeId);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

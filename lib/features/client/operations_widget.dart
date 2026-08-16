@@ -285,7 +285,7 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
         });
 
         // Trigger updates in other widgets
-        ref.read(clientProvider.notifier).fetchClients();
+        ref.read(clientProvider.notifier).fetchClients(bankEmployeeId: ref.read(authProvider).bankEmployeeId);
         ref.read(operationsRefreshTriggerProvider.notifier).state++;
       } else {
         final idx = OperationsWidget._localMockOperations.indexWhere((o) => o.id == op.id);
@@ -387,7 +387,7 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
           'created_by_name': staffName,
         });
 
-        ref.read(clientProvider.notifier).fetchClients();
+        ref.read(clientProvider.notifier).fetchClients(bankEmployeeId: ref.read(authProvider).bankEmployeeId);
       } else {
         OperationsWidget._localMockOperations.removeWhere((o) => o.id == op.id);
 

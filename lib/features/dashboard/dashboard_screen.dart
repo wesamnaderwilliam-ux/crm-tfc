@@ -126,7 +126,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                 IconButton(
                   icon: const Icon(Icons.refresh, color: TfcColors.primary),
                   onPressed: () =>
-                      ref.read(clientProvider.notifier).fetchClients(),
+                      ref.read(clientProvider.notifier).fetchClients(bankEmployeeId: ref.read(authProvider).bankEmployeeId),
                 ),
               ],
             ),

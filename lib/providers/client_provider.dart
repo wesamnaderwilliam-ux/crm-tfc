@@ -42,6 +42,12 @@ class ClientNotifier extends StateNotifier<ClientState> {
     fetchClients(bankEmployeeId: initialAuth.bankEmployeeId);
   }
 
+  /// Internal refresh helper - always reads current bankEmployeeId from auth state
+  void _refreshClients() {
+    final auth = _ref.read(authProvider);
+    fetchClients(bankEmployeeId: auth.bankEmployeeId);
+  }
+
   // Pre-seed mock data for local demonstration/preview
   final List<ClientModel> _mockClients = [
     ClientModel(
@@ -384,7 +390,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
         });
       }
 
-      fetchClients();
+      _refreshClients();
       return null;
     } catch (e, stack) {
       _logger.e("Supabase insert error: $e", error: e, stackTrace: stack);
@@ -489,7 +495,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
         if (_isValidUuid(currentUserId)) 'created_by': currentUserId,
         'created_by_name': staffName ?? 'النظام',
       });
-      fetchClients();
+      _refreshClients();
       return true;
     } catch (e) {
       _logger.e("Supabase loan update error, falling back to simulation: $e");
@@ -545,7 +551,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
         if (_isValidUuid(currentUserId)) 'created_by': currentUserId,
         'created_by_name': staffName ?? 'النظام',
       });
-      fetchClients();
+      _refreshClients();
       return true;
     } catch (e) {
       _logger.e("Supabase card update error, falling back to simulation: $e");
@@ -596,7 +602,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
         if (_isValidUuid(currentUserId)) 'created_by': currentUserId,
         'created_by_name': staffName ?? 'النظام',
       });
-      fetchClients();
+      _refreshClients();
       return true;
     } catch (e) {
       _logger.e("Supabase document update error, falling back to simulation: $e");
@@ -656,7 +662,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
         if (_isValidUuid(currentUserId)) 'created_by': currentUserId,
         'created_by_name': staffName ?? 'النظام',
       });
-      fetchClients();
+      _refreshClients();
       return true;
     } catch (e) {
       _logger.e("Supabase remove error, falling back to simulation: $e");
@@ -709,7 +715,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
         'created_by_name': staffName,
       });
 
-      fetchClients();
+      _refreshClients();
     } catch (e) {
       _logger.e("Supabase status update error (Simulation Mode): $e");
       _updateStatusSimulated(clientId, newStatus, staffName);
@@ -754,7 +760,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
         'created_by_name': staffName ?? 'النظام',
       });
 
-      fetchClients();
+      _refreshClients();
       return null;
     } catch (e, stack) {
       _logger.e("Supabase client update error: $e", error: e, stackTrace: stack);
@@ -903,7 +909,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
       });
 
       // Refetch from database to sync all actual records
-      await fetchClients();
+      _refreshClients();
     } catch (e, stackTrace) {
       _logger.e("Supabase follow-up status update error: $e");
       print("Stacktrace: $stackTrace");
@@ -958,7 +964,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
     }
     try {
       await SupabaseConfig.client.from('clients').delete().eq('id', clientId);
-      fetchClients();
+      _refreshClients();
     } catch (e) {
       _logger.e("Supabase delete error (Simulation Mode): $e");
       state = state.copyWith(

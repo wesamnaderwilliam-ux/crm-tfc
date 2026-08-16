@@ -577,7 +577,8 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                   InteractiveHoverCard(
                     onTap: () {
                       // Refresh all providers
-                      ref.read(clientProvider.notifier).fetchClients();
+                      final authState = ref.read(authProvider);
+                      ref.read(clientProvider.notifier).fetchClients(bankEmployeeId: authState.bankEmployeeId);
                       ref.read(prospectsProvider.notifier).fetchProspects();
                       ref.read(employeesProvider.notifier).fetchEmployees();
                       ref.invalidate(allBanksProvider);
