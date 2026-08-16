@@ -108,7 +108,8 @@ class ClientVisibilityHelper {
           if (hasLoanWithBank || hasCardWithBank) return true;
         }
 
-        return false;
+        // If no bank specified or loans match failed, allow visibility so bank employee sees clients distributed to them
+        return true;
       }).toList();
     }
 
