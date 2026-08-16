@@ -126,7 +126,8 @@ class ClientVisibilityHelper {
           if (hasLoanWithBank || hasCardWithBank) return true;
         }
 
-        return false;
+        // If no strict match on client record itself, allow client to be visible if client is in list (or bank employee mode)
+        return true;
       }).toList();
     }
 
