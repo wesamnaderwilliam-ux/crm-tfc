@@ -90,25 +90,30 @@ class ClientVisibilityHelper {
       final cleanUser = _clean(currentUserFullName);
       final cleanEmail = _clean(currentUserEmail);
       final userId = currentUserId.toLowerCase();
-      final empId = authState.bankEmployeeId?.toString().toLowerCase() ?? '';
+      final empId = authState.bankEmployeeId?.toString().trim() ?? '';
 
       return clients.where((client) {
         final cleanRep = _clean(client.representativeName);
         final cleanCreatedBy = _clean(client.createdBy);
 
-        // Check if assigned directly to bank employee name/email/id or bankEmployeeId
+        // Check if assigned directly to bank employee name/email/id or bankEmployeeId (e.g. 56ea85ff-fade-4998-983a-7c3d1c29ac74)
         final matchesUser = (cleanRep.isNotEmpty &&
                 (cleanRep == cleanUser ||
                     cleanRep == cleanEmail ||
                     cleanRep == userId ||
-                    (empId.isNotEmpty && cleanRep == empId))) ||
+                    (empId.isNotEmpty && (cleanRep == empId || cleanRep.contains(empId))))) ||
             (cleanCreatedBy.isNotEmpty &&
                 (cleanCreatedBy == cleanUser ||
                     cleanCreatedBy == cleanEmail ||
                     cleanCreatedBy == userId ||
-                    (empId.isNotEmpty && cleanCreatedBy == empId)));
+                    (empId.isNotEmpty && (cleanCreatedBy == empId || cleanCreatedBy.contains(empId)))));
 
         if (matchesUser) return true;
+
+        // Check if representativeName contains bank employee full name
+        if (cleanUser.isNotEmpty && cleanRep.isNotEmpty && (cleanRep.contains(cleanUser) || cleanUser.contains(cleanRep))) {
+          return true;
+        }
 
         // Check if bank name matches in loans or credit cards
         if (userBank.isNotEmpty) {
@@ -121,7 +126,6 @@ class ClientVisibilityHelper {
           if (hasLoanWithBank || hasCardWithBank) return true;
         }
 
-        // Keep clients assigned to bank employee matching name
         return false;
       }).toList();
     }

@@ -127,23 +127,34 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
       }).toList();
 
       if (mounted) {
-        // If user is a Bank Employee, filter distributions assigned to them by bank_employee_id or employee_name
+        // If user is a Bank Employee, filter distributions assigned to them by employee_id or employee_name
         List<Map<String, dynamic>> finalDistributions = loaded;
         if (authState.role == 'bank_employee') {
-          final userBank = authState.bankName ?? '';
+          final userBank = (authState.bankName ?? '').trim();
           final empName = authState.fullName.trim();
-          final empId = authState.bankEmployeeId ?? '';
+          final empId = (authState.bankEmployeeId ?? '').trim();
 
           finalDistributions = loaded.where((d) {
-            final bName = (d['bank_name'] ?? '').toString();
-            final dEmpName = (d['employee_name'] ?? '').toString();
-            final matchesBank = userBank.isNotEmpty &&
-                (bName.contains(userBank) || userBank.contains(bName));
-            final matchesEmpName = empName.isNotEmpty &&
-                (dEmpName.contains(empName) || empName.contains(dEmpName));
-            final matchesEmpId = empId.isNotEmpty && d['employee_id']?.toString() == empId;
+            final bName = (d['bank_name'] ?? '').toString().trim();
+            final dEmpName = (d['employee_name'] ?? '').toString().trim();
+            final dEmpId = (d['employee_id'] ?? '').toString().trim();
 
-            return matchesEmpId || matchesEmpName || matchesBank;
+            // Direct ID match with bank_employees.id (e.g. 56ea85ff-fade-4998-983a-7c3d1c29ac74)
+            if (empId.isNotEmpty && dEmpId.isNotEmpty && (dEmpId == empId || empId == dEmpId)) {
+              return true;
+            }
+
+            // Name match (e.g. "ماريا مجدى")
+            if (empName.isNotEmpty && dEmpName.isNotEmpty && (dEmpName.contains(empName) || empName.contains(dEmpName))) {
+              return true;
+            }
+
+            // Fallback match by bank name if no employee specified
+            if (userBank.isNotEmpty && bName.isNotEmpty && (bName.contains(userBank) || userBank.contains(bName))) {
+              return true;
+            }
+
+            return false;
           }).toList();
         }
 
