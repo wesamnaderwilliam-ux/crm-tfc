@@ -236,7 +236,9 @@ class EmployeesNotifier extends StateNotifier<EmployeesState> {
                 .eq('profile_id', profileId)
                 .maybeSingle();
 
+            String? bankEmployeeRecordId;
             if (empRes != null && empRes['id'] != null) {
+              bankEmployeeRecordId = empRes['id'].toString();
               // Update existing bank_employee record
               await SupabaseConfig.client.from('bank_employees').update({
                 'bank_id': bankId,
@@ -246,14 +248,25 @@ class EmployeesNotifier extends StateNotifier<EmployeesState> {
               }).eq('profile_id', profileId);
             } else {
               // Insert new bank_employee record linked with profile_id
-              await SupabaseConfig.client.from('bank_employees').insert({
+              final inserted = await SupabaseConfig.client.from('bank_employees').insert({
                 'bank_id': bankId,
                 'employee_name': effectiveFullName,
                 'phone_1': effectivePhone.isNotEmpty ? effectivePhone : '0000000000',
                 'email': effectiveEmail,
                 'job_title': 'مسؤول تحصيل/تمويل',
                 'profile_id': profileId,
-              });
+              }).select('id').maybeSingle();
+              if (inserted != null && inserted['id'] != null) {
+                bankEmployeeRecordId = inserted['id'].toString();
+              }
+            }
+
+            // Also save bank_employee_id in profile row for direct reference
+            if (bankEmployeeRecordId != null) {
+              await SupabaseConfig.client
+                  .from('profiles')
+                  .update({'bank_employee_id': bankEmployeeRecordId})
+                  .eq('id', profileId);
             }
           }
         } catch (linkError) {

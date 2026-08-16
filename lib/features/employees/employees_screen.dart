@@ -306,6 +306,10 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
                 if (isBankEmp) ...[
                   _buildProfileDetailRow(Icons.account_balance_outlined, emp.bankName ?? 'لم يحدد بنك'),
                   const SizedBox(height: 6),
+                  if (emp.bankEmployeeId != null && emp.bankEmployeeId!.isNotEmpty) ...[
+                    _buildProfileDetailRow(Icons.numbers_outlined, 'معرف المسئول: ${emp.bankEmployeeId}'),
+                    const SizedBox(height: 6),
+                  ],
                 ],
                 effectiveCanViewPhone
                     ? (emp.phoneNumber != null && emp.phoneNumber!.isNotEmpty
