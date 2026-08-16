@@ -86,8 +86,11 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
 
       final authState = ref.read(authProvider);
       final bool isUserAdmin = authState.role == 'admin';
+      final bool isBankEmployee = authState.role == 'bank_employee';
+      final String bankEmployeeId = (authState.bankEmployeeId ?? '').trim();
 
-      final response = await SupabaseConfig.client
+      // Build query - filter server-side for bank_employee
+      var query = SupabaseConfig.client
           .from('distribution_entries')
           .select('''
             id,
@@ -101,6 +104,11 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
             bank_employees ( employee_name, phone_1 ),
             clients ( full_name )
           ''');
+
+      // Server-side filter: bank_employee sees ONLY their own distributions
+      final response = (isBankEmployee && bankEmployeeId.isNotEmpty)
+          ? await query.eq('employee_id', bankEmployeeId)
+          : await query;
 
       final List<dynamic> rows = response as List<dynamic>;
       final List<Map<String, dynamic>> loaded = rows.map((r) {
@@ -117,6 +125,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
           'program_id': r['program_id'],
           'bank_name': bankData != null ? bankData['bank_name'] : 'بنك غير معروف',
           'bank_id': r['bank_id'],
+          'employee_id': r['employee_id'],
           'employee_name': empData != null
               ? (isUserAdmin
                   ? '${empData['employee_name']} ${empData['phone_1'] ?? ""}'.trim()
@@ -127,39 +136,8 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
       }).toList();
 
       if (mounted) {
-        // If user is a Bank Employee, filter distributions assigned to them by employee_id or employee_name
-        List<Map<String, dynamic>> finalDistributions = loaded;
-        if (authState.role == 'bank_employee') {
-          final userBank = (authState.bankName ?? '').trim();
-          final empName = authState.fullName.trim();
-          final empId = (authState.bankEmployeeId ?? '').trim();
-
-          finalDistributions = loaded.where((d) {
-            final bName = (d['bank_name'] ?? '').toString().trim();
-            final dEmpName = (d['employee_name'] ?? '').toString().trim();
-            final dEmpId = (d['employee_id'] ?? '').toString().trim();
-
-            // Direct ID match with bank_employees.id (e.g. 56ea85ff-fade-4998-983a-7c3d1c29ac74)
-            if (empId.isNotEmpty && dEmpId.isNotEmpty && (dEmpId == empId || empId == dEmpId)) {
-              return true;
-            }
-
-            // Name match (e.g. "ماريا مجدى")
-            if (empName.isNotEmpty && dEmpName.isNotEmpty && (dEmpName.contains(empName) || empName.contains(dEmpName))) {
-              return true;
-            }
-
-            // Fallback match by bank name if no employee specified
-            if (userBank.isNotEmpty && bName.isNotEmpty && (bName.contains(userBank) || userBank.contains(bName))) {
-              return true;
-            }
-
-            return false;
-          }).toList();
-        }
-
         setState(() {
-          _distributions = finalDistributions;
+          _distributions = loaded;
           _isLoading = false;
         });
       }

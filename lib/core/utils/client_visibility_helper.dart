@@ -84,9 +84,8 @@ class ClientVisibilityHelper {
       return clients;
     }
 
-    // 2. Bank Employee filtering logic
+    // 2. Bank Employee filtering logic - STRICT matching on bank_employee_id or employee full name
     if (role == 'bank_employee') {
-      final userBank = _clean(authState.bankName);
       final cleanUser = _clean(currentUserFullName);
       final cleanEmail = _clean(currentUserEmail);
       final userId = currentUserId.toLowerCase();
@@ -96,38 +95,31 @@ class ClientVisibilityHelper {
         final cleanRep = _clean(client.representativeName);
         final cleanCreatedBy = _clean(client.createdBy);
 
-        // Check if assigned directly to bank employee name/email/id or bankEmployeeId (e.g. 56ea85ff-fade-4998-983a-7c3d1c29ac74)
-        final matchesUser = (cleanRep.isNotEmpty &&
-                (cleanRep == cleanUser ||
-                    cleanRep == cleanEmail ||
-                    cleanRep == userId ||
-                    (empId.isNotEmpty && (cleanRep == empId || cleanRep.contains(empId))))) ||
-            (cleanCreatedBy.isNotEmpty &&
-                (cleanCreatedBy == cleanUser ||
-                    cleanCreatedBy == cleanEmail ||
-                    cleanCreatedBy == userId ||
-                    (empId.isNotEmpty && (cleanCreatedBy == empId || cleanCreatedBy.contains(empId)))));
+        // Check matching bank_employee_id (e.g. 56ea85ff-fade-4998-983a-7c3d1c29ac74)
+        if (empId.isNotEmpty) {
+          if (cleanRep == empId || cleanRep.contains(empId) || cleanCreatedBy == empId || cleanCreatedBy.contains(empId)) {
+            return true;
+          }
+        }
 
-        if (matchesUser) return true;
+        // Check matching full name or email or auth user id
+        if (cleanUser.isNotEmpty) {
+          if (cleanRep == cleanUser || cleanRep.contains(cleanUser) || cleanUser.contains(cleanRep) ||
+              cleanCreatedBy == cleanUser || cleanCreatedBy.contains(cleanUser) || cleanUser.contains(cleanCreatedBy)) {
+            return true;
+          }
+        }
 
-        // Check if representativeName contains bank employee full name
-        if (cleanUser.isNotEmpty && cleanRep.isNotEmpty && (cleanRep.contains(cleanUser) || cleanUser.contains(cleanRep))) {
+        if (cleanEmail.isNotEmpty && (cleanRep == cleanEmail || cleanCreatedBy == cleanEmail)) {
           return true;
         }
 
-        // Check if bank name matches in loans or credit cards
-        if (userBank.isNotEmpty) {
-          final hasLoanWithBank = client.existingLoans.any((l) =>
-              _clean(l.bankName).contains(userBank) ||
-              userBank.contains(_clean(l.bankName)));
-          final hasCardWithBank = client.creditCardsRequests.any((c) =>
-              _clean(c.bankName).contains(userBank) ||
-              userBank.contains(_clean(c.bankName)));
-          if (hasLoanWithBank || hasCardWithBank) return true;
+        if (userId.isNotEmpty && (cleanRep == userId || cleanCreatedBy == userId)) {
+          return true;
         }
 
-        // If no strict match on client record itself, allow client to be visible if client is in list (or bank employee mode)
-        return true;
+        // Strictly exclude any client NOT assigned to this bank_employee_id / name
+        return false;
       }).toList();
     }
 

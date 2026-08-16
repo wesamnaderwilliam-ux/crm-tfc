@@ -73,7 +73,13 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
         return;
       }
 
-      final response = await SupabaseConfig.client
+      final authState = ref.read(authProvider);
+      final bool isUserAdmin = authState.role == 'admin';
+      final bool isBankEmployee = authState.role == 'bank_employee';
+      final String empName = authState.fullName.trim();
+
+      // Build query - filter server-side by employee_name for bank_employee
+      var query = SupabaseConfig.client
           .from('operation_entries')
           .select('''
             id,
@@ -89,8 +95,10 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
             clients ( full_name )
           ''');
 
-      final authState = ref.read(authProvider);
-      final bool isUserAdmin = authState.role == 'admin';
+      // Server-side filter: bank_employee sees ONLY their own operations by employee_name
+      final response = (isBankEmployee && empName.isNotEmpty)
+          ? await query.eq('employee_name', empName)
+          : await query;
 
       final List<dynamic> rows = response as List<dynamic>;
       final List<Map<String, dynamic>> loaded = rows.map((r) {
@@ -116,26 +124,8 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
       }).toList();
 
       if (mounted) {
-        List<Map<String, dynamic>> finalOperations = loaded;
-        if (authState.role == 'bank_employee') {
-          final userBank = authState.bankName ?? '';
-          final empName = authState.fullName.trim();
-          final empId = authState.bankEmployeeId ?? '';
-
-          finalOperations = loaded.where((op) {
-            final bName = (op['bank_name'] ?? '').toString();
-            final opEmpName = (op['employee_name'] ?? '').toString();
-            final matchesBank = userBank.isNotEmpty &&
-                (bName.contains(userBank) || userBank.contains(bName));
-            final matchesEmpName = empName.isNotEmpty &&
-                (opEmpName.contains(empName) || empName.contains(opEmpName));
-
-            return matchesEmpName || matchesBank;
-          }).toList();
-        }
-
         setState(() {
-          _operations = finalOperations;
+          _operations = loaded;
           _isLoading = false;
         });
       }

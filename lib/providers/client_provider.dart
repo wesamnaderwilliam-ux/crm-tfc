@@ -34,9 +34,12 @@ class ClientNotifier extends StateNotifier<ClientState> {
   final Ref _ref;
   ClientNotifier(this._ref) : super(ClientState()) {
     _ref.listen(authProvider, (previous, next) {
-      fetchClients();
+      final bankEmpId = next.bankEmployeeId;
+      fetchClients(bankEmployeeId: bankEmpId);
     });
-    fetchClients();
+    // Initial fetch - will get bank_employee_id from current auth state
+    final initialAuth = _ref.read(authProvider);
+    fetchClients(bankEmployeeId: initialAuth.bankEmployeeId);
   }
 
   // Pre-seed mock data for local demonstration/preview
@@ -223,7 +226,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
     return _mockClients.where((c) => c.representativeName == currentUser.fullName).toList();
   }
 
-  Future<void> fetchClients() async {
+  Future<void> fetchClients({String? bankEmployeeId}) async {
     // Keep current clients visible while refreshing in background for zero flicker
     if (state.clients.isEmpty) {
       state = state.copyWith(isLoading: true);
@@ -234,23 +237,59 @@ class ClientNotifier extends StateNotifier<ClientState> {
       return;
     }
     try {
-      // Lightweight fast query for main client list
-      final response = await SupabaseConfig.client
-          .from('clients')
-          .select('''
-            *,
-            existing_loans(*),
-            credit_cards_requests(*),
-            interaction_history(*),
-            documents(*)
-          ''')
-          .order('created_at', ascending: false)
-          .limit(100);
+      List<ClientModel> list = [];
 
-      final List<ClientModel> list = [];
-      for (var item in response) {
-        list.add(ClientModel.fromJson(item));
+      if (bankEmployeeId != null && bankEmployeeId.isNotEmpty) {
+        // Bank employee: fetch ONLY clients that have a distribution entry assigned to them
+        final distResponse = await SupabaseConfig.client
+            .from('distribution_entries')
+            .select('client_id')
+            .eq('employee_id', bankEmployeeId);
+
+        final List<String> clientIds = (distResponse as List<dynamic>)
+            .map((r) => r['client_id']?.toString() ?? '')
+            .where((id) => id.isNotEmpty)
+            .toList();
+
+        if (clientIds.isEmpty) {
+          state = state.copyWith(clients: [], isLoading: false);
+          return;
+        }
+
+        final response = await SupabaseConfig.client
+            .from('clients')
+            .select('''
+              *,
+              existing_loans(*),
+              credit_cards_requests(*),
+              interaction_history(*),
+              documents(*)
+            ''')
+            .inFilter('id', clientIds)
+            .order('created_at', ascending: false);
+
+        for (var item in response) {
+          list.add(ClientModel.fromJson(item));
+        }
+      } else {
+        // All other roles: fetch all clients (visibility filtered client-side by ClientVisibilityHelper)
+        final response = await SupabaseConfig.client
+            .from('clients')
+            .select('''
+              *,
+              existing_loans(*),
+              credit_cards_requests(*),
+              interaction_history(*),
+              documents(*)
+            ''')
+            .order('created_at', ascending: false)
+            .limit(100);
+
+        for (var item in response) {
+          list.add(ClientModel.fromJson(item));
+        }
       }
+
       state = state.copyWith(clients: list, isLoading: false);
     } catch (e) {
       _logger.w("Warning: could not fetch clients from Supabase: $e");
