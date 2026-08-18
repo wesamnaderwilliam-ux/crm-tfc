@@ -611,8 +611,11 @@ class _EmployeeTargetsPanelState extends ConsumerState<EmployeeTargetsPanel> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  runSpacing: 8,
+                  spacing: 12,
+                  textDirection: TextDirection.rtl,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -663,13 +666,16 @@ class _EmployeeTargetsPanelState extends ConsumerState<EmployeeTargetsPanel> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  runSpacing: 4,
+                  spacing: 8,
+                  textDirection: TextDirection.rtl,
                   children: [
                     const Text("المتوسط اليومي المطلوب للأيام المتبقية:", style: TextStyle(color: TfcColors.outline, fontSize: 11)),
                     Text(
                       remainingAmount > 0
-                          ? "${_fmt(dailyAvg)} ج.م / يومياً (لمدة ${daysDetails['remaining']} يوم)"
+                          ? "${_fmt(dailyAvg)} ج.م / يومياً (${daysDetails['remaining']} يوم)"
                           : "تم تحقيق الهدف الكامل! 🎉",
                       style: TextStyle(
                           fontWeight: FontWeight.bold,
@@ -817,8 +823,11 @@ class _EmployeeTargetsPanelState extends ConsumerState<EmployeeTargetsPanel> {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: TfcColors.primary),
               ),
               const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                runSpacing: 12,
+                spacing: 16,
+                textDirection: TextDirection.rtl,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

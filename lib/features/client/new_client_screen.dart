@@ -861,35 +861,67 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
           const SizedBox(height: 24),
 
           // Name and Phone
-          Row(
-            textDirection: TextDirection.rtl,
-            children: [
-              Expanded(
-                child: _buildFormField(
-                  label: "الاسم الكامل (ثلاثي كما في البطاقة)",
-                  child: TextFormField(
-                    controller: _nameController,
-                    textAlign: TextAlign.right,
-                    decoration: const InputDecoration(
-                        hintText: "أحمد بن عبد الله القحطاني"),
-                    validator: (v) => v!.isEmpty ? "مطلوب" : null,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 600;
+              if (isCompact) {
+                return Column(
+                  children: [
+                    _buildFormField(
+                      label: "الاسم الكامل (ثلاثي كما في البطاقة)",
+                      child: TextFormField(
+                        controller: _nameController,
+                        textAlign: TextAlign.right,
+                        decoration: const InputDecoration(
+                            hintText: "أحمد بن عبد الله القحطاني"),
+                        validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFormField(
+                      label: "رقم الهاتف المحمول",
+                      child: TextFormField(
+                        controller: _phoneController,
+                        textAlign: TextAlign.right,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(hintText: "05XXXXXXXX"),
+                        validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return Row(
+                textDirection: TextDirection.rtl,
+                children: [
+                  Expanded(
+                    child: _buildFormField(
+                      label: "الاسم الكامل (ثلاثي كما في البطاقة)",
+                      child: TextFormField(
+                        controller: _nameController,
+                        textAlign: TextAlign.right,
+                        decoration: const InputDecoration(
+                            hintText: "أحمد بن عبد الله القحطاني"),
+                        validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildFormField(
-                  label: "رقم الهاتف المحمول",
-                  child: TextFormField(
-                    controller: _phoneController,
-                    textAlign: TextAlign.right,
-                    keyboardType: TextInputType.phone,
-                    decoration: const InputDecoration(hintText: "05XXXXXXXX"),
-                    validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildFormField(
+                      label: "رقم الهاتف المحمول",
+                      child: TextFormField(
+                        controller: _phoneController,
+                        textAlign: TextAlign.right,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(hintText: "05XXXXXXXX"),
+                        validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
 
           // Add secondary phone button or field
@@ -898,35 +930,31 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeInOut,
             child: _showSecondaryPhone
-                ? Row(
-                    textDirection: TextDirection.rtl,
-                    children: [
-                      Expanded(
-                        child: _buildFormField(
-                          label: "رقم الهاتف الإضافي",
-                          child: TextFormField(
-                            controller: _secondaryPhoneController,
-                            textAlign: TextAlign.right,
-                            keyboardType: TextInputType.phone,
-                            decoration: InputDecoration(
-                              hintText: "05XXXXXXXX",
-                              suffixIcon: IconButton(
-                                icon: const Icon(Icons.remove_circle,
-                                    color: Colors.redAccent, size: 20),
-                                tooltip: "إزالة الرقم الإضافي",
-                                onPressed: () {
-                                  setState(() {
-                                    _showSecondaryPhone = false;
-                                    _secondaryPhoneController.clear();
-                                  });
-                                },
-                              ),
+                ? LayoutBuilder(
+                    builder: (context, constraints) {
+                      return _buildFormField(
+                        label: "رقم الهاتف الإضافي",
+                        child: TextFormField(
+                          controller: _secondaryPhoneController,
+                          textAlign: TextAlign.right,
+                          keyboardType: TextInputType.phone,
+                          decoration: InputDecoration(
+                            hintText: "05XXXXXXXX",
+                            suffixIcon: IconButton(
+                              icon: const Icon(Icons.remove_circle,
+                                  color: Colors.redAccent, size: 20),
+                              tooltip: "إزالة الرقم الإضافي",
+                              onPressed: () {
+                                setState(() {
+                                  _showSecondaryPhone = false;
+                                  _secondaryPhoneController.clear();
+                                });
+                              },
                             ),
                           ),
                         ),
-                      ),
-                      const Expanded(child: SizedBox()),
-                    ],
+                      );
+                    },
                   )
                 : Align(
                     alignment: Alignment.centerRight,
@@ -950,207 +978,407 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
           const SizedBox(height: 20),
 
           // ID and Birthday
-          Row(
-            textDirection: TextDirection.rtl,
-            children: [
-              Expanded(
-                child: _buildFormField(
-                  label: "الرقم القومي (14 رقم)",
-                  child: TextFormField(
-                    controller: _nationalIdController,
-                    textAlign: TextAlign.right,
-                    keyboardType: TextInputType.number,
-                    decoration:
-                        const InputDecoration(hintText: "10029384758694"),
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return null;
-                      if (v.trim().length < 10) return "يرجى كتابة رقم صحيح";
-                      return null;
-                    },
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 600;
+              if (isCompact) {
+                return Column(
+                  children: [
+                    _buildFormField(
+                      label: "الرقم القومي (14 رقم)",
+                      child: TextFormField(
+                        controller: _nationalIdController,
+                        textAlign: TextAlign.right,
+                        keyboardType: TextInputType.number,
+                        decoration:
+                            const InputDecoration(hintText: "10029384758694"),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return null;
+                          if (v.trim().length < 10) return "يرجى كتابة رقم صحيح";
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFormField(
+                      label: "تاريخ الميلاد",
+                      child: TextFormField(
+                        controller: _birthDateController,
+                        textAlign: TextAlign.right,
+                        decoration: const InputDecoration(hintText: "YYYY-MM-DD"),
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return Row(
+                textDirection: TextDirection.rtl,
+                children: [
+                  Expanded(
+                    child: _buildFormField(
+                      label: "الرقم القومي (14 رقم)",
+                      child: TextFormField(
+                        controller: _nationalIdController,
+                        textAlign: TextAlign.right,
+                        keyboardType: TextInputType.number,
+                        decoration:
+                            const InputDecoration(hintText: "10029384758694"),
+                        validator: (v) {
+                          if (v == null || v.trim().isEmpty) return null;
+                          if (v.trim().length < 10) return "يرجى كتابة رقم صحيح";
+                          return null;
+                        },
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildFormField(
-                  label: "تاريخ الميلاد",
-                  child: TextFormField(
-                    controller: _birthDateController,
-                    textAlign: TextAlign.right,
-                    decoration: const InputDecoration(hintText: "YYYY-MM-DD"),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildFormField(
+                      label: "تاريخ الميلاد",
+                      child: TextFormField(
+                        controller: _birthDateController,
+                        textAlign: TextAlign.right,
+                        decoration: const InputDecoration(hintText: "YYYY-MM-DD"),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
           const SizedBox(height: 20),
 
           // Job structure
-          Row(
-            textDirection: TextDirection.rtl,
-            children: [
-              Expanded(
-                child: _buildFormField(
-                  label: "نوع التوظيف",
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withAlpha((0.04 * 255).toInt()),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                          color: Colors.white.withAlpha((0.08 * 255).toInt())),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 600;
+              if (isCompact) {
+                return Column(
+                  children: [
+                    _buildFormField(
+                      label: "نوع التوظيف",
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha((0.04 * 255).toInt()),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                              color: Colors.white.withAlpha((0.08 * 255).toInt())),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _employmentType,
+                            dropdownColor: TfcColors.surfaceDim,
+                            isExpanded: true,
+                            items: const [
+                              DropdownMenuItem(
+                                  value: "government_employee",
+                                  child: Text("موظف حكومى",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "private_sector",
+                                  child: Text("موظف قطاع خاص",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "business_owner",
+                                  child: Text("صاحب عمل",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "doctor_clinic",
+                                  child: Text("دكتور عيادة",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "doctor_hospital",
+                                  child: Text("دكتور مستشفى",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "pharmacist",
+                                  child: Text("صيدلى",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "pharmacist_owner",
+                                  child: Text("صيدلى صاحب صيدلية",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "military",
+                                  child: Text("قوات مسلحة",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "faculty",
+                                  child: Text("هيئة تدريس",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "teacher",
+                                  child: Text("مدرس",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "freelance",
+                                  child: Text("فريلانس",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "retired",
+                                  child: Text("معاش",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "other",
+                                  child: Text("أخرى",
+                                      textDirection: TextDirection.rtl)),
+                            ],
+                            onChanged: (val) {
+                              if (val != null) {
+                                setState(() {
+                                  _employmentType = val;
+                                });
+                              }
+                            },
+                          ),
+                        ),
+                      ),
                     ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _employmentType,
-                        dropdownColor: TfcColors.surfaceDim,
-                        isExpanded: true,
-                        items: const [
-                          DropdownMenuItem(
-                              value: "government_employee",
-                              child: Text("موظف حكومى",
-                                  textDirection: TextDirection.rtl)),
-                          DropdownMenuItem(
-                              value: "private_sector",
-                              child: Text("موظف قطاع خاص",
-                                  textDirection: TextDirection.rtl)),
-                          DropdownMenuItem(
-                              value: "business_owner",
-                              child: Text("صاحب عمل",
-                                  textDirection: TextDirection.rtl)),
-                          DropdownMenuItem(
-                              value: "doctor_clinic",
-                              child: Text("دكتور عيادة",
-                                  textDirection: TextDirection.rtl)),
-                          DropdownMenuItem(
-                              value: "doctor_hospital",
-                              child: Text("دكتور مستشفى",
-                                  textDirection: TextDirection.rtl)),
-                          DropdownMenuItem(
-                              value: "pharmacist",
-                              child: Text("صيدلى",
-                                  textDirection: TextDirection.rtl)),
-                          DropdownMenuItem(
-                              value: "pharmacist_owner",
-                              child: Text("صيدلى صاحب صيدلية",
-                                  textDirection: TextDirection.rtl)),
-                          DropdownMenuItem(
-                              value: "military",
-                              child: Text("قوات مسلحة",
-                                  textDirection: TextDirection.rtl)),
-                          DropdownMenuItem(
-                              value: "faculty",
-                              child: Text("هيئة تدريس",
-                                  textDirection: TextDirection.rtl)),
-                          DropdownMenuItem(
-                              value: "teacher",
-                              child: Text("مدرس",
-                                  textDirection: TextDirection.rtl)),
-                          DropdownMenuItem(
-                              value: "freelance",
-                              child: Text("فريلانس",
-                                  textDirection: TextDirection.rtl)),
-                          DropdownMenuItem(
-                              value: "retired",
-                              child: Text("معاش",
-                                  textDirection: TextDirection.rtl)),
-                          DropdownMenuItem(
-                              value: "other",
-                              child: Text("أخرى",
-                                  textDirection: TextDirection.rtl)),
-                        ],
-                        onChanged: (val) {
-                          if (val != null) {
-                            setState(() {
-                              _employmentType = val;
-                            });
-                          }
-                        },
+                    if (_employmentType == "other") ...[
+                      const SizedBox(height: 16),
+                      _buildFormField(
+                        label: "حدد نوع التوظيف",
+                        child: TextFormField(
+                          controller: _customEmploymentTypeController,
+                          textAlign: TextAlign.right,
+                          decoration:
+                              const InputDecoration(hintText: "اكتب نوع التوظيف"),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    _buildFormField(
+                      label: "اسم جهة العمل / الشركة",
+                      child: TextFormField(
+                        controller: _companyNameController,
+                        textAlign: TextAlign.right,
+                        decoration:
+                            const InputDecoration(hintText: "مثال: أرامكو للخدمات"),
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return Row(
+                textDirection: TextDirection.rtl,
+                children: [
+                  Expanded(
+                    child: _buildFormField(
+                      label: "نوع التوظيف",
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withAlpha((0.04 * 255).toInt()),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                              color: Colors.white.withAlpha((0.08 * 255).toInt())),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<String>(
+                            value: _employmentType,
+                            dropdownColor: TfcColors.surfaceDim,
+                            isExpanded: true,
+                            items: const [
+                              DropdownMenuItem(
+                                  value: "government_employee",
+                                  child: Text("موظف حكومى",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "private_sector",
+                                  child: Text("موظف قطاع خاص",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "business_owner",
+                                  child: Text("صاحب عمل",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "doctor_clinic",
+                                  child: Text("دكتور عيادة",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "doctor_hospital",
+                                  child: Text("دكتور مستشفى",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "pharmacist",
+                                  child: Text("صيدلى",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "pharmacist_owner",
+                                  child: Text("صيدلى صاحب صيدلية",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "military",
+                                  child: Text("قوات مسلحة",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "faculty",
+                                  child: Text("هيئة تدريس",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "teacher",
+                                  child: Text("مدرس",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "freelance",
+                                  child: Text("فريلانس",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "retired",
+                                  child: Text("معاش",
+                                      textDirection: TextDirection.rtl)),
+                              DropdownMenuItem(
+                                  value: "other",
+                                  child: Text("أخرى",
+                                      textDirection: TextDirection.rtl)),
+                            ],
+                            onChanged: (val) {
+                              if (val != null) {
+                                setState(() {
+                                  _employmentType = val;
+                                });
+                              }
+                            },
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-              if (_employmentType == "other") ...[
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildFormField(
-                    label: "حدد نوع التوظيف",
-                    child: TextFormField(
-                      controller: _customEmploymentTypeController,
-                      textAlign: TextAlign.right,
-                      decoration:
-                          const InputDecoration(hintText: "اكتب نوع التوظيف"),
+                  if (_employmentType == "other") ...[
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildFormField(
+                        label: "حدد نوع التوظيف",
+                        child: TextFormField(
+                          controller: _customEmploymentTypeController,
+                          textAlign: TextAlign.right,
+                          decoration:
+                              const InputDecoration(hintText: "اكتب نوع التوظيف"),
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildFormField(
+                      label: "اسم جهة العمل / الشركة",
+                      child: TextFormField(
+                        controller: _companyNameController,
+                        textAlign: TextAlign.right,
+                        decoration:
+                            const InputDecoration(hintText: "مثال: أرامكو للخدمات"),
+                      ),
                     ),
                   ),
-                ),
-              ],
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildFormField(
-                  label: "اسم جهة العمل / الشركة",
-                  child: TextFormField(
-                    controller: _companyNameController,
-                    textAlign: TextAlign.right,
-                    decoration:
-                        const InputDecoration(hintText: "مثال: أرامكو للخدمات"),
-                  ),
-                ),
-              ),
-            ],
+                ],
+              );
+            },
           ),
           const SizedBox(height: 20),
 
           // Job Title & Insurance
-          Row(
-            textDirection: TextDirection.rtl,
-            children: [
-              Expanded(
-                child: _buildFormField(
-                  label: "المسمى الوظيفي الحالي",
-                  child: TextFormField(
-                    controller: _jobTitleController,
-                    textAlign: TextAlign.right,
-                    decoration: const InputDecoration(
-                        hintText: "مثال: مهندس برمجيات رئيسي"),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildFormField(
-                  label: "حالة التأمين الاجتماعي",
-                  child: Row(
-                    textDirection: TextDirection.rtl,
-                    children: [
-                      Radio<bool>(
-                        value: true,
-                        // ignore: deprecated_member_use
-                        groupValue: _isInsured,
-                        activeColor: TfcColors.primary,
-                        // ignore: deprecated_member_use
-                        onChanged: (val) {
-                          if (val != null) setState(() => _isInsured = val);
-                        },
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isCompact = constraints.maxWidth < 600;
+              if (isCompact) {
+                return Column(
+                  children: [
+                    _buildFormField(
+                      label: "المسمى الوظيفي الحالي",
+                      child: TextFormField(
+                        controller: _jobTitleController,
+                        textAlign: TextAlign.right,
+                        decoration: const InputDecoration(
+                            hintText: "مثال: مهندس برمجيات رئيسي"),
                       ),
-                      const Text("مؤمن عليه"),
-                      const SizedBox(width: 16),
-                      Radio<bool>(
-                        value: false,
-                        // ignore: deprecated_member_use
-                        groupValue: _isInsured,
-                        activeColor: TfcColors.primary,
-                        // ignore: deprecated_member_use
-                        onChanged: (val) {
-                          if (val != null) setState(() => _isInsured = val);
-                        },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildFormField(
+                      label: "حالة التأمين الاجتماعي",
+                      child: Row(
+                        textDirection: TextDirection.rtl,
+                        children: [
+                          Radio<bool>(
+                            value: true,
+                            // ignore: deprecated_member_use
+                            groupValue: _isInsured,
+                            activeColor: TfcColors.primary,
+                            // ignore: deprecated_member_use
+                            onChanged: (val) {
+                              if (val != null) setState(() => _isInsured = val);
+                            },
+                          ),
+                          const Text("مؤمن عليه"),
+                          const SizedBox(width: 16),
+                          Radio<bool>(
+                            value: false,
+                            // ignore: deprecated_member_use
+                            groupValue: _isInsured,
+                            activeColor: TfcColors.primary,
+                            // ignore: deprecated_member_use
+                            onChanged: (val) {
+                              if (val != null) setState(() => _isInsured = val);
+                            },
+                          ),
+                          const Text("غير مؤمن"),
+                        ],
                       ),
-                      const Text("غير مؤمن"),
-                    ],
+                    ),
+                  ],
+                );
+              }
+              return Row(
+                textDirection: TextDirection.rtl,
+                children: [
+                  Expanded(
+                    child: _buildFormField(
+                      label: "المسمى الوظيفي الحالي",
+                      child: TextFormField(
+                        controller: _jobTitleController,
+                        textAlign: TextAlign.right,
+                        decoration: const InputDecoration(
+                            hintText: "مثال: مهندس برمجيات رئيسي"),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ],
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildFormField(
+                      label: "حالة التأمين الاجتماعي",
+                      child: Row(
+                        textDirection: TextDirection.rtl,
+                        children: [
+                          Radio<bool>(
+                            value: true,
+                            // ignore: deprecated_member_use
+                            groupValue: _isInsured,
+                            activeColor: TfcColors.primary,
+                            // ignore: deprecated_member_use
+                            onChanged: (val) {
+                              if (val != null) setState(() => _isInsured = val);
+                            },
+                          ),
+                          const Text("مؤمن عليه"),
+                          const SizedBox(width: 16),
+                          Radio<bool>(
+                            value: false,
+                            // ignore: deprecated_member_use
+                            groupValue: _isInsured,
+                            activeColor: TfcColors.primary,
+                            // ignore: deprecated_member_use
+                            onChanged: (val) {
+                              if (val != null) setState(() => _isInsured = val);
+                            },
+                          ),
+                          const Text("غير مؤمن"),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 20),
 
