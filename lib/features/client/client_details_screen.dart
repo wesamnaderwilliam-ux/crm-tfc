@@ -52,6 +52,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   String _clientSearchQuery = "";
   String _selectedStatusFilter = 'all';
   String _selectedRepFilter = 'all';
+  bool _sidebarCollapsed = false;   // Toggle Desktop sidebar
+  bool _filtersCollapsed = true;    // Toggle filter panel in sidebar (collapsed by default)
 
   // Helper map for Arabic status names
   final Map<String, String> _statusNames = {
@@ -329,202 +331,326 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 textDirection: TextDirection.rtl,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // 1. Sidebar on the right (Client List & Search)
-                  SizedBox(
-                    width: 320,
-                    child: GlassCard(
-                      padding: const EdgeInsets.all(16),
-                      borderColor: Colors.white.withValues(alpha: 0.04),
-                      fillColor: TfcColors.surfaceDim.withValues(alpha: 0.4),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Row(
-                            textDirection: TextDirection.rtl,
-                            children: [
-                              const Icon(Icons.people_alt, color: TfcColors.primary, size: 20),
-                              const SizedBox(width: 8),
-                              const Text(
-                                "دليل العملاء",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: TfcColors.primary,
+                  // 1. Collapsible Sidebar on the right (Client List & Search)
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 280),
+                    curve: Curves.easeInOut,
+                    width: _sidebarCollapsed ? 42 : 320,
+                    child: _sidebarCollapsed
+                        // ── Collapsed strip ──────────────────────────────
+                        ? GlassCard(
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                            borderColor: Colors.white.withValues(alpha: 0.04),
+                            fillColor: TfcColors.surfaceDim.withValues(alpha: 0.4),
+                            child: Column(
+                              children: [
+                                Tooltip(
+                                  message: "إظهار قائمة العملاء",
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(8),
+                                    onTap: () => setState(() => _sidebarCollapsed = false),
+                                    child: const Padding(
+                                      padding: EdgeInsets.all(8),
+                                      child: Icon(Icons.chevron_left_rounded, color: TfcColors.primary, size: 22),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              const Spacer(),
-                              if (widget.onOpenNewClientForm != null)
-                                InteractiveHoverCard(
-                                  onTap: widget.onOpenNewClientForm,
-                                  glowColor: Colors.greenAccent,
-                                  backgroundColor: Colors.green.withValues(alpha: 0.25),
-                                  borderRadius: BorderRadius.circular(8),
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.add_circle_outline, color: Colors.greenAccent, size: 16),
-                                      SizedBox(width: 4),
-                                      Text(
-                                        "طلب تمويل جديد",
-                                        style: TextStyle(
-                                          color: Colors.greenAccent,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.bold,
+                                const SizedBox(height: 8),
+                                RotatedBox(
+                                  quarterTurns: 3,
+                                  child: Text(
+                                    "دليل العملاء",
+                                    style: TextStyle(
+                                      color: TfcColors.primary.withValues(alpha: 0.7),
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        // ── Full Sidebar ──────────────────────────────────
+                        : GlassCard(
+                            padding: const EdgeInsets.all(16),
+                            borderColor: Colors.white.withValues(alpha: 0.04),
+                            fillColor: TfcColors.surfaceDim.withValues(alpha: 0.4),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Row(
+                                  textDirection: TextDirection.rtl,
+                                  children: [
+                                    const Icon(Icons.people_alt, color: TfcColors.primary, size: 20),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      "دليل العملاء",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: TfcColors.primary,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    if (widget.onOpenNewClientForm != null)
+                                      InteractiveHoverCard(
+                                        onTap: widget.onOpenNewClientForm,
+                                        glowColor: Colors.greenAccent,
+                                        backgroundColor: Colors.green.withValues(alpha: 0.25),
+                                        borderRadius: BorderRadius.circular(8),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(Icons.add_circle_outline, color: Colors.greenAccent, size: 16),
+                                            SizedBox(width: 4),
+                                            Text(
+                                              "طلب تمويل جديد",
+                                              style: TextStyle(
+                                                color: Colors.greenAccent,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
+                                    const SizedBox(width: 6),
+                                    // ── Collapse sidebar button ──
+                                    Tooltip(
+                                      message: "إخفاء القائمة الجانبية",
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(6),
+                                        onTap: () => setState(() => _sidebarCollapsed = true),
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(4),
+                                          child: Icon(
+                                            Icons.chevron_right_rounded,
+                                            color: Colors.white.withValues(alpha: 0.4),
+                                            size: 18,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+
+                                // ── Search field (always visible) ──
+                                Directionality(
+                                  textDirection: TextDirection.rtl,
+                                  child: TextField(
+                                    controller: _clientSearchController,
+                                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                                    onChanged: (val) {
+                                      setState(() {
+                                        _clientSearchQuery = val;
+                                      });
+                                    },
+                                    decoration: InputDecoration(
+                                      hintText: "بحث بالاسم، الهاتف، الرقم القومي...",
+                                      hintStyle: const TextStyle(color: TfcColors.outline, fontSize: 11),
+                                      prefixIcon: const Icon(Icons.search, color: TfcColors.outline, size: 18),
+                                      suffixIcon: _clientSearchQuery.isNotEmpty
+                                          ? IconButton(
+                                              icon: const Icon(Icons.clear, color: TfcColors.outline, size: 16),
+                                              onPressed: () {
+                                                _clientSearchController.clear();
+                                                setState(() {
+                                                  _clientSearchQuery = "";
+                                                });
+                                              },
+                                            )
+                                          : null,
+                                      filled: true,
+                                      fillColor: Colors.white.withValues(alpha: 0.03),
+                                      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                        borderSide: BorderSide(color: TfcColors.primary.withValues(alpha: 0.4)),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+
+                                // ── Toggleable Filters ──
+                                InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: () => setState(() => _filtersCollapsed = !_filtersCollapsed),
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+                                    child: Row(
+                                      textDirection: TextDirection.rtl,
+                                      children: [
+                                        Icon(
+                                          Icons.filter_alt_rounded,
+                                          color: (_selectedStatusFilter != 'all' || _selectedRepFilter != 'all')
+                                              ? const Color(0xFF00CEC9)
+                                              : Colors.white38,
+                                          size: 16,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          "خيارات التصفية",
+                                          style: TextStyle(
+                                            color: (_selectedStatusFilter != 'all' || _selectedRepFilter != 'all')
+                                                ? const Color(0xFF00CEC9)
+                                                : Colors.white54,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        if (_selectedStatusFilter != 'all' || _selectedRepFilter != 'all')
+                                          Container(
+                                            margin: const EdgeInsets.only(right: 6),
+                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF00CEC9),
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            child: Text(
+                                              "${(_selectedStatusFilter != 'all' ? 1 : 0) + (_selectedRepFilter != 'all' ? 1 : 0)}",
+                                              style: const TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        const Spacer(),
+                                        AnimatedRotation(
+                                          turns: _filtersCollapsed ? 0 : 0.5,
+                                          duration: const Duration(milliseconds: 200),
+                                          child: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white38, size: 18),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+
+                                AnimatedCrossFade(
+                                  firstChild: const SizedBox(width: double.infinity),
+                                  secondChild: Column(
+                                    children: [
+                                      const SizedBox(height: 6),
+                                      Directionality(
+                                        textDirection: TextDirection.rtl,
+                                        child: DropdownButtonFormField<String>(
+                                          value: _selectedStatusFilter,
+                                          dropdownColor: TfcColors.surfaceDim,
+                                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                                          decoration: InputDecoration(
+                                            filled: true,
+                                            fillColor: Colors.white.withValues(alpha: 0.03),
+                                            contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                                            ),
+                                          ),
+                                          items: _statusNames.entries.map((e) {
+                                            return DropdownMenuItem(
+                                              value: e.key,
+                                              child: Text(e.value, textDirection: TextDirection.rtl),
+                                            );
+                                          }).toList(),
+                                          onChanged: (val) {
+                                            if (val != null) {
+                                              setState(() {
+                                                _selectedStatusFilter = val;
+                                              });
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Directionality(
+                                        textDirection: TextDirection.rtl,
+                                        child: DropdownButtonFormField<String>(
+                                          value: reps.contains(_selectedRepFilter) ? _selectedRepFilter : 'all',
+                                          dropdownColor: TfcColors.surfaceDim,
+                                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                                          decoration: InputDecoration(
+                                            filled: true,
+                                            fillColor: Colors.white.withValues(alpha: 0.03),
+                                            contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                                            ),
+                                          ),
+                                          items: [
+                                            const DropdownMenuItem(
+                                              value: 'all',
+                                              child: Text('كل المناديب', textDirection: TextDirection.rtl),
+                                            ),
+                                            ...reps.map((name) {
+                                              return DropdownMenuItem(
+                                                value: name,
+                                                child: Text(name, textDirection: TextDirection.rtl),
+                                              );
+                                            }),
+                                          ],
+                                          onChanged: (val) {
+                                            if (val != null) {
+                                              setState(() {
+                                                _selectedRepFilter = val;
+                                              });
+                                            }
+                                          },
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
                                     ],
                                   ),
+                                  crossFadeState: _filtersCollapsed ? CrossFadeState.showFirst : CrossFadeState.showSecond,
+                                  duration: const Duration(milliseconds: 250),
                                 ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          // Search field
-                          Directionality(
-                            textDirection: TextDirection.rtl,
-                            child: TextField(
-                              controller: _clientSearchController,
-                              style: const TextStyle(color: Colors.white, fontSize: 13),
-                              onChanged: (val) {
-                                setState(() {
-                                  _clientSearchQuery = val;
-                                });
-                              },
-                              decoration: InputDecoration(
-                                hintText: "بحث بالاسم، الهاتف، الرقم القومي...",
-                                hintStyle: const TextStyle(color: TfcColors.outline, fontSize: 11),
-                                prefixIcon: const Icon(Icons.search, color: TfcColors.outline, size: 18),
-                                suffixIcon: _clientSearchQuery.isNotEmpty
-                                    ? IconButton(
-                                        icon: const Icon(Icons.clear, color: TfcColors.outline, size: 16),
-                                        onPressed: () {
-                                          _clientSearchController.clear();
-                                          setState(() {
-                                            _clientSearchQuery = "";
-                                          });
-                                        },
-                                      )
-                                    : null,
-                                filled: true,
-                                fillColor: Colors.white.withValues(alpha: 0.03),
-                                contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+
+                                const SizedBox(height: 8),
+                                const Divider(color: Colors.white10),
+                                const SizedBox(height: 8),
+                                Expanded(
+                                  child: filteredClients.isEmpty
+                                      ? const Center(
+                                          child: Text(
+                                            "لا توجد نتائج مطابقة لبحثك.",
+                                            style: TextStyle(color: TfcColors.outline, fontSize: 13),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        )
+                                      : ListView.builder(
+                                          itemCount: filteredClients.length,
+                                          itemBuilder: (context, index) {
+                                            final item = filteredClients[index];
+                                            final isSelected = widget.clientId == item.id;
+                                            return _buildClientListTile(item, isSelected);
+                                          },
+                                        ),
                                 ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: TfcColors.primary.withValues(alpha: 0.4)),
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Directionality(
-                            textDirection: TextDirection.rtl,
-                            child: DropdownButtonFormField<String>(
-                              value: _selectedStatusFilter,
-                              dropdownColor: TfcColors.surfaceDim,
-                              style: const TextStyle(color: Colors.white, fontSize: 13),
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: Colors.white.withValues(alpha: 0.03),
-                                contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-                                ),
-                              ),
-                              items: _statusNames.entries.map((e) {
-                                return DropdownMenuItem(
-                                  value: e.key,
-                                  child: Text(e.value, textDirection: TextDirection.rtl),
-                                );
-                              }).toList(),
-                              onChanged: (val) {
-                                if (val != null) {
-                                  setState(() {
-                                    _selectedStatusFilter = val;
-                                  });
-                                }
-                              },
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Directionality(
-                            textDirection: TextDirection.rtl,
-                            child: DropdownButtonFormField<String>(
-                              value: reps.contains(_selectedRepFilter) ? _selectedRepFilter : 'all',
-                              dropdownColor: TfcColors.surfaceDim,
-                              style: const TextStyle(color: Colors.white, fontSize: 13),
-                              decoration: InputDecoration(
-                                filled: true,
-                                fillColor: Colors.white.withValues(alpha: 0.03),
-                                contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-                                ),
-                              ),
-                              items: [
-                                const DropdownMenuItem(
-                                  value: 'all',
-                                  child: Text('كل المناديب', textDirection: TextDirection.rtl),
-                                ),
-                                ...reps.map((name) {
-                                  return DropdownMenuItem(
-                                    value: name,
-                                    child: Text(name, textDirection: TextDirection.rtl),
-                                  );
-                                }),
                               ],
-                              onChanged: (val) {
-                                if (val != null) {
-                                  setState(() {
-                                    _selectedRepFilter = val;
-                                  });
-                                }
-                              },
                             ),
                           ),
-                          const SizedBox(height: 16),
-                          const Divider(color: Colors.white10),
-                          const SizedBox(height: 8),
-                          Expanded(
-                            child: filteredClients.isEmpty
-                                ? const Center(
-                                    child: Text(
-                                      "لا توجد نتائج مطابقة لبحثك.",
-                                      style: TextStyle(color: TfcColors.outline, fontSize: 13),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  )
-                                : ListView.builder(
-                                    itemCount: filteredClients.length,
-                                    itemBuilder: (context, index) {
-                                      final item = filteredClients[index];
-                                      final isSelected = widget.clientId == item.id;
-                                      return _buildClientListTile(item, isSelected);
-                                    },
-                                  ),
-                          ),
-                        ],
-                      ),
-                    ),
                   ),
                   const SizedBox(width: 20),
+
+
 
                   // 2. Details view on the left
                   Expanded(

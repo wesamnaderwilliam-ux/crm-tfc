@@ -34,7 +34,8 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
   int _selectedIndex = 0;
   String? _selectedClientId;
   String? _aiClientId;
-  bool _showNewClientForm = false; // Toggle to show new finance request inside client details hub
+  bool _showNewClientForm = false;
+  bool _headerVisible = true; // Toggle header visibility
 
   // Navigation History Stack for "Back" button
   final List<int> _historyStack = [0];
@@ -474,9 +475,10 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       body: SafeArea(
         child: Column(
           children: [
-            // Universal Top Header Navigation Bar (Item 2 & Item 3)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            // Universal Top Header — collapsible on tap
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
               decoration: BoxDecoration(
                 color: const Color(0xFF16162A).withValues(alpha: 0.92),
                 border: const Border(bottom: BorderSide(color: Colors.white10)),
@@ -488,160 +490,203 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                   ),
                 ],
               ),
-              child: Row(
-                children: [
-                  // Popover Main Menu Trigger Button (Item 2)
-                  InteractiveHoverCard(
-                    onTap: () => _openMainMenuModal(context, navItems),
-                    glowColor: const Color(0xFF6C5CE7),
-                    backgroundColor: const Color(0xFF6C5CE7).withValues(alpha: 0.25),
-                    borderRadius: BorderRadius.circular(12),
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.menu_rounded, color: Color(0xFFA29BFE), size: 22),
-                        SizedBox(width: 8),
-                        Text(
-                          "القائمة الرئيسية",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
+              child: _headerVisible
+                  // ─── Full Header ─────────────────────────────────────
+                  ? Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      child: Row(
+                        children: [
+                          // Popover Main Menu
+                          InteractiveHoverCard(
+                            onTap: () => _openMainMenuModal(context, navItems),
+                            glowColor: const Color(0xFF6C5CE7),
+                            backgroundColor: const Color(0xFF6C5CE7).withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(12),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.menu_rounded, color: Color(0xFFA29BFE), size: 22),
+                                SizedBox(width: 8),
+                                Text(
+                                  "القائمة الرئيسية",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
+                          const SizedBox(width: 12),
 
-                  // Navigation Back & Home buttons (Item 3)
-                  InteractiveHoverCard(
-                    onTap: _goBack,
-                    glowColor: Colors.amber,
-                    backgroundColor: Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(10),
-                    padding: const EdgeInsets.all(8),
-                    child: const Tooltip(
-                      message: "عودة للخلف",
-                      child: Icon(Icons.arrow_back_rounded, color: Colors.amber, size: 20),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  InteractiveHoverCard(
-                    onTap: _goHome,
-                    glowColor: Colors.cyan,
-                    backgroundColor: Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(10),
-                    padding: const EdgeInsets.all(8),
-                    child: const Tooltip(
-                      message: "الصفحة الرئيسية",
-                      child: Icon(Icons.home_rounded, color: Colors.cyan, size: 20),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  InteractiveHoverCard(
-                    onTap: () {
-                      showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        backgroundColor: const Color(0xFF16162A),
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                        ),
-                        builder: (ctx) => DraggableScrollableSheet(
-                          initialChildSize: 0.85,
-                          minChildSize: 0.5,
-                          maxChildSize: 0.95,
-                          expand: false,
-                          builder: (_, scrollController) => SingleChildScrollView(
-                            controller: scrollController,
-                            padding: const EdgeInsets.all(16),
-                            child: const CreditCalculatorScreen(),
+                          // Back button
+                          InteractiveHoverCard(
+                            onTap: _goBack,
+                            glowColor: Colors.amber,
+                            backgroundColor: Colors.white.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(10),
+                            padding: const EdgeInsets.all(8),
+                            child: const Tooltip(
+                              message: "عودة للخلف",
+                              child: Icon(Icons.arrow_back_rounded, color: Colors.amber, size: 20),
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                    glowColor: Colors.amberAccent,
-                    backgroundColor: Colors.amber.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(10),
-                    padding: const EdgeInsets.all(8),
-                    child: const Tooltip(
-                      message: "حاسبة الدخل الائتماني 🧮",
-                      child: Icon(Icons.calculate_rounded, color: Colors.amberAccent, size: 20),
-                    ),
-                  ),
+                          const SizedBox(width: 6),
 
-                  const SizedBox(width: 6),
-                  // Global Refresh Button
-                  InteractiveHoverCard(
-                    onTap: () {
-                      // Refresh all providers
-                      final authState = ref.read(authProvider);
-                      ref.read(clientProvider.notifier).fetchClients(bankEmployeeId: authState.bankEmployeeId);
-                      ref.read(prospectsProvider.notifier).fetchProspects();
-                      ref.read(employeesProvider.notifier).fetchEmployees();
-                      ref.invalidate(allBanksProvider);
-                      ref.invalidate(coreProgramsProvider);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("جاري تحديث جميع البيانات... ✅", textAlign: TextAlign.right),
-                          duration: Duration(seconds: 2),
-                          backgroundColor: Color(0xFF00CEC9),
-                        ),
-                      );
-                    },
-                    glowColor: Colors.greenAccent,
-                    backgroundColor: Colors.greenAccent.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                    padding: const EdgeInsets.all(8),
-                    child: const Tooltip(
-                      message: "تحديث البيانات 🔄",
-                      child: Icon(Icons.refresh_rounded, color: Colors.greenAccent, size: 20),
-                    ),
-                  ),
+                          // Home button
+                          InteractiveHoverCard(
+                            onTap: _goHome,
+                            glowColor: Colors.cyan,
+                            backgroundColor: Colors.white.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(10),
+                            padding: const EdgeInsets.all(8),
+                            child: const Tooltip(
+                              message: "الصفحة الرئيسية",
+                              child: Icon(Icons.home_rounded, color: Colors.cyan, size: 20),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
 
-                  const SizedBox(width: 14),
-                  // Logo Icon & Current Page Title
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      width: 28,
-                      height: 28,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _showNewClientForm
-                          ? "طلب تمويل جديد 📝"
-                          : (currentNavItem?.label ?? "TFC FINANCIAL CONSULTING"),
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
+                          // Credit Calculator
+                          InteractiveHoverCard(
+                            onTap: () {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: const Color(0xFF16162A),
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                ),
+                                builder: (ctx) => DraggableScrollableSheet(
+                                  initialChildSize: 0.85,
+                                  minChildSize: 0.5,
+                                  maxChildSize: 0.95,
+                                  expand: false,
+                                  builder: (_, scrollController) => SingleChildScrollView(
+                                    controller: scrollController,
+                                    padding: const EdgeInsets.all(16),
+                                    child: const CreditCalculatorScreen(),
+                                  ),
+                                ),
+                              );
+                            },
+                            glowColor: Colors.amberAccent,
+                            backgroundColor: Colors.amber.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(10),
+                            padding: const EdgeInsets.all(8),
+                            child: const Tooltip(
+                              message: "حاسبة الدخل الائتماني 🧮",
+                              child: Icon(Icons.calculate_rounded, color: Colors.amberAccent, size: 20),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+
+                          // Global Refresh
+                          InteractiveHoverCard(
+                            onTap: () {
+                              final authState = ref.read(authProvider);
+                              ref.read(clientProvider.notifier).fetchClients(bankEmployeeId: authState.bankEmployeeId);
+                              ref.read(prospectsProvider.notifier).fetchProspects();
+                              ref.read(employeesProvider.notifier).fetchEmployees();
+                              ref.invalidate(allBanksProvider);
+                              ref.invalidate(coreProgramsProvider);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("جاري تحديث جميع البيانات... ✅", textAlign: TextAlign.right),
+                                  duration: Duration(seconds: 2),
+                                  backgroundColor: Color(0xFF00CEC9),
+                                ),
+                              );
+                            },
+                            glowColor: Colors.greenAccent,
+                            backgroundColor: Colors.greenAccent.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(10),
+                            padding: const EdgeInsets.all(8),
+                            child: const Tooltip(
+                              message: "تحديث البيانات 🔄",
+                              child: Icon(Icons.refresh_rounded, color: Colors.greenAccent, size: 20),
+                            ),
+                          ),
+
+                          const SizedBox(width: 14),
+                          // Logo
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              width: 28,
+                              height: 28,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Page title
+                          Expanded(
+                            child: Text(
+                              _showNewClientForm
+                                  ? "طلب تمويل جديد 📝"
+                                  : (currentNavItem?.label ?? "TFC FINANCIAL CONSULTING"),
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+
+                          // ── Collapse Header Button ──
+                          Tooltip(
+                            message: "إخفاء الشريط العلوي",
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(8),
+                              onTap: () => setState(() => _headerVisible = false),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.06),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.keyboard_arrow_up_rounded, color: Colors.white38, size: 18),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+
+                          // Logout
+                          IconButton(
+                            icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
+                            tooltip: "تسجيل الخروج",
+                            onPressed: () {
+                              ref.read(authProvider.notifier).signOut();
+                            },
+                          ),
+                        ],
+                      ),
+                    )
+                  // ─── Collapsed Strip ──────────────────────────────────
+                  : InkWell(
+                      onTap: () => setState(() => _headerVisible = true),
+                      child: Container(
+                        height: 30,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white38, size: 18),
+                            const SizedBox(width: 6),
+                            Text(
+                              "اضغط لإظهار الشريط العلوي",
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-
-                  const SizedBox(width: 8),
-
-                  // Logout & User Info
-
-                  // Logout & User Info
-                  IconButton(
-                    icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
-                    tooltip: "تسجيل الخروج",
-                    onPressed: () {
-                      ref.read(authProvider.notifier).signOut();
-                    },
-                  ),
-                ],
-              ),
             ),
 
             // Active Screen Body (Item 1: Fully Responsive Container)
