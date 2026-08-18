@@ -1039,6 +1039,11 @@ class ClientNotifier extends StateNotifier<ClientState> {
     if (oldClient.governorate != newClient.governorate) {
       changes.add("المحافظة: من '${oldClient.governorate}' إلى '${newClient.governorate}'");
     }
+    if (oldClient.address != newClient.address) {
+      final oldVal = oldClient.address ?? "غير محدد";
+      final newVal = newClient.address ?? "غير محدد";
+      changes.add("العنوان: من '$oldVal' إلى '$newVal'");
+    }
     if (oldClient.representativeName != newClient.representativeName) {
       final oldVal = oldClient.representativeName ?? "لا يوجد";
       final newVal = newClient.representativeName ?? "لا يوجد";

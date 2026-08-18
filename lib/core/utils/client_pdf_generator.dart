@@ -166,6 +166,8 @@ class ClientPdfGenerator {
                       _buildPdfInfoTile('التأمينات الاجتماعية', client.isInsured ? 'مؤمن عليه' : 'غير مؤمن عليه'),
                       _buildPdfInfoTile('طريقة استلام الراتب', client.salaryTransferMethod == 'bank_transfer' ? 'تحويل بنكي' : 'نقدي / كاش'),
                       _buildPdfInfoTile('المحافظة', client.governorate),
+                      if (client.address != null && client.address!.trim().isNotEmpty)
+                        _buildPdfInfoTile('العنوان بالتفصيل', client.address!),
                     ],
                   ),
                 ],

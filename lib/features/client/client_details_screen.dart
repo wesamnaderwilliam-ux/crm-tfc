@@ -1183,6 +1183,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           _buildInfoRow("التأمين الاجتماعي",
               client.isInsured ? "مؤمن عليه" : "غير مؤمن عليه"),
           _buildInfoRow("المحافظة", client.governorate),
+          if (client.address != null && client.address!.trim().isNotEmpty)
+            _buildInfoRow("العنوان", client.address!),
           _buildInfoRow("المندوب المسؤول", client.representativeName ?? "-"),
 
           if (client.employmentType == 'business_owner') ...[
@@ -3410,6 +3412,12 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           <div class="info-label">المحافظة</div>
           <div class="info-value">${client.governorate}</div>
         </div>
+        ${client.address != null && client.address!.trim().isNotEmpty ? '''
+        <div class="info-item">
+          <div class="info-label">العنوان</div>
+          <div class="info-value">${client.address}</div>
+        </div>
+        ''' : ''}
         <div class="info-item">
           <div class="info-label">جهة العمل</div>
           <div class="info-value">${client.companyName ?? '-'}</div>
@@ -4863,6 +4871,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     final birthDateCtrl = TextEditingController(text: client.birthDate);
     final companyCtrl = TextEditingController(text: client.companyName ?? '');
     final jobCtrl = TextEditingController(text: client.jobTitle ?? '');
+    final addressCtrl = TextEditingController(text: client.address ?? '');
     final amountCtrl =
         TextEditingController(text: client.requestedAmount.toString());
     final scoreCtrl =
@@ -5543,6 +5552,17 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
+                        _buildFormField(
+                          label: "العنوان بالتفصيل",
+                          child: TextFormField(
+                            controller: addressCtrl,
+                            textAlign: TextAlign.right,
+                            decoration: const InputDecoration(
+                              hintText: "مثال: 15 شارع النصر - مدينة نصر - الشقة 4",
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
 
                         // 7. Credit Score (I-SCORE) & Rep Name
                         Row(
@@ -5664,6 +5684,9 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       requestedAmount: double.tryParse(amountCtrl.text) ?? 0.0,
                       creditScore: int.tryParse(scoreCtrl.text) ?? 600,
                       governorate: gov,
+                      address: addressCtrl.text.trim().isEmpty
+                          ? null
+                          : addressCtrl.text.trim(),
                       representativeName: repCtrl.text.trim().isEmpty
                           ? null
                           : repCtrl.text.trim(),

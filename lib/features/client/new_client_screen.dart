@@ -61,6 +61,7 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
   // Page 3 Details
   final _amountController = TextEditingController();
   String _governorate = "القاهرة";
+  final _addressController = TextEditingController();
   final _repNameController = TextEditingController();
   bool _isSubmitting = false;
 
@@ -127,6 +128,7 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
       entry['amount']!.dispose();
     }
     _amountController.dispose();
+    _addressController.dispose();
     _repNameController.dispose();
     for (var l in _loansList) {
       l['bank'].dispose();
@@ -472,6 +474,7 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
       creditScore: creditScore > 850 ? 850 : creditScore,
       requestedAmount: double.tryParse(_amountController.text) ?? 0.0,
       governorate: _governorate,
+      address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
       representativeName: _repNameController.text.trim(),
       status: 'pending',
       createdAt: DateTime.now(),
@@ -2858,6 +2861,18 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                   ),
                 ],
               ),
+              const SizedBox(height: 16),
+              _buildFormField(
+                label: "العنوان بالتفصيل",
+                child: TextFormField(
+                  controller: _addressController,
+                  textAlign: TextAlign.right,
+                  decoration: const InputDecoration(
+                    hintText: "مثال: 15 شارع النصر - مدينة نصر - الشقة 4",
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
               Row(
                 textDirection: TextDirection.rtl,
                 children: [

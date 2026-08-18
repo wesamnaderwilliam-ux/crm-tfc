@@ -15,6 +15,7 @@ class ClientModel {
   final int creditScore;
   final double requestedAmount;
   final String governorate;
+  final String? address;
   final String? representativeName;
   final String? createdBy;
   final String status; // pending, iscore_inquiry, preparing_documents, under_review, at_bank, approved, rejected
@@ -48,6 +49,7 @@ class ClientModel {
     required this.creditScore,
     required this.requestedAmount,
     required this.governorate,
+    this.address,
     this.representativeName,
     this.createdBy,
     required this.status,
@@ -83,6 +85,7 @@ class ClientModel {
       creditScore: json['credit_score'] ?? 600,
       requestedAmount: (json['requested_amount'] as num?)?.toDouble() ?? 0.0,
       governorate: json['governorate'] ?? '',
+      address: json['address'],
       representativeName: json['representative_name'],
       createdBy: json['created_by'],
       status: json['status'] ?? 'pending',
@@ -133,6 +136,7 @@ class ClientModel {
       'credit_score': creditScore,
       'requested_amount': requestedAmount,
       'governorate': governorate,
+      'address': address,
       'representative_name': representativeName,
       'created_by': createdBy,
       'status': status,
@@ -161,6 +165,7 @@ class ClientModel {
     int? creditScore,
     double? requestedAmount,
     String? governorate,
+    String? address,
     String? representativeName,
     String? createdBy,
     String? status,
@@ -192,6 +197,7 @@ class ClientModel {
       creditScore: creditScore ?? this.creditScore,
       requestedAmount: requestedAmount ?? this.requestedAmount,
       governorate: governorate ?? this.governorate,
+      address: address ?? this.address,
       representativeName: representativeName ?? this.representativeName,
       createdBy: createdBy ?? this.createdBy,
       status: status ?? this.status,
