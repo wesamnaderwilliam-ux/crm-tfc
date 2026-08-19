@@ -519,7 +519,28 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                               ],
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
+
+                          // ── Collapse Header Button (Left side) ──
+                          InteractiveHoverCard(
+                            onTap: () => setState(() => _headerVisible = false),
+                            glowColor: Colors.purpleAccent,
+                            backgroundColor: Colors.purple.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(10),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                            child: const Tooltip(
+                              message: "إخفاء الشريط العلوي 👁️",
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.keyboard_arrow_up_rounded, color: Colors.purpleAccent, size: 20),
+                                  SizedBox(width: 4),
+                                  Text("إخفاء الشريط", style: TextStyle(color: Colors.purpleAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
 
                           // Back button
                           InteractiveHoverCard(
@@ -672,16 +693,23 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                   : InkWell(
                       onTap: () => setState(() => _headerVisible = true),
                       child: Container(
-                        height: 30,
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF6C5CE7).withValues(alpha: 0.3),
+                          border: Border(bottom: BorderSide(color: const Color(0xFF6C5CE7).withValues(alpha: 0.5))),
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white38, size: 18),
-                            const SizedBox(width: 6),
+                          children: const [
+                            Icon(Icons.touch_app_rounded, color: Color(0xFF00CEC9), size: 18),
+                            SizedBox(width: 8),
                             Text(
-                              "اضغط لإظهار الشريط العلوي",
-                              style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12),
+                              "اضغط هنا لإظهار الشريط العلوي والقائمة الرئيسية ⬇️",
+                              style: TextStyle(
+                                color: Color(0xFF00CEC9),
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),

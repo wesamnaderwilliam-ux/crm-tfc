@@ -8,12 +8,18 @@ import 'package:printing/printing.dart';
 import '../../models/client_model.dart';
 
 class ClientPdfGenerator {
+  static pw.Font? _cachedCairoRegular;
+  static pw.Font? _cachedCairoBold;
+
   static Future<Uint8List> generateClientPdf(ClientModel client) async {
     final pdf = pw.Document();
 
-    // Load custom Arabic font and company logo for PDF rendering
-    final font = await PdfGoogleFonts.cairoRegular();
-    final fontBold = await PdfGoogleFonts.cairoBold();
+    // Fast caching for fonts so network isn't blocked on every click
+    _cachedCairoRegular ??= await PdfGoogleFonts.cairoRegular();
+    _cachedCairoBold ??= await PdfGoogleFonts.cairoBold();
+    final font = _cachedCairoRegular!;
+    final fontBold = _cachedCairoBold!;
+
     pw.MemoryImage? logoImage;
     try {
       final logoData = await rootBundle.load('assets/images/logo.png');
@@ -35,53 +41,51 @@ class ClientPdfGenerator {
     double totalMonthlyObligations = totalLoansInstallments + totalCardsFivePercent;
     double dtiPercent = totalSalary > 0 ? (totalMonthlyObligations / totalSalary) * 100 : 0.0;
 
-    // Fetch and download documents images if available
-    final List<Map<String, dynamic>> downloadedDocs = [];
-    for (var doc in client.documents) {
-      Uint8List? imageBytes;
-      final url = doc.documentUrl;
-      if (url.isNotEmpty) {
-        // Handle data:image/ base64 URLs
-        if (url.startsWith('data:image/')) {
-          try {
-            final base64Str = url.split(',').last;
-            imageBytes = base64Decode(base64Str);
-          } catch (_) {}
-        }
-        // Handle http/https URLs
-        else if (url.startsWith('http')) {
-          try {
-            final response = await http.get(
-              Uri.parse(url),
-              headers: {'Accept': 'image/*,*/*'},
-            ).timeout(const Duration(seconds: 15));
-            if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
-              final contentType = response.headers['content-type'] ?? '';
-              final urlLower = url.toLowerCase();
-              final nameLower = doc.documentName.toLowerCase();
-              final isImage = contentType.startsWith('image/') ||
-                  urlLower.contains('.jpg') ||
-                  urlLower.contains('.jpeg') ||
-                  urlLower.contains('.png') ||
-                  urlLower.contains('.webp') ||
-                  nameLower.contains('.jpg') ||
-                  nameLower.contains('.jpeg') ||
-                  nameLower.contains('.png') ||
-                  nameLower.contains('.webp') ||
-                  urlLower.contains('supabase.co/storage');
-              if (isImage) {
-                imageBytes = response.bodyBytes;
+    // Fast parallel download for document images with a strict 3-second timeout per image
+    final List<Map<String, dynamic>> downloadedDocs = await Future.wait(
+      client.documents.map((doc) async {
+        Uint8List? imageBytes;
+        final url = doc.documentUrl;
+        if (url.isNotEmpty) {
+          if (url.startsWith('data:image/')) {
+            try {
+              final base64Str = url.split(',').last;
+              imageBytes = base64Decode(base64Str);
+            } catch (_) {}
+          } else if (url.startsWith('http')) {
+            try {
+              final response = await http.get(
+                Uri.parse(url),
+                headers: {'Accept': 'image/*,*/*'},
+              ).timeout(const Duration(seconds: 3));
+              if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+                final contentType = response.headers['content-type'] ?? '';
+                final urlLower = url.toLowerCase();
+                final nameLower = doc.documentName.toLowerCase();
+                final isImage = contentType.startsWith('image/') ||
+                    urlLower.contains('.jpg') ||
+                    urlLower.contains('.jpeg') ||
+                    urlLower.contains('.png') ||
+                    urlLower.contains('.webp') ||
+                    nameLower.contains('.jpg') ||
+                    nameLower.contains('.jpeg') ||
+                    nameLower.contains('.png') ||
+                    nameLower.contains('.webp') ||
+                    urlLower.contains('supabase.co/storage');
+                if (isImage) {
+                  imageBytes = response.bodyBytes;
+                }
               }
-            }
-          } catch (_) {}
+            } catch (_) {}
+          }
         }
-      }
-      downloadedDocs.add({
-        'name': doc.documentName,
-        'url': doc.documentUrl,
-        'imageBytes': imageBytes,
-      });
-    }
+        return {
+          'name': doc.documentName,
+          'url': doc.documentUrl,
+          'imageBytes': imageBytes,
+        };
+      }),
+    );
 
     pdf.addPage(
       pw.MultiPage(
@@ -387,13 +391,22 @@ class ClientPdfGenerator {
 
   // Trigger cross-platform share across apps (WhatsApp, Messenger, Instagram, Email, etc.)
   static Future<void> shareClientPdf(ClientModel client) async {
-    final pdfBytes = await generateClientPdf(client);
-    final String filename = 'Client_Profile_${client.fullName.replaceAll(' ', '_')}.pdf';
+    try {
+      final pdfBytes = await generateClientPdf(client);
+      final String filename = 'Client_Profile_${client.fullName.replaceAll(' ', '_')}.pdf';
 
-    await Printing.sharePdf(
-      bytes: pdfBytes,
-      filename: filename,
-      subject: 'تقرير ملف العميل الائتماني: ${client.fullName}',
-    );
+      await Printing.sharePdf(
+        bytes: pdfBytes,
+        filename: filename,
+        subject: 'تقرير ملف العميل الائتماني: ${client.fullName}',
+      );
+    } catch (e) {
+      // Fallback in case device share dialog is blocked
+      final pdfBytes = await generateClientPdf(client);
+      await Printing.layoutPdf(
+        onLayout: (_) => pdfBytes,
+        name: 'Client_Profile_${client.fullName.replaceAll(' ', '_')}.pdf',
+      );
+    }
   }
 }

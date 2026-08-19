@@ -12,6 +12,7 @@ import 'distribution_widget.dart';
 import 'operations_widget.dart';
 import 'document_upload_helper.dart';
 import '../../core/utils/client_pdf_generator.dart';
+import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../core/utils/web_helper.dart';
 import '../../core/widgets/interactive_hover_card.dart';
@@ -3242,7 +3243,27 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     );
   }
 
-  void _printClientProfile(ClientModel client) {
+  void _printClientProfile(ClientModel client) async {
+    // Show quick feedback feedback toast / indicator then launch instant PDF print layout across all platforms
+    try {
+      final pdfBytes = await ClientPdfGenerator.generateClientPdf(client);
+      await Printing.layoutPdf(
+        onLayout: (_) => pdfBytes,
+        name: 'Client_Profile_${client.fullName.replaceAll(' ', '_')}.pdf',
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("تعذر فتح نافذة الطباعة: $e", textAlign: TextAlign.right),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
+  }
+
+  void _legacyPrintHtml(ClientModel client) {
     // 1. Gather Calculations & commitment totals
     final double totalSalary = _extractSalary(client);
     
