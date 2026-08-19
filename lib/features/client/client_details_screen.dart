@@ -3244,7 +3244,10 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   }
 
   void _printClientProfile(ClientModel client) {
-    _legacyPrintHtml(client);
+    Printing.layoutPdf(
+      onLayout: (format) async => await ClientPdfGenerator.generateClientPdf(client),
+      name: 'تقرير_العميل_${client.fullName.replaceAll(' ', '_')}.pdf',
+    );
   }
 
   void _legacyPrintHtml(ClientModel client) {

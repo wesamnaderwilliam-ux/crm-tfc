@@ -8,23 +8,8 @@ import 'package:printing/printing.dart';
 import '../../models/client_model.dart';
 
 class ClientPdfGenerator {
-  static pw.Font? _cachedCairoRegular;
-  static pw.Font? _cachedCairoBold;
-
   static Future<Uint8List> generateClientPdf(ClientModel client) async {
     final pdf = pw.Document();
-
-    // Fast caching for fonts so network isn't blocked on every click
-    _cachedCairoRegular ??= await PdfGoogleFonts.cairoRegular();
-    _cachedCairoBold ??= await PdfGoogleFonts.cairoBold();
-    final font = _cachedCairoRegular!;
-    final fontBold = _cachedCairoBold!;
-
-    pw.MemoryImage? logoImage;
-    try {
-      final logoData = await rootBundle.load('assets/images/logo.png');
-      logoImage = pw.MemoryImage(logoData.buffer.asUint8List());
-    } catch (_) {}
 
     // Calculate totals
     double totalSalary = 0.0;
@@ -41,57 +26,10 @@ class ClientPdfGenerator {
     double totalMonthlyObligations = totalLoansInstallments + totalCardsFivePercent;
     double dtiPercent = totalSalary > 0 ? (totalMonthlyObligations / totalSalary) * 100 : 0.0;
 
-    // Fast parallel download for document images with a strict 3-second timeout per image
-    final List<Map<String, dynamic>> downloadedDocs = await Future.wait(
-      client.documents.map((doc) async {
-        Uint8List? imageBytes;
-        final url = doc.documentUrl;
-        if (url.isNotEmpty) {
-          if (url.startsWith('data:image/')) {
-            try {
-              final base64Str = url.split(',').last;
-              imageBytes = base64Decode(base64Str);
-            } catch (_) {}
-          } else if (url.startsWith('http')) {
-            try {
-              final response = await http.get(
-                Uri.parse(url),
-                headers: {'Accept': 'image/*,*/*'},
-              ).timeout(const Duration(seconds: 3));
-              if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
-                final contentType = response.headers['content-type'] ?? '';
-                final urlLower = url.toLowerCase();
-                final nameLower = doc.documentName.toLowerCase();
-                final isImage = contentType.startsWith('image/') ||
-                    urlLower.contains('.jpg') ||
-                    urlLower.contains('.jpeg') ||
-                    urlLower.contains('.png') ||
-                    urlLower.contains('.webp') ||
-                    nameLower.contains('.jpg') ||
-                    nameLower.contains('.jpeg') ||
-                    nameLower.contains('.png') ||
-                    nameLower.contains('.webp') ||
-                    urlLower.contains('supabase.co/storage');
-                if (isImage) {
-                  imageBytes = response.bodyBytes;
-                }
-              }
-            } catch (_) {}
-          }
-        }
-        return {
-          'name': doc.documentName,
-          'url': doc.documentUrl,
-          'imageBytes': imageBytes,
-        };
-      }),
-    );
-
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         textDirection: pw.TextDirection.rtl,
-        theme: pw.ThemeData.withFont(base: font, bold: fontBold),
         build: (pw.Context context) {
           return [
             // Header with Company Logo
@@ -105,13 +43,6 @@ class ClientPdfGenerator {
               ),
               child: pw.Column(
                 children: [
-                  if (logoImage != null)
-                    pw.Container(
-                      margin: const pw.EdgeInsets.only(bottom: 8),
-                      child: pw.ClipOval(
-                        child: pw.Image(logoImage, width: 60, height: 60, fit: pw.BoxFit.cover),
-                      ),
-                    ),
                   pw.Text(
                     'THE FUTURE CLUB',
                     style: pw.TextStyle(
@@ -294,40 +225,19 @@ class ClientPdfGenerator {
                   pw.Text('📁 المستندات والوثائق المرفقة', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800)),
                   pw.Divider(color: PdfColors.grey300),
                   pw.SizedBox(height: 6),
-                  downloadedDocs.isEmpty
+                  client.documents.isEmpty
                       ? pw.Text('لم يتم رفع مستندات حتى الآن.', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700))
                       : pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: downloadedDocs.map((item) {
-                            final String name = item['name'] ?? '';
-                            final Uint8List? imgBytes = item['imageBytes'];
-
+                          children: client.documents.map((doc) {
                             return pw.Container(
-                              margin: const pw.EdgeInsets.only(bottom: 12),
-                              padding: const pw.EdgeInsets.all(8),
+                              margin: const pw.EdgeInsets.only(bottom: 6),
+                              padding: const pw.EdgeInsets.all(6),
                               decoration: pw.BoxDecoration(
                                 border: pw.Border.all(color: PdfColors.grey300),
                                 borderRadius: pw.BorderRadius.circular(4),
                               ),
-                              child: pw.Column(
-                                crossAxisAlignment: pw.CrossAxisAlignment.start,
-                                children: [
-                                  pw.Text('📄 مستند: $name', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
-                                  pw.SizedBox(height: 6),
-                                  if (imgBytes != null)
-                                    pw.Center(
-                                      child: pw.Container(
-                                        height: 250,
-                                        child: pw.Image(
-                                          pw.MemoryImage(imgBytes),
-                                          fit: pw.BoxFit.contain,
-                                        ),
-                                      ),
-                                    )
-                                  else
-                                    pw.Text('• $name (مستند مرفق)', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
-                                ],
-                              ),
+                              child: pw.Text('📄 ${doc.documentName}', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
                             );
                           }).toList(),
                         ),
