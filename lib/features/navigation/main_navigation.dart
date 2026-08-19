@@ -521,27 +521,6 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                           ),
                           const SizedBox(width: 8),
 
-                          // ── Collapse Header Button (Left side) ──
-                          InteractiveHoverCard(
-                            onTap: () => setState(() => _headerVisible = false),
-                            glowColor: Colors.purpleAccent,
-                            backgroundColor: Colors.purple.withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(10),
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                            child: const Tooltip(
-                              message: "إخفاء الشريط العلوي 👁️",
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.keyboard_arrow_up_rounded, color: Colors.purpleAccent, size: 20),
-                                  SizedBox(width: 4),
-                                  Text("إخفاء الشريط", style: TextStyle(color: Colors.purpleAccent, fontSize: 11, fontWeight: FontWeight.bold)),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-
                           // Back button
                           InteractiveHoverCard(
                             onTap: _goBack,

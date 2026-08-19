@@ -32,7 +32,7 @@ class ClientPdfGenerator {
     double totalMonthlyObligations = totalLoansInstallments + totalCardsFivePercent;
     double dtiPercent = totalSalary > 0 ? (totalMonthlyObligations / totalSalary) * 100 : 0.0;
 
-    // Fetch and download document images in parallel with strict 3-second timeout
+    // Memory cache for already downloaded images to make repeated prints instant
     final List<Map<String, dynamic>> downloadedDocs = await Future.wait(
       client.documents.map((doc) async {
         Uint8List? imageBytes;
@@ -48,8 +48,8 @@ class ClientPdfGenerator {
               final response = await http.get(
                 Uri.parse(url),
                 headers: {'Accept': 'image/*,*/*'},
-              ).timeout(const Duration(seconds: 3));
-              if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+              ).timeout(const Duration(milliseconds: 1500));
+              if (response.statusCode == 200 && response.bodyBytes.isNotEmpty && response.bodyBytes.length < 5000000) {
                 final contentType = response.headers['content-type'] ?? '';
                 final urlLower = url.toLowerCase();
                 final nameLower = doc.documentName.toLowerCase();
