@@ -3244,10 +3244,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   }
 
   void _printClientProfile(ClientModel client) {
-    Printing.layoutPdf(
-      onLayout: (format) async => await ClientPdfGenerator.generateClientPdf(client),
-      name: 'تقرير_العميل_${client.fullName.replaceAll(' ', '_')}.pdf',
-    );
+    _legacyPrintHtml(client);
   }
 
   void _legacyPrintHtml(ClientModel client) {
@@ -3301,45 +3298,25 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     final double netLimit = availableSalaryFortyFive - totalInstallments;
     final double maxLoanValue = netLimit > 0 ? netLimit * 45 : 0.0;
 
-    // 2. Find ID card images (front & back) from client documents
-    final idKeywords = ['بطاقة', 'هوية', 'وجه', 'ظهر', 'front', 'back', 'national', 'id', 'قومي'];
+    // Include ALL image documents of the client for immediate rendering in the report
     final imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
-    
-    // Find documents that look like ID card images
-    final idDocs = client.documents.where((doc) {
-      final nameLower = doc.documentName.toLowerCase();
-      final urlLower = doc.documentUrl.toLowerCase();
-      final isImage = imageExtensions.any((ext) => nameLower.contains(ext) || urlLower.contains(ext)) ||
-          doc.documentUrl.startsWith('blob:') ||
-          doc.documentUrl.startsWith('data:image');
-      final isIdCard = idKeywords.any((kw) => nameLower.contains(kw));
-      return isImage && isIdCard;
-    }).toList();
-
-    // If no specific ID-keyword documents, take the first 2 image documents as fallback
     final allImageDocs = client.documents.where((doc) {
       final nameLower = doc.documentName.toLowerCase();
       final urlLower = doc.documentUrl.toLowerCase();
       return imageExtensions.any((ext) => nameLower.contains(ext) || urlLower.contains(ext)) ||
           doc.documentUrl.startsWith('blob:') ||
-          doc.documentUrl.startsWith('data:image');
+          doc.documentUrl.startsWith('data:image') ||
+          doc.documentUrl.contains('supabase.co/storage');
     }).toList();
 
-    final docsToShow = idDocs.isNotEmpty ? idDocs : allImageDocs.take(2).toList();
-
-    // Build the ID images HTML section
     String idImagesHtml = '';
-    if (docsToShow.isNotEmpty) {
+    if (allImageDocs.isNotEmpty) {
       String imagesInnerHtml = '';
-      for (var doc in docsToShow) {
-        final hasValidUrl = doc.documentUrl.isNotEmpty &&
-            (doc.documentUrl.startsWith('http') ||
-                doc.documentUrl.startsWith('blob:') ||
-                doc.documentUrl.startsWith('data:'));
-        if (hasValidUrl) {
+      for (var doc in allImageDocs) {
+        if (doc.documentUrl.isNotEmpty) {
           imagesInnerHtml += '''
             <div class="id-card-item">
-              <img src="${doc.documentUrl}" alt="${doc.documentName}" />
+              <img src="${doc.documentUrl}" alt="${doc.documentName}" loading="eager" />
               <div class="id-card-label">${doc.documentName}</div>
             </div>
           ''';
@@ -3347,7 +3324,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
       }
       if (imagesInnerHtml.isNotEmpty) {
         idImagesHtml = '''
-          <div class="section-title" style="page-break-before: auto;">صورة البطاقة الشخصية (وجه وظهر)</div>
+          <div class="section-title" style="page-break-before: auto;">صور المستندات والوثائق المرفقة</div>
           <div class="id-cards-grid">
             $imagesInnerHtml
           </div>
