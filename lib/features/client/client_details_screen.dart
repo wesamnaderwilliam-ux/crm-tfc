@@ -3243,24 +3243,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     );
   }
 
-  void _printClientProfile(ClientModel client) async {
-    // Show quick feedback feedback toast / indicator then launch instant PDF print layout across all platforms
-    try {
-      final pdfBytes = await ClientPdfGenerator.generateClientPdf(client);
-      await Printing.layoutPdf(
-        onLayout: (_) => pdfBytes,
-        name: 'Client_Profile_${client.fullName.replaceAll(' ', '_')}.pdf',
-      );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("تعذر فتح نافذة الطباعة: $e", textAlign: TextAlign.right),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      }
-    }
+  void _printClientProfile(ClientModel client) {
+    _legacyPrintHtml(client);
   }
 
   void _legacyPrintHtml(ClientModel client) {
@@ -3645,13 +3629,9 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
 
       <script>
         window.onload = function() {
-          // Delay print to allow images to load
           setTimeout(function() {
             window.print();
-            window.onafterprint = function() {
-              window.close();
-            };
-          }, 1500);
+          }, 200);
         };
       </script>
     </body>

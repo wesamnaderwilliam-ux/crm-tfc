@@ -7,8 +7,7 @@ String createBlobUrl(Uint8List bytes, String mimeType) {
 }
 
 void openHtmlWindow(String htmlContent) {
-  final blob = html.Blob([htmlContent], 'text/html');
+  final blob = html.Blob([htmlContent], 'text/html;charset=utf-8');
   final url = html.Url.createObjectUrlFromBlob(blob);
   html.window.open(url, '_blank');
-  html.Url.revokeObjectUrl(url);
 }
