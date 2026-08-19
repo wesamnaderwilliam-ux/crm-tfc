@@ -8,8 +8,14 @@ import 'package:printing/printing.dart';
 import '../../models/client_model.dart';
 
 class ClientPdfGenerator {
+  static pw.Font? _cairoFont;
+
   static Future<Uint8List> generateClientPdf(ClientModel client) async {
     final pdf = pw.Document();
+
+    // Fast arabic font loading with static caching to render Arabic text crystal clear
+    _cairoFont ??= await PdfGoogleFonts.cairoMedium();
+    final font = _cairoFont!;
 
     // Calculate totals
     double totalSalary = 0.0;
@@ -30,6 +36,7 @@ class ClientPdfGenerator {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         textDirection: pw.TextDirection.rtl,
+        theme: pw.ThemeData.withFont(base: font, bold: font),
         build: (pw.Context context) {
           return [
             // Header with Company Logo
