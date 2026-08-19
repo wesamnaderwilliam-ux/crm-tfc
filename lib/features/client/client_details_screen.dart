@@ -297,7 +297,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   IconButton(
                     icon: const Icon(Icons.share, color: Colors.greenAccent),
                     tooltip: "مشاركة ملف العميل PDF (واتساب / ماسنجر...)",
-                    onPressed: () => ClientPdfGenerator.shareClientPdf(client),
+                    onPressed: () => _printClientProfile(client),
                   ),
                   IconButton(
                     icon: const Icon(Icons.print, color: TfcColors.primary),
@@ -919,7 +919,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               IconButton(
                 icon: const Icon(Icons.share, color: Colors.greenAccent),
                 tooltip: "مشاركة ملف العميل PDF (واتساب / ماسنجر...)",
-                onPressed: () => ClientPdfGenerator.shareClientPdf(client),
+                onPressed: () => _printClientProfile(client),
               ),
               IconButton(
                 icon: const Icon(Icons.print, color: TfcColors.primary),
@@ -1219,7 +1219,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   IconButton(
                     icon: const Icon(Icons.share, size: 18, color: Colors.greenAccent),
                     tooltip: "مشاركة ملف العميل PDF عبر التطبيقات",
-                    onPressed: () => ClientPdfGenerator.shareClientPdf(client),
+                    onPressed: () => _printClientProfile(client),
                   ),
                   if (permissions.canEditClients)
                     IconButton(
