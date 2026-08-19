@@ -32,6 +32,52 @@ class ClientPdfGenerator {
     double totalMonthlyObligations = totalLoansInstallments + totalCardsFivePercent;
     double dtiPercent = totalSalary > 0 ? (totalMonthlyObligations / totalSalary) * 100 : 0.0;
 
+    // Fetch and download document images in parallel with strict 3-second timeout
+    final List<Map<String, dynamic>> downloadedDocs = await Future.wait(
+      client.documents.map((doc) async {
+        Uint8List? imageBytes;
+        final url = doc.documentUrl;
+        if (url.isNotEmpty) {
+          if (url.startsWith('data:image/')) {
+            try {
+              final base64Str = url.split(',').last;
+              imageBytes = base64Decode(base64Str);
+            } catch (_) {}
+          } else if (url.startsWith('http')) {
+            try {
+              final response = await http.get(
+                Uri.parse(url),
+                headers: {'Accept': 'image/*,*/*'},
+              ).timeout(const Duration(seconds: 3));
+              if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+                final contentType = response.headers['content-type'] ?? '';
+                final urlLower = url.toLowerCase();
+                final nameLower = doc.documentName.toLowerCase();
+                final isImage = contentType.startsWith('image/') ||
+                    urlLower.contains('.jpg') ||
+                    urlLower.contains('.jpeg') ||
+                    urlLower.contains('.png') ||
+                    urlLower.contains('.webp') ||
+                    nameLower.contains('.jpg') ||
+                    nameLower.contains('.jpeg') ||
+                    nameLower.contains('.png') ||
+                    nameLower.contains('.webp') ||
+                    urlLower.contains('supabase.co/storage');
+                if (isImage) {
+                  imageBytes = response.bodyBytes;
+                }
+              }
+            } catch (_) {}
+          }
+        }
+        return {
+          'name': doc.documentName,
+          'url': doc.documentUrl,
+          'imageBytes': imageBytes,
+        };
+      }),
+    );
+
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
@@ -232,19 +278,40 @@ class ClientPdfGenerator {
                   pw.Text('📁 المستندات والوثائق المرفقة', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800)),
                   pw.Divider(color: PdfColors.grey300),
                   pw.SizedBox(height: 6),
-                  client.documents.isEmpty
+                  downloadedDocs.isEmpty
                       ? pw.Text('لم يتم رفع مستندات حتى الآن.', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700))
                       : pw.Column(
                           crossAxisAlignment: pw.CrossAxisAlignment.start,
-                          children: client.documents.map((doc) {
+                          children: downloadedDocs.map((item) {
+                            final String name = item['name'] ?? '';
+                            final Uint8List? imgBytes = item['imageBytes'];
+
                             return pw.Container(
-                              margin: const pw.EdgeInsets.only(bottom: 6),
-                              padding: const pw.EdgeInsets.all(6),
+                              margin: const pw.EdgeInsets.only(bottom: 12),
+                              padding: const pw.EdgeInsets.all(8),
                               decoration: pw.BoxDecoration(
                                 border: pw.Border.all(color: PdfColors.grey300),
-                                borderRadius: pw.BorderRadius.circular(4),
+                                borderRadius: pw.BorderRadius.circular(6),
                               ),
-                              child: pw.Text('📄 ${doc.documentName}', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold)),
+                              child: pw.Column(
+                                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                                children: [
+                                  pw.Text('📄 $name', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.blue900)),
+                                  pw.SizedBox(height: 6),
+                                  if (imgBytes != null)
+                                    pw.Center(
+                                      child: pw.Container(
+                                        height: 350,
+                                        child: pw.Image(
+                                          pw.MemoryImage(imgBytes),
+                                          fit: pw.BoxFit.contain,
+                                        ),
+                                      ),
+                                    )
+                                  else
+                                    pw.Text('• مستند غير قابل للعرض المباشر، متوفر عبر الرابط.', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
+                                ],
+                              ),
                             );
                           }).toList(),
                         ),
