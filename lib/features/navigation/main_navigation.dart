@@ -287,6 +287,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
         label: 'تفاصيل وإدارة العملاء',
         icon: Icons.person_search_rounded,
         screen: ClientDetailsScreen(
+          key: ValueKey(_selectedClientId ?? 'none'),
           clientId: _selectedClientId,
           onBack: _goBack,
           onClientSelected: selectClient,
@@ -359,6 +360,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                   setState(() => _showNewClientForm = false);
                 })
               : ClientDetailsScreen(
+                  key: ValueKey(_selectedClientId ?? 'none'),
                   clientId: _selectedClientId,
                   onBack: _goBack,
                   onClientSelected: selectClient,
