@@ -106,10 +106,11 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
             clients ( full_name )
           ''');
 
-      // Server-side filter: bank_employee sees ONLY their own distributions
-      final response = (isBankEmployee && bankEmployeeId.isNotEmpty)
-          ? await query.eq('employee_id', bankEmployeeId)
-          : await query;
+      final userFullName = authState.fullName.trim().toLowerCase();
+      final userBankName = (authState.bankName ?? '').trim().toLowerCase();
+      final userId = authState.user?.id ?? '';
+
+      final response = await query;
 
       final List<dynamic> rows = response as List<dynamic>;
       final List<Map<String, dynamic>> loaded = rows.map((r) {
@@ -134,6 +135,17 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
               : 'لم يحدد بعد',
           'status': r['status'] ?? 'pending',
         };
+      }).where((d) {
+        if (!isBankEmployee) return true;
+        final rowEmpId = (d['employee_id']?.toString() ?? '').trim();
+        final rowEmpName = (d['employee_name']?.toString() ?? '').trim().toLowerCase();
+        final rowBankName = (d['bank_name']?.toString() ?? '').trim().toLowerCase();
+
+        final matchesEmpId = (bankEmployeeId.isNotEmpty && rowEmpId == bankEmployeeId) || (userId.isNotEmpty && rowEmpId == userId);
+        final matchesEmpName = userFullName.isNotEmpty && rowEmpName.isNotEmpty && (rowEmpName.contains(userFullName) || userFullName.contains(rowEmpName));
+        final matchesBank = userBankName.isNotEmpty && rowBankName.contains(userBankName);
+
+        return matchesEmpId || matchesEmpName || matchesBank;
       }).toList();
 
       if (mounted) {

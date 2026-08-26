@@ -162,6 +162,7 @@ class EmployeesNotifier extends StateNotifier<EmployeesState> {
     String? nationalId,
     String? hiringDate,
     String? bankName,
+    String? bankEmployeeId,
   }) async {
     if (!SupabaseConfig.isInitialized) {
       // Simulation mode: update locally
@@ -181,6 +182,7 @@ class EmployeesNotifier extends StateNotifier<EmployeesState> {
             managerId: managerId ?? e.managerId,
             employeeStatus: employeeStatus ?? e.employeeStatus,
             bankName: bankName ?? e.bankName,
+            bankEmployeeId: bankEmployeeId ?? e.bankEmployeeId,
             createdAt: e.createdAt,
           );
         }
@@ -202,6 +204,7 @@ class EmployeesNotifier extends StateNotifier<EmployeesState> {
       if (nationalId != null) updates['national_id'] = nationalId;
       if (hiringDate != null) updates['hiring_date'] = hiringDate;
       if (bankName != null) updates['bank_name'] = bankName.isEmpty ? null : bankName;
+      if (bankEmployeeId != null) updates['bank_employee_id'] = bankEmployeeId.isEmpty ? null : bankEmployeeId;
 
       await SupabaseConfig.client
           .from('profiles')
@@ -229,44 +232,52 @@ class EmployeesNotifier extends StateNotifier<EmployeesState> {
           if (bankRes != null && bankRes['id'] != null) {
             final String bankId = bankRes['id'];
 
-            // Check if record exists in bank_employees for this profile_id
-            final empRes = await SupabaseConfig.client
-                .from('bank_employees')
-                .select('id')
-                .eq('profile_id', profileId)
-                .maybeSingle();
-
-            String? bankEmployeeRecordId;
-            if (empRes != null && empRes['id'] != null) {
-              bankEmployeeRecordId = empRes['id'].toString();
-              // Update existing bank_employee record
+            if (bankEmployeeId != null && bankEmployeeId.isNotEmpty) {
+              // Direct linkage to an existing bank_employees record
               await SupabaseConfig.client.from('bank_employees').update({
-                'bank_id': bankId,
-                'employee_name': effectiveFullName,
-                'phone_1': effectivePhone,
-                'email': effectiveEmail,
-              }).eq('profile_id', profileId);
-            } else {
-              // Insert new bank_employee record linked with profile_id
-              final inserted = await SupabaseConfig.client.from('bank_employees').insert({
-                'bank_id': bankId,
-                'employee_name': effectiveFullName,
-                'phone_1': effectivePhone.isNotEmpty ? effectivePhone : '0000000000',
-                'email': effectiveEmail,
-                'job_title': 'مسؤول تحصيل/تمويل',
                 'profile_id': profileId,
-              }).select('id').maybeSingle();
-              if (inserted != null && inserted['id'] != null) {
-                bankEmployeeRecordId = inserted['id'].toString();
-              }
-            }
+                'bank_id': bankId,
+              }).eq('id', bankEmployeeId);
+            } else {
+              // Check if record exists in bank_employees for this profile_id
+              final empRes = await SupabaseConfig.client
+                  .from('bank_employees')
+                  .select('id')
+                  .eq('profile_id', profileId)
+                  .maybeSingle();
 
-            // Also save bank_employee_id in profile row for direct reference
-            if (bankEmployeeRecordId != null) {
-              await SupabaseConfig.client
-                  .from('profiles')
-                  .update({'bank_employee_id': bankEmployeeRecordId})
-                  .eq('id', profileId);
+              String? bankEmployeeRecordId;
+              if (empRes != null && empRes['id'] != null) {
+                bankEmployeeRecordId = empRes['id'].toString();
+                // Update existing bank_employee record
+                await SupabaseConfig.client.from('bank_employees').update({
+                  'bank_id': bankId,
+                  'employee_name': effectiveFullName,
+                  'phone_1': effectivePhone,
+                  'email': effectiveEmail,
+                }).eq('profile_id', profileId);
+              } else {
+                // Insert new bank_employee record linked with profile_id
+                final inserted = await SupabaseConfig.client.from('bank_employees').insert({
+                  'bank_id': bankId,
+                  'employee_name': effectiveFullName,
+                  'phone_1': effectivePhone.isNotEmpty ? effectivePhone : '0000000000',
+                  'email': effectiveEmail,
+                  'job_title': 'مسؤول تحصيل/تمويل',
+                  'profile_id': profileId,
+                }).select('id').maybeSingle();
+                if (inserted != null && inserted['id'] != null) {
+                  bankEmployeeRecordId = inserted['id'].toString();
+                }
+              }
+
+              // Also save bank_employee_id in profile row for direct reference
+              if (bankEmployeeRecordId != null) {
+                await SupabaseConfig.client
+                    .from('profiles')
+                    .update({'bank_employee_id': bankEmployeeRecordId})
+                    .eq('id', profileId);
+              }
             }
           }
         } catch (linkError) {

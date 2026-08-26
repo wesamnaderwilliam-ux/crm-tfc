@@ -6,6 +6,7 @@ import '../../core/theme.dart';
 import '../../providers/banks_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/permissions_provider.dart';
+import '../../providers/employees_provider.dart';
 
 class BanksScreen extends ConsumerWidget {
   const BanksScreen({super.key});
@@ -1400,11 +1401,16 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
       'ممثّل خدمة عملاء',
     ];
 
+    final registeredBankUsers = ref.read(employeesProvider).employees
+        .where((e) => e.role == 'bank_employee')
+        .toList();
+
     showDialog(
       context: context,
       builder: (context) {
         String selectedBankId = employee?['bank_id']?.toString() ?? widget.bankData['id'].toString();
         String selectedTitle = employee?['job_title']?.toString() ?? 'مسؤول ائتمان';
+        String? selectedProfileId = employee?['profile_id']?.toString();
         if (selectedTitle.isNotEmpty && !jobTitles.contains(selectedTitle)) {
           jobTitles.add(selectedTitle);
         }
@@ -1429,6 +1435,58 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Link Registered System Account
+                        if (registeredBankUsers.isNotEmpty) ...[
+                          DropdownButtonFormField<String>(
+                            initialValue: registeredBankUsers.any((u) => u.id == selectedProfileId)
+                                ? selectedProfileId
+                                : null,
+                            dropdownColor: TfcColors.surfaceContainer,
+                            decoration: const InputDecoration(
+                              labelText: "ربط بحساب مستخدم مسجل في النظام (اختياري)",
+                              labelStyle: TextStyle(color: TfcColors.primary),
+                              enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: TfcColors.primary)),
+                              focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: TfcColors.primary, width: 2)),
+                              prefixIcon: Icon(Icons.link, color: TfcColors.primary),
+                            ),
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            hint: const Text("اختر حساب الموظف المسجل لربطه", textDirection: TextDirection.rtl, style: TextStyle(color: TfcColors.outline, fontSize: 12)),
+                            items: [
+                              const DropdownMenuItem<String>(
+                                value: '',
+                                child: Text('بدون ربط بحساب مستخدم', textDirection: TextDirection.rtl, style: TextStyle(color: TfcColors.outline)),
+                              ),
+                              ...registeredBankUsers.map((u) {
+                                return DropdownMenuItem<String>(
+                                  value: u.id,
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: Text("${u.fullName} (${u.email ?? 'بدون إيميل'})", textDirection: TextDirection.rtl),
+                                  ),
+                                );
+                              }),
+                            ],
+                            onChanged: (val) {
+                              setStateDialog(() {
+                                selectedProfileId = (val != null && val.isNotEmpty) ? val : null;
+                                if (val != null && val.isNotEmpty) {
+                                  final u = registeredBankUsers.firstWhere((usr) => usr.id == val);
+                                  if (nameController.text.trim().isEmpty || employee == null) {
+                                    nameController.text = u.fullName;
+                                  }
+                                  if (phone1Controller.text.trim().isEmpty && (u.phoneNumber?.isNotEmpty ?? false)) {
+                                    phone1Controller.text = u.phoneNumber!;
+                                  }
+                                  if (emailController.text.trim().isEmpty && (u.email?.isNotEmpty ?? false)) {
+                                    emailController.text = u.email!;
+                                  }
+                                }
+                              });
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+
                         // Bank selection dropdown
                         DropdownButtonFormField<String>(
                           initialValue: selectedBankId,
@@ -1578,8 +1636,9 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
                       if (!formKey.currentState!.validate()) return;
                       try {
                         final repo = ref.read(banksRepositoryProvider);
+                        String? employeeRecordId;
                         if (employee == null) {
-                          await repo.addEmployee(
+                          final res = await repo.addEmployee(
                             bankId: selectedBankId,
                             name: nameController.text.trim(),
                             phone1: phone1Controller.text.trim(),
@@ -1587,7 +1646,9 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
                             jobTitle: selectedTitle,
                             email: emailController.text.trim(),
                             notes: notesController.text.trim(),
+                            profileId: selectedProfileId,
                           );
+                          employeeRecordId = res['id']?.toString();
                         } else {
                           await repo.updateEmployee(
                             id: employee['id'],
@@ -1598,6 +1659,22 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
                             jobTitle: selectedTitle,
                             email: emailController.text.trim(),
                             notes: notesController.text.trim(),
+                            profileId: selectedProfileId,
+                          );
+                          employeeRecordId = employee['id']?.toString();
+                        }
+
+                        // Also update the linked user's profile with bank_employee_id & bank_name directly
+                        if (selectedProfileId != null && selectedProfileId!.isNotEmpty && employeeRecordId != null) {
+                          final selectedBankName = banks.firstWhere(
+                            (b) => b['id'].toString() == selectedBankId,
+                            orElse: () => {'bank_name': ''},
+                          )['bank_name'];
+
+                          await ref.read(employeesProvider.notifier).updateEmployee(
+                            profileId: selectedProfileId!,
+                            bankName: selectedBankName,
+                            bankEmployeeId: employeeRecordId,
                           );
                         }
 

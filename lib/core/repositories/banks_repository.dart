@@ -128,6 +128,7 @@ class BanksRepository {
     String? jobTitle,
     String? email,
     String? notes,
+    String? profileId,
   }) async {
     final res = await _supabase.from('bank_employees').insert({
       'bank_id': bankId,
@@ -137,6 +138,7 @@ class BanksRepository {
       'job_title': (jobTitle != null && jobTitle.trim().isNotEmpty) ? jobTitle : null,
       'email': (email != null && email.trim().isNotEmpty) ? email : null,
       'notes': (notes != null && notes.trim().isNotEmpty) ? notes : null,
+      'profile_id': (profileId != null && profileId.trim().isNotEmpty) ? profileId : null,
     }).select().single();
     return Map<String, dynamic>.from(res);
   }
@@ -150,6 +152,7 @@ class BanksRepository {
     String? jobTitle,
     String? email,
     String? notes,
+    String? profileId,
   }) async {
     await _supabase.from('bank_employees').update({
       if (bankId != null && bankId.trim().isNotEmpty) 'bank_id': bankId,
@@ -159,6 +162,7 @@ class BanksRepository {
       'job_title': (jobTitle != null && jobTitle.trim().isNotEmpty) ? jobTitle : null,
       'email': (email != null && email.trim().isNotEmpty) ? email : null,
       'notes': (notes != null && notes.trim().isNotEmpty) ? notes : null,
+      'profile_id': (profileId != null && profileId.trim().isNotEmpty) ? profileId : null,
     }).eq('id', id);
   }
 

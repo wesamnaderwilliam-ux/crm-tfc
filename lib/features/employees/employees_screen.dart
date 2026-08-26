@@ -559,6 +559,7 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
     bool isConfirmed = emp.isConfirmed;
     String? selectedManagerId = emp.managerId;
     String? selectedBankName = emp.bankName;
+    String? selectedBankEmployeeId = emp.bankEmployeeId;
 
     final allEmployees = ref.read(employeesProvider).employees;
     // Potential managers = admins and managers (excluding self)
@@ -736,11 +737,80 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
                             );
                           }).toList(),
                           onChanged: (v) {
-                            setDialogState(() => selectedBankName = v);
+                            setDialogState(() {
+                              selectedBankName = v;
+                              selectedBankEmployeeId = null;
+                            });
                           },
                         ),
                       ),
                       const SizedBox(height: 14),
+
+                      // Bank Officer Selection (المسؤول الائتماني في البنك)
+                      if (selectedBankName != null) ...[
+                        _dialogFieldLabel('اسم الموظف المسؤول في البنك'),
+                        const SizedBox(height: 6),
+                        Builder(
+                          builder: (context) {
+                            final matchingBank = bankList.firstWhere(
+                              (b) => b['bank_name'] == selectedBankName,
+                              orElse: () => <String, dynamic>{},
+                            );
+                            final bankEmployees = matchingBank['bank_employees'] as List<dynamic>? ?? [];
+
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.04),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                              ),
+                              child: DropdownButtonFormField<String>(
+                                initialValue: bankEmployees.any((e) => e['id'].toString() == selectedBankEmployeeId)
+                                    ? selectedBankEmployeeId
+                                    : null,
+                                dropdownColor: TfcColors.surfaceContainer,
+                                isExpanded: true,
+                                decoration: const InputDecoration(
+                                  border: InputBorder.none,
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  prefixIcon: Icon(Icons.badge, color: TfcColors.primary),
+                                ),
+                                hint: const Text('اختر اسم المسؤول الائتماني بالبنك للربط', textDirection: TextDirection.rtl, style: TextStyle(color: TfcColors.outline)),
+                                items: [
+                                  const DropdownMenuItem<String>(
+                                    value: '',
+                                    child: Text('إنشاء سجل مسؤول جديد تلقائياً باسم الموظف', textDirection: TextDirection.rtl, style: TextStyle(color: TfcColors.outline)),
+                                  ),
+                                  ...bankEmployees.map((e) {
+                                    final id = e['id'].toString();
+                                    final name = e['employee_name']?.toString() ?? 'بدون اسم';
+                                    final phone = e['phone_1']?.toString() ?? '';
+                                    return DropdownMenuItem<String>(
+                                      value: id,
+                                      child: Text(
+                                        phone.isNotEmpty ? '$name ($phone)' : name,
+                                        textDirection: TextDirection.rtl,
+                                      ),
+                                    );
+                                  }),
+                                ],
+                                onChanged: (v) {
+                                  setDialogState(() {
+                                    selectedBankEmployeeId = (v != null && v.isNotEmpty) ? v : null;
+                                    if (v != null && v.isNotEmpty) {
+                                      final matched = bankEmployees.firstWhere((e) => e['id'].toString() == v, orElse: () => null);
+                                      if (matched != null && (matched['employee_name']?.toString().isNotEmpty ?? false)) {
+                                        nameCtrl.text = matched['employee_name'].toString();
+                                      }
+                                    }
+                                  });
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 14),
+                      ],
                     ],
 
                     if (selectedRole == 'company_employee') ...[
@@ -870,6 +940,7 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
                             employeeStatus: selectedStatus,
                             isConfirmed: isConfirmed,
                             bankName: selectedRole == 'bank_employee' ? selectedBankName : null,
+                            bankEmployeeId: selectedRole == 'bank_employee' ? selectedBankEmployeeId : null,
                           );
                           if (success && ctx.mounted) {
                             Navigator.of(ctx).pop();

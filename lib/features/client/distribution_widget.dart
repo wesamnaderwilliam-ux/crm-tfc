@@ -146,6 +146,7 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
         final isBankEmp = authState.role == 'bank_employee';
         final userBankName = authState.bankName?.trim().toLowerCase() ?? '';
         final userEmpId = authState.user?.id ?? '';
+        final userBankEmpId = authState.bankEmployeeId?.toString().trim() ?? '';
         final userFullName = authState.fullName.trim().toLowerCase();
 
         final selections = progRows.where((r) {
@@ -158,7 +159,8 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
 
           final matchesBank = userBankName.isNotEmpty && rowBankName.contains(userBankName);
           final matchesEmp = (userEmpId.isNotEmpty && rowEmpId == userEmpId) ||
-              (userFullName.isNotEmpty && rowEmpName.contains(userFullName));
+              (userBankEmpId.isNotEmpty && rowEmpId == userBankEmpId) ||
+              (userFullName.isNotEmpty && rowEmpName.isNotEmpty && (rowEmpName.contains(userFullName) || userFullName.contains(rowEmpName)));
 
           return matchesBank || matchesEmp;
         }).map((r) {

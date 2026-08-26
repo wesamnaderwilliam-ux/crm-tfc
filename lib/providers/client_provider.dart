@@ -246,18 +246,51 @@ class ClientNotifier extends StateNotifier<ClientState> {
       List<ClientModel> list = [];
 
       if (bankEmployeeId != null && bankEmployeeId.isNotEmpty) {
-        // Bank employee: fetch ONLY clients that have a distribution entry assigned to them
+        // Bank employee: fetch clients distributed to this bank employee (by employee_id or name/bank) OR assigned directly
+        final authState = _ref.read(authProvider);
+        final userFullName = authState.fullName.trim();
+        final userBankName = (authState.bankName ?? '').trim();
+
+        // 1. Get client IDs from distribution_entries where employee_id == bankEmployeeId
         final distResponse = await SupabaseConfig.client
             .from('distribution_entries')
-            .select('client_id')
-            .eq('employee_id', bankEmployeeId);
+            .select('client_id, employee_id, bank_employees(employee_name), banks(bank_name)')
+            .select();
 
-        final List<String> clientIds = (distResponse as List<dynamic>)
-            .map((r) => r['client_id']?.toString() ?? '')
-            .where((id) => id.isNotEmpty)
-            .toList();
+        final Set<String> targetClientIds = {};
+        for (var row in (distResponse as List<dynamic>)) {
+          final rowEmpId = (row['employee_id']?.toString() ?? '').trim();
+          final bankEmp = row['bank_employees'] as Map<String, dynamic>?;
+          final empName = (bankEmp?['employee_name']?.toString() ?? '').trim().toLowerCase();
+          final bankData = row['banks'] as Map<String, dynamic>?;
+          final rowBankName = (bankData?['bank_name']?.toString() ?? '').trim().toLowerCase();
+          final clientId = row['client_id']?.toString() ?? '';
 
-        if (clientIds.isEmpty) {
+          if (clientId.isEmpty) continue;
+
+          final matchesEmpId = rowEmpId == bankEmployeeId || rowEmpId == authState.user?.id;
+          final matchesEmpName = userFullName.isNotEmpty && empName.isNotEmpty && (empName.contains(userFullName.toLowerCase()) || userFullName.toLowerCase().contains(empName));
+          
+          if (matchesEmpId || matchesEmpName) {
+            targetClientIds.add(clientId);
+          }
+        }
+
+        // Also check operations for this bank employee / bank
+        try {
+          final opsResponse = await SupabaseConfig.client
+              .from('operation_entries')
+              .select('client_id, employee_name, bank_name');
+          for (var op in (opsResponse as List<dynamic>)) {
+            final opEmp = (op['employee_name']?.toString() ?? '').trim().toLowerCase();
+            final opClientId = op['client_id']?.toString() ?? '';
+            if (opClientId.isNotEmpty && userFullName.isNotEmpty && opEmp.contains(userFullName.toLowerCase())) {
+              targetClientIds.add(opClientId);
+            }
+          }
+        } catch (_) {}
+
+        if (targetClientIds.isEmpty) {
           state = state.copyWith(clients: [], isLoading: false);
           return;
         }
@@ -271,7 +304,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
               interaction_history(*),
               documents(*)
             ''')
-            .inFilter('id', clientIds)
+            .inFilter('id', targetClientIds.toList())
             .order('created_at', ascending: false);
 
         for (var item in response) {
