@@ -84,43 +84,11 @@ class ClientVisibilityHelper {
       return clients;
     }
 
-    // 2. Bank Employee filtering logic - STRICT matching on bank_employee_id or employee full name
+    // 2. Bank Employee filtering logic:
+    // Clients for bank_employee are already fetched and filtered accurately at the provider level
+    // based on distributions and operations. We simply return them or match by name/id/rep.
     if (role == 'bank_employee') {
-      final cleanUser = _clean(currentUserFullName);
-      final cleanEmail = _clean(currentUserEmail);
-      final userId = currentUserId.toLowerCase();
-      final empId = authState.bankEmployeeId?.toString().trim() ?? '';
-
-      return clients.where((client) {
-        final cleanRep = _clean(client.representativeName);
-        final cleanCreatedBy = _clean(client.createdBy);
-
-        // Check matching bank_employee_id (e.g. 56ea85ff-fade-4998-983a-7c3d1c29ac74)
-        if (empId.isNotEmpty) {
-          if (cleanRep == empId || cleanRep.contains(empId) || cleanCreatedBy == empId || cleanCreatedBy.contains(empId)) {
-            return true;
-          }
-        }
-
-        // Check matching full name or email or auth user id
-        if (cleanUser.isNotEmpty) {
-          if (cleanRep == cleanUser || cleanRep.contains(cleanUser) || cleanUser.contains(cleanRep) ||
-              cleanCreatedBy == cleanUser || cleanCreatedBy.contains(cleanUser) || cleanUser.contains(cleanCreatedBy)) {
-            return true;
-          }
-        }
-
-        if (cleanEmail.isNotEmpty && (cleanRep == cleanEmail || cleanCreatedBy == cleanEmail)) {
-          return true;
-        }
-
-        if (userId.isNotEmpty && (cleanRep == userId || cleanCreatedBy == userId)) {
-          return true;
-        }
-
-        // Strictly exclude any client NOT assigned to this bank_employee_id / name
-        return false;
-      }).toList();
+      return clients;
     }
 
     // 3. Manager / Team Leader vs Employee Check

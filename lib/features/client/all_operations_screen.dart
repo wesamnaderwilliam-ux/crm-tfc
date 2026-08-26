@@ -95,10 +95,7 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
             clients ( full_name )
           ''');
 
-      // Server-side filter: bank_employee sees ONLY their own operations by employee_name
-      final response = (isBankEmployee && empName.isNotEmpty)
-          ? await query.eq('employee_name', empName)
-          : await query;
+      final response = await query;
 
       final List<dynamic> rows = response as List<dynamic>;
       final List<Map<String, dynamic>> loaded = rows.map((r) {
@@ -121,6 +118,17 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
           'approval_date': r['approval_date'],
           'approved_amount': (r['approved_amount'] as num?)?.toDouble(),
         };
+      }).where((op) {
+        if (!isBankEmployee) return true;
+        final opEmp = (op['employee_name']?.toString() ?? '').trim().toLowerCase();
+        final opBank = (op['bank_name']?.toString() ?? '').trim().toLowerCase();
+        final userBank = (authState.bankName ?? '').trim().toLowerCase();
+        final userFull = authState.fullName.trim().toLowerCase();
+
+        final matchesEmp = userFull.isNotEmpty && opEmp.isNotEmpty && (opEmp.contains(userFull) || userFull.contains(opEmp));
+        final matchesBank = userBank.isNotEmpty && opBank.contains(userBank);
+
+        return matchesEmp || matchesBank;
       }).toList();
 
       if (mounted) {

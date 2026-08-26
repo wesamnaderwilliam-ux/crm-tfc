@@ -245,50 +245,69 @@ class ClientNotifier extends StateNotifier<ClientState> {
     try {
       List<ClientModel> list = [];
 
-      if (bankEmployeeId != null && bankEmployeeId.isNotEmpty) {
-        // Bank employee: fetch clients distributed to this bank employee (by employee_id or name/bank) OR assigned directly
-        final authState = _ref.read(authProvider);
+      final authState = _ref.read(authProvider);
+      final isBankEmp = authState.role == 'bank_employee';
+      final effectiveBankEmpId = bankEmployeeId ?? authState.bankEmployeeId;
+
+      if (isBankEmp) {
+        // Bank employee: fetch clients distributed to this bank employee (by employee_id, officer name, or bank)
         final userFullName = authState.fullName.trim();
         final userBankName = (authState.bankName ?? '').trim();
-
-        // 1. Get client IDs from distribution_entries where employee_id == bankEmployeeId
-        final distResponse = await SupabaseConfig.client
-            .from('distribution_entries')
-            .select('client_id, employee_id, bank_employees(employee_name), banks(bank_name)')
-            .select();
+        final userId = authState.user?.id ?? '';
 
         final Set<String> targetClientIds = {};
-        for (var row in (distResponse as List<dynamic>)) {
-          final rowEmpId = (row['employee_id']?.toString() ?? '').trim();
-          final bankEmp = row['bank_employees'] as Map<String, dynamic>?;
-          final empName = (bankEmp?['employee_name']?.toString() ?? '').trim().toLowerCase();
-          final bankData = row['banks'] as Map<String, dynamic>?;
-          final rowBankName = (bankData?['bank_name']?.toString() ?? '').trim().toLowerCase();
-          final clientId = row['client_id']?.toString() ?? '';
 
-          if (clientId.isEmpty) continue;
+        // 1. Fetch from distribution_entries
+        try {
+          final distResponse = await SupabaseConfig.client
+              .from('distribution_entries')
+              .select('client_id, employee_id, bank_employees(employee_name), banks(bank_name)');
 
-          final matchesEmpId = rowEmpId == bankEmployeeId || rowEmpId == authState.user?.id;
-          final matchesEmpName = userFullName.isNotEmpty && empName.isNotEmpty && (empName.contains(userFullName.toLowerCase()) || userFullName.toLowerCase().contains(empName));
-          
-          if (matchesEmpId || matchesEmpName) {
-            targetClientIds.add(clientId);
+          for (var row in (distResponse as List<dynamic>)) {
+            final rowEmpId = (row['employee_id']?.toString() ?? '').trim();
+            final bankEmp = row['bank_employees'] as Map<String, dynamic>?;
+            final empName = (bankEmp?['employee_name']?.toString() ?? '').trim().toLowerCase();
+            final bankData = row['banks'] as Map<String, dynamic>?;
+            final rowBankName = (bankData?['bank_name']?.toString() ?? '').trim().toLowerCase();
+            final clientId = row['client_id']?.toString() ?? '';
+
+            if (clientId.isEmpty) continue;
+
+            final matchesEmpId = (effectiveBankEmpId != null && effectiveBankEmpId.isNotEmpty && rowEmpId == effectiveBankEmpId) ||
+                (userId.isNotEmpty && rowEmpId == userId);
+            final matchesEmpName = userFullName.isNotEmpty && empName.isNotEmpty &&
+                (empName.contains(userFullName.toLowerCase()) || userFullName.toLowerCase().contains(empName));
+            final matchesBank = userBankName.isNotEmpty && rowBankName.contains(userBankName.toLowerCase());
+
+            if (matchesEmpId || matchesEmpName || matchesBank) {
+              targetClientIds.add(clientId);
+            }
           }
+        } catch (e) {
+          _logger.w('Error fetching distributions for bank employee: $e');
         }
 
-        // Also check operations for this bank employee / bank
+        // 2. Fetch from operation_entries
         try {
           final opsResponse = await SupabaseConfig.client
               .from('operation_entries')
               .select('client_id, employee_name, bank_name');
           for (var op in (opsResponse as List<dynamic>)) {
             final opEmp = (op['employee_name']?.toString() ?? '').trim().toLowerCase();
+            final opBank = (op['bank_name']?.toString() ?? '').trim().toLowerCase();
             final opClientId = op['client_id']?.toString() ?? '';
-            if (opClientId.isNotEmpty && userFullName.isNotEmpty && opEmp.contains(userFullName.toLowerCase())) {
+            
+            final matchesEmp = userFullName.isNotEmpty && opEmp.isNotEmpty &&
+                (opEmp.contains(userFullName.toLowerCase()) || userFullName.toLowerCase().contains(opEmp));
+            final matchesBank = userBankName.isNotEmpty && opBank.contains(userBankName.toLowerCase());
+
+            if (opClientId.isNotEmpty && (matchesEmp || matchesBank)) {
               targetClientIds.add(opClientId);
             }
           }
-        } catch (_) {}
+        } catch (e) {
+          _logger.w('Error fetching operations for bank employee: $e');
+        }
 
         if (targetClientIds.isEmpty) {
           state = state.copyWith(clients: [], isLoading: false);
