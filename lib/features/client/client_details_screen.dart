@@ -68,6 +68,152 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     'rejected': 'مرفوض',
   };
 
+  String? _phoneRequestStatus; // 'pending', 'approved', 'rejected', null
+  bool _isRequestingPhone = false;
+  List<Map<String, dynamic>> _pendingPhoneRequests = []; // For Admin / Manager
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPhoneRequestStatus();
+    _loadAdminPhoneRequests();
+  }
+
+  Future<void> _checkPhoneRequestStatus() async {
+    final clientId = widget.clientId;
+    if (clientId == null || clientId.isEmpty) return;
+    final authState = ref.read(authProvider);
+    final isBankEmp = authState.role == 'bank_employee' || widget.bankEmployeeMode;
+    if (!isBankEmp) return;
+
+    final userId = authState.user?.id ?? authState.fullName;
+    try {
+      if (SupabaseConfig.isInitialized) {
+        final res = await SupabaseConfig.client
+            .from('phone_requests')
+            .select('status')
+            .eq('client_id', clientId)
+            .eq('requested_by_id', userId)
+            .order('created_at', ascending: false)
+            .limit(1)
+            .maybeSingle();
+
+        if (res != null && mounted) {
+          setState(() {
+            _phoneRequestStatus = res['status'] as String?;
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Error checking phone request: $e");
+    }
+  }
+
+  Future<void> _loadAdminPhoneRequests() async {
+    final clientId = widget.clientId;
+    if (clientId == null || clientId.isEmpty) return;
+    final authState = ref.read(authProvider);
+    final bool isAdminOrManager = authState.role == 'admin' || authState.role == 'manager';
+    if (!isAdminOrManager) return;
+
+    try {
+      if (SupabaseConfig.isInitialized) {
+        final res = await SupabaseConfig.client
+            .from('phone_requests')
+            .select('*')
+            .eq('client_id', clientId)
+            .eq('status', 'pending')
+            .order('created_at', ascending: false);
+
+        if (mounted) {
+          setState(() {
+            _pendingPhoneRequests = List<Map<String, dynamic>>.from(res as List);
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Error loading admin phone requests: $e");
+    }
+  }
+
+  Future<void> _requestPhoneNumber(ClientModel client) async {
+    final authState = ref.read(authProvider);
+    final userId = authState.user?.id ?? authState.fullName;
+    final userName = authState.fullName.isNotEmpty ? authState.fullName : 'موظف بنك';
+    final bankName = authState.bankName ?? 'البنك';
+
+    setState(() {
+      _isRequestingPhone = true;
+    });
+
+    try {
+      if (SupabaseConfig.isInitialized) {
+        await SupabaseConfig.client.from('phone_requests').insert({
+          'client_id': client.id,
+          'requested_by_id': userId,
+          'requested_by_name': userName,
+          'bank_name': bankName,
+          'status': 'pending',
+        });
+      }
+
+      if (mounted) {
+        setState(() {
+          _phoneRequestStatus = 'pending';
+          _isRequestingPhone = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("تم إرسال طلب إظهار رقم الهاتف إلى الإدارة بنجاح", textAlign: TextAlign.right),
+            backgroundColor: TfcColors.primary,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error requesting phone: $e");
+      if (mounted) {
+        setState(() {
+          _isRequestingPhone = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("حدث خطأ أثناء إرسال الطلب: $e", textAlign: TextAlign.right),
+            backgroundColor: TfcColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _respondToPhoneRequest(String requestId, String newStatus) async {
+    final authState = ref.read(authProvider);
+    final reviewerName = authState.fullName;
+
+    try {
+      if (SupabaseConfig.isInitialized) {
+        await SupabaseConfig.client.from('phone_requests').update({
+          'status': newStatus,
+          'reviewed_by': reviewerName,
+          'reviewed_at': DateTime.now().toIso8601String(),
+        }).eq('id', requestId);
+      }
+
+      if (mounted) {
+        setState(() {
+          _pendingPhoneRequests.removeWhere((r) => r['id'] == requestId);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(newStatus == 'approved' ? "تمت الموافقة على إظهار الرقم لموظف البنك" : "تم رفض الطلب", textAlign: TextAlign.right),
+            backgroundColor: newStatus == 'approved' ? TfcColors.success : TfcColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error responding to phone request: $e");
+    }
+  }
+
   @override
   void dispose() {
     _logController.dispose();
@@ -304,7 +450,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     tooltip: "طباعة ملف العميل PDF",
                     onPressed: () => _printClientProfile(client),
                   ),
-                  if (canEditClients)
+                  if (canEditClients && !isBankEmp)
                     Padding(
                       padding: const EdgeInsets.only(left: 8.0),
                       child: IconButton(
@@ -926,7 +1072,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 tooltip: "طباعة ملف العميل PDF",
                 onPressed: () => _printClientProfile(client),
               ),
-              if (permissions.canEditClients)
+              if (permissions.canEditClients && !isBankEmp)
                 IconButton(
                   icon: const Icon(Icons.edit, color: TfcColors.primary),
                   onPressed: () => _showEditClientDialog(context, client, authState.fullName),
@@ -964,6 +1110,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   }
 
   Widget _buildClientListTile(ClientModel item, bool isSelected) {
+    final isBankEmp = ref.read(authProvider).role == 'bank_employee' || widget.bankEmployeeMode;
     return InteractiveHoverCard(
       margin: const EdgeInsets.only(bottom: 8),
       onTap: () => widget.onClientSelected?.call(item.id),
@@ -1022,12 +1169,14 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     textDirection: TextDirection.rtl,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    item.phoneNumber,
-                    style: const TextStyle(color: TfcColors.outline, fontSize: 10),
-                    textDirection: TextDirection.rtl,
-                  ),
+                  if (!isBankEmp) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      item.phoneNumber,
+                      style: const TextStyle(color: TfcColors.outline, fontSize: 10),
+                      textDirection: TextDirection.rtl,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -1058,6 +1207,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     bool showCards,
     bool showDocuments,
   ) {
+    final isBankEmp = authState.role == 'bank_employee' || widget.bankEmployeeMode;
     return Column(
       children: [
         _buildCollapsibleSection(
@@ -1148,24 +1298,40 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           icon: Icons.settings_suggest_outlined,
           child: OperationsWidget(clientId: client.id),
         ),
-        _buildCollapsibleSection(
-          key: 'total_fees',
-          title: 'إجمالى الأتعاب',
-          icon: Icons.account_balance_wallet_outlined,
-          child: _TotalFeesWidget(clientId: client.id),
-        ),
-        _buildCollapsibleSection(
-          key: 'logs',
-          title: 'سجل النشاط والتعليقات التفاعلية',
-          icon: Icons.history_toggle_off_outlined,
-          child: Column(
-            children: [
-              _buildAddLogBento(authState.fullName),
-              const SizedBox(height: 16),
-              _buildLogsHistoryBento(client),
-            ],
+        if (isBankEmp) ...[
+          _buildCollapsibleSection(
+            key: 'bank_logs',
+            title: 'المراسلات البنكية',
+            icon: Icons.contact_mail_outlined,
+            child: Column(
+              children: [
+                _buildBankEmployeeMessagingBento(authState.fullName),
+                const SizedBox(height: 16),
+                _buildBankLogsHistoryOnlyBento(client),
+              ],
+            ),
           ),
-        ),
+        ],
+        if (!isBankEmp) ...[
+          _buildCollapsibleSection(
+            key: 'total_fees',
+            title: 'إجمالى الأتعاب',
+            icon: Icons.account_balance_wallet_outlined,
+            child: _TotalFeesWidget(clientId: client.id),
+          ),
+          _buildCollapsibleSection(
+            key: 'logs',
+            title: 'سجل النشاط والتعليقات التفاعلية',
+            icon: Icons.history_toggle_off_outlined,
+            child: Column(
+              children: [
+                _buildAddLogBento(authState.fullName),
+                const SizedBox(height: 16),
+                _buildLogsHistoryBento(client),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -1180,6 +1346,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     bool showNationalId,
     bool showSalary,
   ) {
+    final isBankEmp = ref.read(authProvider).role == 'bank_employee' || widget.bankEmployeeMode;
     // Compute salary display values
     final double totalSalary = _extractSalary(client);
     final bool hasBankDetails =
@@ -1221,7 +1388,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     tooltip: "مشاركة ملف العميل PDF عبر التطبيقات",
                     onPressed: () => _printClientProfile(client),
                   ),
-                  if (permissions.canEditClients)
+                  if (permissions.canEditClients && !isBankEmp)
                     IconButton(
                       icon: const Icon(Icons.edit,
                           size: 18, color: TfcColors.primary),
@@ -1237,13 +1404,148 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           const Divider(color: Colors.white10),
           const SizedBox(height: 12),
           _buildInfoRow("الاسم الكامل", client.fullName),
-          if (showPhone) ...[
+          // Phone requests approval panel for Admin / Manager
+          if (_pendingPhoneRequests.isNotEmpty) ...[
+            Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.amber.withValues(alpha: 0.4)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Row(
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      Icon(Icons.lock_open, color: Colors.amber, size: 16),
+                      SizedBox(width: 6),
+                      Text("طلب إظهار رقم الهاتف من موظف البنك",
+                          style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold, fontSize: 13)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ..._pendingPhoneRequests.map((req) {
+                    final reqName = req['requested_by_name'] ?? 'موظف بنك';
+                    final reqBank = req['bank_name'] ?? '';
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Row(
+                        textDirection: TextDirection.rtl,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              "الموظف: $reqName ($reqBank)",
+                              style: const TextStyle(color: Colors.white70, fontSize: 12),
+                              textDirection: TextDirection.rtl,
+                            ),
+                          ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () => _respondToPhoneRequest(req['id'], 'approved'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: TfcColors.success,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  minimumSize: Size.zero,
+                                ),
+                                child: const Text("موافقة", style: TextStyle(fontSize: 11)),
+                              ),
+                              const SizedBox(width: 6),
+                              OutlinedButton(
+                                onPressed: () => _respondToPhoneRequest(req['id'], 'rejected'),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: TfcColors.error,
+                                  side: const BorderSide(color: TfcColors.error),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  minimumSize: Size.zero,
+                                ),
+                                child: const Text("رفض", style: TextStyle(fontSize: 11)),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ],
+          if (showPhone || _phoneRequestStatus == 'approved') ...[
             PhoneActionWidget(label: "الهاتف المحمول", phoneNumber: client.phoneNumber),
             if (client.secondaryPhoneNumber != null &&
                 client.secondaryPhoneNumber!.isNotEmpty)
               PhoneActionWidget(label: "هاتف إضافي", phoneNumber: client.secondaryPhoneNumber!),
           ] else ...[
-            _buildInfoRow("الهاتف المحمول", "مخفي (يتطلب موافقة الأدمن/المدير لإظهاره)"),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+                textDirection: TextDirection.rtl,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("الهاتف المحمول:", style: TextStyle(color: TfcColors.outline, fontSize: 13)),
+                  if (isBankEmp) ...[
+                    if (_phoneRequestStatus == 'pending') ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.amber.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          textDirection: TextDirection.rtl,
+                          children: [
+                            SizedBox(
+                              width: 12,
+                              height: 12,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.amber),
+                            ),
+                            SizedBox(width: 8),
+                            Text("طلب إظهار الرقم قيد المراجعة ⏳",
+                                style: TextStyle(color: Colors.amber, fontSize: 11, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ),
+                    ] else if (_phoneRequestStatus == 'rejected') ...[
+                      ElevatedButton.icon(
+                        onPressed: _isRequestingPhone ? null : () => _requestPhoneNumber(client),
+                        icon: const Icon(Icons.refresh, size: 14),
+                        label: const Text("تم رفض الطلب - إعادة طلب الرقم", style: TextStyle(fontSize: 11)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent.withValues(alpha: 0.2),
+                          foregroundColor: Colors.redAccent,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        ),
+                      ),
+                    ] else ...[
+                      ElevatedButton.icon(
+                        onPressed: _isRequestingPhone ? null : () => _requestPhoneNumber(client),
+                        icon: const Icon(Icons.lock_open, size: 14),
+                        label: Text(_isRequestingPhone ? "جاري الإرسال..." : "📱 طلب إظهار رقم الهاتف",
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: TfcColors.primary.withValues(alpha: 0.2),
+                          foregroundColor: TfcColors.primary,
+                          side: const BorderSide(color: TfcColors.primary, width: 0.8),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        ),
+                      ),
+                    ],
+                  ] else ...[
+                    const Text("مخفي (يتطلب موافقة الأدمن/المدير لإظهاره)",
+                        style: TextStyle(color: Colors.white54, fontSize: 12)),
+                  ],
+                ],
+              ),
+            ),
           ],
           if (showNationalId)
             _buildInfoRow("الرقم القومي",
@@ -2877,6 +3179,132 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             child: const Text("حذف"),
           ),
+        ],
+      ),
+    );
+  }
+
+  // Bento Box for Bank Employee: Messaging Only
+  Widget _buildBankEmployeeMessagingBento(String staffName) {
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
+      borderColor: const Color(0xFF00F5D4).withValues(alpha: 0.2),
+      child: Form(
+        key: _logFormKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Row(
+              textDirection: TextDirection.rtl,
+              children: [
+                Icon(Icons.contact_mail_outlined, color: Color(0xFF00F5D4), size: 20),
+                SizedBox(width: 8),
+                Text("إرسال مراسلة أو إفادة بنكية",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Colors.white)),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _logController,
+              textAlign: TextAlign.right,
+              maxLines: 2,
+              decoration: const InputDecoration(
+                hintText: "اكتب تفاصيل التحديث البنكي، أو طلب مستندات إضافية، أو قرار الائتمان...",
+              ),
+              validator: (v) => (v == null || v.trim().isEmpty) ? "الرجاء كتابة تفاصيل المراسلة" : null,
+            ),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00F5D4),
+                  foregroundColor: Colors.black87,
+                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () => _submitLog(
+                  staffName: staffName,
+                  logType: 'bank_follow_up',
+                  actionName: "مراسلة من البنك",
+                ),
+                icon: const Icon(Icons.send_rounded, size: 16),
+                label: const Text("إرسال المراسلة", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Bento Box for Bank Employee: View Bank Messages Only
+  Widget _buildBankLogsHistoryOnlyBento(ClientModel client) {
+    final sortedLogs = List<InteractionLogModel>.from(client.history)
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final bankLogs = sortedLogs.where((log) => log.logType == 'bank_follow_up').toList();
+
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
+      borderColor: Colors.white.withValues(alpha: 0.05),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Row(
+            textDirection: TextDirection.rtl,
+            children: [
+              Icon(Icons.history, color: Color(0xFF00F5D4), size: 18),
+              SizedBox(width: 8),
+              Text("سجل المراسلات البنكية للعميل",
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (bankLogs.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16.0),
+              child: Center(
+                child: Text("لا توجد مراسلات بنكية مسجلة حتى الآن",
+                    style: TextStyle(color: Colors.white54, fontSize: 12)),
+              ),
+            )
+          else
+            ...bankLogs.map((log) {
+              return Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.02),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFF00F5D4).withValues(alpha: 0.15)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      textDirection: TextDirection.rtl,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          log.createdBy.isNotEmpty ? log.createdBy : "مراسلة بنكية",
+                          style: const TextStyle(color: Color(0xFF00F5D4), fontWeight: FontWeight.bold, fontSize: 12),
+                        ),
+                        Text(
+                          "${log.createdAt.day}/${log.createdAt.month}/${log.createdAt.year} ${log.createdAt.hour}:${log.createdAt.minute.toString().padLeft(2, '0')}",
+                          style: const TextStyle(color: Colors.white38, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      log.notes,
+                      style: const TextStyle(color: Colors.white70, fontSize: 13),
+                      textDirection: TextDirection.rtl,
+                    ),
+                  ],
+                ),
+              );
+            }),
         ],
       ),
     );

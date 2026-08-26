@@ -143,7 +143,25 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
             ? progRows.first['core_programs']['program_name']?.toString()
             : "برنامج غير معروف";
 
-        final selections = progRows.map((r) {
+        final isBankEmp = authState.role == 'bank_employee';
+        final userBankName = authState.bankName?.trim().toLowerCase() ?? '';
+        final userEmpId = authState.user?.id ?? '';
+        final userFullName = authState.fullName.trim().toLowerCase();
+
+        final selections = progRows.where((r) {
+          if (!isBankEmp) return true;
+          final bankData = r['banks'] as Map<String, dynamic>?;
+          final empData = r['bank_employees'] as Map<String, dynamic>?;
+          final rowBankName = (bankData?['bank_name']?.toString() ?? '').trim().toLowerCase();
+          final rowEmpId = (r['employee_id']?.toString() ?? '').trim();
+          final rowEmpName = (empData?['employee_name']?.toString() ?? '').trim().toLowerCase();
+
+          final matchesBank = userBankName.isNotEmpty && rowBankName.contains(userBankName);
+          final matchesEmp = (userEmpId.isNotEmpty && rowEmpId == userEmpId) ||
+              (userFullName.isNotEmpty && rowEmpName.contains(userFullName));
+
+          return matchesBank || matchesEmp;
+        }).map((r) {
           final bankData = r['banks'] as Map<String, dynamic>?;
           final empData = r['bank_employees'] as Map<String, dynamic>?;
 
@@ -161,11 +179,13 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
           );
         }).toList();
 
-        loadedEntries.add(DistributionEntry(
-          selectedProgramId: progId,
-          selectedProgramName: progName,
-          selections: selections,
-        ));
+        if (selections.isNotEmpty) {
+          loadedEntries.add(DistributionEntry(
+            selectedProgramId: progId,
+            selectedProgramName: progName,
+            selections: selections,
+          ));
+        }
       }
 
       if (mounted) {

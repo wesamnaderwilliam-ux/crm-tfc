@@ -9,6 +9,7 @@ import '../../providers/employees_provider.dart';
 import '../../core/utils/client_visibility_helper.dart';
 import '../../core/widgets/toggleable_filter_panel.dart';
 import '../../core/widgets/interactive_hover_card.dart';
+import 'operations_widget.dart';
 
 class AllDistributionsScreen extends ConsumerStatefulWidget {
   final Function(String) onViewClient;
@@ -186,6 +187,115 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("خطأ أثناء التحديث: $e", textAlign: TextAlign.right),
+            backgroundColor: TfcColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _convertToOperation(Map<String, dynamic> d) async {
+    final authState = ref.read(authProvider);
+    final staffName = authState.fullName.isNotEmpty ? authState.fullName : 'موظف بنك';
+    final amountCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: TfcColors.surfaceDim,
+            title: const Text("تحويل التوزيع إلى عملية", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
+            content: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text("العميل: ${d['client_name']}", style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 6),
+                  Text("البرنامج: ${d['program_name']}", style: const TextStyle(color: Colors.white70)),
+                  const SizedBox(height: 6),
+                  Text("البنك: ${d['bank_name']}", style: const TextStyle(color: Colors.white70)),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: amountCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: "مبلغ العملية المطلوب (ج.م)",
+                      hintText: "مثال: 200000",
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text("إلغاء"),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final amt = double.tryParse(amountCtrl.text.trim()) ?? 0.0;
+                  Navigator.pop(ctx);
+                  await OperationsWidget.addOperation(
+                    clientId: d['client_id'],
+                    bankName: d['bank_name'],
+                    programName: d['program_name'],
+                    employeeName: d['employee_name'],
+                    requestedAmount: amt,
+                    staffName: staffName,
+                  );
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("تم تحويل التوزيع إلى عملية بنجاح", textAlign: TextAlign.right),
+                        backgroundColor: TfcColors.success,
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: TfcColors.primary),
+                child: const Text("تأكيد التحويل", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _requestPhoneFromDistribution(Map<String, dynamic> d) async {
+    final authState = ref.read(authProvider);
+    final userId = authState.user?.id ?? authState.fullName;
+    final userName = authState.fullName.isNotEmpty ? authState.fullName : 'موظف بنك';
+    final bankName = authState.bankName ?? d['bank_name'] ?? 'البنك';
+
+    try {
+      if (SupabaseConfig.isInitialized) {
+        await SupabaseConfig.client.from('phone_requests').insert({
+          'client_id': d['client_id'],
+          'requested_by_id': userId,
+          'requested_by_name': userName,
+          'bank_name': bankName,
+          'status': 'pending',
+        });
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("تم إرسال طلب إظهار رقم الهاتف إلى الإدارة بنجاح", textAlign: TextAlign.right),
+            backgroundColor: TfcColors.primary,
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error requesting phone: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("حدث خطأ أثناء إرسال الطلب: $e", textAlign: TextAlign.right),
             backgroundColor: TfcColors.error,
           ),
         );
@@ -436,6 +546,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
   }
 
   Widget _buildDesktopTable(List<Map<String, dynamic>> data, bool isAdmin) {
+    final authState = ref.read(authProvider);
     return GlassCard(
       padding: const EdgeInsets.all(16),
       borderColor: Colors.white.withValues(alpha: 0.03),
@@ -477,8 +588,39 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                   DataCell(Text(d['employee_name'])),
                   DataCell(_buildStatusChip(d['status'])),
                   DataCell(
-                    isAdmin
-                        ? _buildStatusActionsDropdown(d['id'], d['status'])
+                    (isAdmin || authState.role == 'bank_employee')
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildStatusActionsDropdown(d['id'], d['status']),
+                              if (d['status'] == 'accepted') ...[
+                                const SizedBox(width: 8),
+                                ElevatedButton.icon(
+                                  onPressed: () => _convertToOperation(d),
+                                  icon: const Icon(Icons.settings_suggest, size: 12),
+                                  label: const Text("تحويل لعملية", style: TextStyle(fontSize: 11)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blueAccent,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                    minimumSize: Size.zero,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                OutlinedButton.icon(
+                                  onPressed: () => _requestPhoneFromDistribution(d),
+                                  icon: const Icon(Icons.phone_android, size: 12),
+                                  label: const Text("طلب الرقم", style: TextStyle(fontSize: 11)),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.greenAccent,
+                                    side: const BorderSide(color: Colors.greenAccent, width: 0.8),
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                    minimumSize: Size.zero,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          )
                         : const Text("—", style: TextStyle(color: TfcColors.outline)),
                   ),
                 ],
@@ -491,6 +633,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
   }
 
   Widget _buildMobileCards(List<Map<String, dynamic>> data, bool isAdmin) {
+    final authState = ref.read(authProvider);
     return ListView.builder(
       itemCount: data.length,
       itemBuilder: (context, index) {
@@ -526,7 +669,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                 _buildInfoRow("البرنامج", d['program_name'], Icons.category),
                 _buildInfoRow("البنك", d['bank_name'], Icons.account_balance),
                 _buildInfoRow("الموظف", d['employee_name'], Icons.person),
-                if (isAdmin) ...[
+                if (isAdmin || authState.role == 'bank_employee') ...[
                   const SizedBox(height: 12),
                   const Divider(color: Colors.white10),
                   const SizedBox(height: 8),
@@ -544,6 +687,36 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                       ),
                     ],
                   ),
+                  if (d['status'] == 'accepted') ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      textDirection: TextDirection.rtl,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: () => _convertToOperation(d),
+                          icon: const Icon(Icons.settings_suggest, size: 12),
+                          label: const Text("تحويل لعملية", style: TextStyle(fontSize: 11)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        OutlinedButton.icon(
+                          onPressed: () => _requestPhoneFromDistribution(d),
+                          icon: const Icon(Icons.phone_android, size: 12),
+                          label: const Text("طلب الرقم", style: TextStyle(fontSize: 11)),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: Colors.greenAccent,
+                            side: const BorderSide(color: Colors.greenAccent, width: 0.8),
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ],
             ),

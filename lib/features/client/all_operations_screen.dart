@@ -430,6 +430,7 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
   }
 
   Widget _buildDesktopTable(List<Map<String, dynamic>> data, bool isAdmin) {
+    final authState = ref.read(authProvider);
     return GlassCard(
       padding: const EdgeInsets.all(16),
       borderColor: Colors.white.withValues(alpha: 0.03),
@@ -481,7 +482,7 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
                         : "—",
                   )),
                   DataCell(
-                    isAdmin
+                    (isAdmin || authState.role == 'bank_employee')
                         ? _buildStatusActionsDropdown(d['id'], d['status'])
                         : const Text("—", style: TextStyle(color: TfcColors.outline)),
                   ),
@@ -495,6 +496,7 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
   }
 
   Widget _buildMobileCards(List<Map<String, dynamic>> data, bool isAdmin) {
+    final authState = ref.read(authProvider);
     return ListView.builder(
       itemCount: data.length,
       itemBuilder: (context, index) {
@@ -543,7 +545,7 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
                     _formatDate(d['approval_date']),
                     Icons.event_available,
                   ),
-                if (isAdmin) ...[
+                if (isAdmin || authState.role == 'bank_employee') ...[
                   const SizedBox(height: 12),
                   const Divider(color: Colors.white10),
                   const SizedBox(height: 8),

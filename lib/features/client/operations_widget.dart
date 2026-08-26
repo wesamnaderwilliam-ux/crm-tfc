@@ -190,6 +190,9 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
 
       final authState = ref.read(authProvider);
       final bool isUserAdmin = authState.role == 'admin';
+      final bool isBankEmp = authState.role == 'bank_employee';
+      final String userFullName = authState.fullName.trim().toLowerCase();
+      final String userBankName = authState.bankName?.trim().toLowerCase() ?? '';
 
       final loaded = rows.map((r) {
         final entry = OperationEntry.fromJson(r);
@@ -213,6 +216,13 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
           );
         }
         return entry;
+      }).where((op) {
+        if (!isBankEmp) return true;
+        final opEmp = op.employeeName.trim().toLowerCase();
+        final opBank = op.bankName.trim().toLowerCase();
+        final matchesEmp = userFullName.isNotEmpty && opEmp.contains(userFullName);
+        final matchesBank = userBankName.isNotEmpty && opBank.contains(userBankName);
+        return matchesEmp || matchesBank;
       }).toList();
 
       if (mounted) {
@@ -430,6 +440,212 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
         );
       }
     }
+  }
+
+  void _showAddOperationForBankDialog() {
+    final authState = ref.read(authProvider);
+    final bankName = authState.bankName ?? 'البنك';
+    final empName = authState.fullName.isNotEmpty ? authState.fullName : 'موظف بنك';
+    final programCtrl = TextEditingController();
+    final amountCtrl = TextEditingController();
+    DateTime selectedDate = DateTime.now();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: TfcColors.surfaceDim,
+            title: const Text("إضافة عملية جديدة للعميل", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
+            content: Directionality(
+              textDirection: TextDirection.rtl,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text("البنك: $bankName", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white70)),
+                    const SizedBox(height: 6),
+                    Text("الموظف: $empName", style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: programCtrl,
+                      decoration: const InputDecoration(
+                        labelText: "اسم البرنامج التمويلي",
+                        hintText: "مثال: تمويل شخصي بضمان المرتب",
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: amountCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: "قيمة القرض / المبلغ المطلوب (ج.م)",
+                        hintText: "مثال: 150000",
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    InkWell(
+                      onTap: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDate,
+                          firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                        );
+                        if (picked != null) {
+                          setDialogState(() {
+                            selectedDate = picked;
+                          });
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.03),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          textDirection: TextDirection.rtl,
+                          children: [
+                            const Text("تاريخ التحويل / الإضافة:", style: TextStyle(color: TfcColors.outline)),
+                            Text(
+                              "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}",
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text("إلغاء"),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final progName = programCtrl.text.trim();
+                  final reqAmt = double.tryParse(amountCtrl.text.trim()) ?? 0.0;
+                  if (progName.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("الرجاء إدخال اسم البرنامج", textAlign: TextAlign.right), backgroundColor: TfcColors.error),
+                    );
+                    return;
+                  }
+                  Navigator.pop(ctx);
+                  await OperationsWidget.addOperation(
+                    clientId: widget.clientId,
+                    bankName: bankName,
+                    programName: progName,
+                    employeeName: empName,
+                    requestedAmount: reqAmt,
+                    staffName: empName,
+                  );
+                  _loadOperations();
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: TfcColors.primary),
+                child: const Text("حفظ وإضافة العملية", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _showEditOperationLoanAndDateDialog(OperationEntry op) {
+    final amountCtrl = TextEditingController(text: op.requestedAmount.toString());
+    DateTime selectedDate = op.transferDate;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: TfcColors.surfaceDim,
+            title: const Text("تعديل قيمة القرض والتاريخ", textAlign: TextAlign.right, style: TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
+            content: Directionality(
+              textDirection: TextDirection.rtl,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: amountCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: "قيمة القرض / المبلغ المطلوب (ج.م)",
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  InkWell(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedDate,
+                        firstDate: DateTime.now().subtract(const Duration(days: 365)),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
+                      );
+                      if (picked != null) {
+                        setDialogState(() {
+                          selectedDate = picked;
+                        });
+                      }
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        textDirection: TextDirection.rtl,
+                        children: [
+                          const Text("تاريخ العملية:", style: TextStyle(color: TfcColors.outline)),
+                          Text(
+                            "${selectedDate.day}/${selectedDate.month}/${selectedDate.year}",
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text("إلغاء"),
+              ),
+              ElevatedButton(
+                onPressed: () async {
+                  final newAmt = double.tryParse(amountCtrl.text.trim()) ?? op.requestedAmount;
+                  if (SupabaseConfig.isInitialized) {
+                    await SupabaseConfig.client.from('operation_entries').update({
+                      'requested_amount': newAmt,
+                      'transfer_date': selectedDate.toIso8601String(),
+                    }).eq('id', op.id);
+                  }
+                  Navigator.pop(ctx);
+                  _loadOperations();
+                },
+                style: ElevatedButton.styleFrom(backgroundColor: TfcColors.primary),
+                child: const Text("حفظ التعديل", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   void _showEditStatusDialog(OperationEntry op) {
@@ -819,6 +1035,18 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
                   textDirection: TextDirection.rtl,
                 ),
               ),
+              if (authState.role == 'bank_employee') ...[
+                ElevatedButton.icon(
+                  onPressed: _showAddOperationForBankDialog,
+                  icon: const Icon(Icons.add, size: 14),
+                  label: const Text("إضافة عملية", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: TfcColors.primary,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+              ],
             ],
           ),
           const SizedBox(height: 20),
@@ -1071,6 +1299,27 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
                               icon: const Icon(Icons.delete_outline, size: 14, color: Colors.redAccent),
                               label: const Text("حذف العملية",
                                   style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+                            ),
+                          ],
+                        ),
+                      ] else if (authState.role == 'bank_employee') ...[
+                        const SizedBox(height: 12),
+                        Row(
+                          textDirection: TextDirection.rtl,
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            TextButton.icon(
+                              onPressed: () => _showEditOperationLoanAndDateDialog(op),
+                              icon: const Icon(Icons.edit_calendar, size: 14, color: Colors.tealAccent),
+                              label: const Text("تعديل قيمة القرض والتاريخ",
+                                  style: TextStyle(color: Colors.tealAccent, fontSize: 12)),
+                            ),
+                            const SizedBox(width: 8),
+                            TextButton.icon(
+                              onPressed: () => _showEditStatusDialog(op),
+                              icon: const Icon(Icons.swap_horiz, size: 14, color: TfcColors.primary),
+                              label: const Text("تغيير الحالة",
+                                  style: TextStyle(color: TfcColors.primary, fontSize: 12)),
                             ),
                           ],
                         ),
