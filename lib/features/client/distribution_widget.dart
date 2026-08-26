@@ -151,18 +151,15 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
 
         final selections = progRows.where((r) {
           if (!isBankEmp) return true;
-          final bankData = r['banks'] as Map<String, dynamic>?;
           final empData = r['bank_employees'] as Map<String, dynamic>?;
-          final rowBankName = (bankData?['bank_name']?.toString() ?? '').trim().toLowerCase();
           final rowEmpId = (r['employee_id']?.toString() ?? '').trim();
           final rowEmpName = (empData?['employee_name']?.toString() ?? '').trim().toLowerCase();
 
-          final matchesBank = userBankName.isNotEmpty && rowBankName.contains(userBankName);
           final matchesEmp = (userEmpId.isNotEmpty && rowEmpId == userEmpId) ||
               (userBankEmpId.isNotEmpty && rowEmpId == userBankEmpId) ||
               (userFullName.isNotEmpty && rowEmpName.isNotEmpty && (rowEmpName.contains(userFullName) || userFullName.contains(rowEmpName)));
 
-          return matchesBank || matchesEmp;
+          return matchesEmp;
         }).map((r) {
           final bankData = r['banks'] as Map<String, dynamic>?;
           final empData = r['bank_employees'] as Map<String, dynamic>?;

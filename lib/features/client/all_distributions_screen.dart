@@ -139,13 +139,11 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
         if (!isBankEmployee) return true;
         final rowEmpId = (d['employee_id']?.toString() ?? '').trim();
         final rowEmpName = (d['employee_name']?.toString() ?? '').trim().toLowerCase();
-        final rowBankName = (d['bank_name']?.toString() ?? '').trim().toLowerCase();
 
         final matchesEmpId = (bankEmployeeId.isNotEmpty && rowEmpId == bankEmployeeId) || (userId.isNotEmpty && rowEmpId == userId);
         final matchesEmpName = userFullName.isNotEmpty && rowEmpName.isNotEmpty && (rowEmpName.contains(userFullName) || userFullName.contains(rowEmpName));
-        final matchesBank = userBankName.isNotEmpty && rowBankName.contains(userBankName);
 
-        return matchesEmpId || matchesEmpName || matchesBank;
+        return matchesEmpId || matchesEmpName;
       }).toList();
 
       if (mounted) {

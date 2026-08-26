@@ -219,10 +219,8 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
       }).where((op) {
         if (!isBankEmp) return true;
         final opEmp = op.employeeName.trim().toLowerCase();
-        final opBank = op.bankName.trim().toLowerCase();
-        final matchesEmp = userFullName.isNotEmpty && opEmp.contains(userFullName);
-        final matchesBank = userBankName.isNotEmpty && opBank.contains(userBankName);
-        return matchesEmp || matchesBank;
+        final matchesEmp = userFullName.isNotEmpty && opEmp.isNotEmpty && (opEmp.contains(userFullName) || userFullName.contains(opEmp));
+        return matchesEmp;
       }).toList();
 
       if (mounted) {

@@ -257,18 +257,16 @@ class ClientNotifier extends StateNotifier<ClientState> {
 
         final Set<String> targetClientIds = {};
 
-        // 1. Fetch from distribution_entries
+        // 1. Fetch from distribution_entries strictly matching bank_employee_id or this officer's name
         try {
           final distResponse = await SupabaseConfig.client
               .from('distribution_entries')
-              .select('client_id, employee_id, bank_employees(employee_name), banks(bank_name)');
+              .select('client_id, employee_id, bank_employees(employee_name)');
 
           for (var row in (distResponse as List<dynamic>)) {
             final rowEmpId = (row['employee_id']?.toString() ?? '').trim();
             final bankEmp = row['bank_employees'] as Map<String, dynamic>?;
             final empName = (bankEmp?['employee_name']?.toString() ?? '').trim().toLowerCase();
-            final bankData = row['banks'] as Map<String, dynamic>?;
-            final rowBankName = (bankData?['bank_name']?.toString() ?? '').trim().toLowerCase();
             final clientId = row['client_id']?.toString() ?? '';
 
             if (clientId.isEmpty) continue;
@@ -277,9 +275,8 @@ class ClientNotifier extends StateNotifier<ClientState> {
                 (userId.isNotEmpty && rowEmpId == userId);
             final matchesEmpName = userFullName.isNotEmpty && empName.isNotEmpty &&
                 (empName.contains(userFullName.toLowerCase()) || userFullName.toLowerCase().contains(empName));
-            final matchesBank = userBankName.isNotEmpty && rowBankName.contains(userBankName.toLowerCase());
 
-            if (matchesEmpId || matchesEmpName || matchesBank) {
+            if (matchesEmpId || matchesEmpName) {
               targetClientIds.add(clientId);
             }
           }
@@ -287,21 +284,19 @@ class ClientNotifier extends StateNotifier<ClientState> {
           _logger.w('Error fetching distributions for bank employee: $e');
         }
 
-        // 2. Fetch from operation_entries
+        // 2. Fetch from operation_entries strictly matching this officer's name
         try {
           final opsResponse = await SupabaseConfig.client
               .from('operation_entries')
-              .select('client_id, employee_name, bank_name');
+              .select('client_id, employee_name');
           for (var op in (opsResponse as List<dynamic>)) {
             final opEmp = (op['employee_name']?.toString() ?? '').trim().toLowerCase();
-            final opBank = (op['bank_name']?.toString() ?? '').trim().toLowerCase();
             final opClientId = op['client_id']?.toString() ?? '';
             
             final matchesEmp = userFullName.isNotEmpty && opEmp.isNotEmpty &&
                 (opEmp.contains(userFullName.toLowerCase()) || userFullName.toLowerCase().contains(opEmp));
-            final matchesBank = userBankName.isNotEmpty && opBank.contains(userBankName.toLowerCase());
 
-            if (opClientId.isNotEmpty && (matchesEmp || matchesBank)) {
+            if (opClientId.isNotEmpty && matchesEmp) {
               targetClientIds.add(opClientId);
             }
           }

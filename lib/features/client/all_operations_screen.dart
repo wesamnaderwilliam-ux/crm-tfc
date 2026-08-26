@@ -121,14 +121,11 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
       }).where((op) {
         if (!isBankEmployee) return true;
         final opEmp = (op['employee_name']?.toString() ?? '').trim().toLowerCase();
-        final opBank = (op['bank_name']?.toString() ?? '').trim().toLowerCase();
-        final userBank = (authState.bankName ?? '').trim().toLowerCase();
         final userFull = authState.fullName.trim().toLowerCase();
 
         final matchesEmp = userFull.isNotEmpty && opEmp.isNotEmpty && (opEmp.contains(userFull) || userFull.contains(opEmp));
-        final matchesBank = userBank.isNotEmpty && opBank.contains(userBank);
 
-        return matchesEmp || matchesBank;
+        return matchesEmp;
       }).toList();
 
       if (mounted) {
