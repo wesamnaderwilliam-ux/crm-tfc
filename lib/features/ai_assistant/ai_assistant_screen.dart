@@ -147,7 +147,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     }
   }
 
-  Future<void> _sendChatMessage(ClientModel client, List<Map<String, dynamic>> allPrograms) async {
+  Future<void> _sendChatMessage(ClientModel? client, List<Map<String, dynamic>> allPrograms) async {
     final text = _chatController.text.trim();
     if (text.isEmpty || _isSendingChat) return;
 
@@ -413,13 +413,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                         ),
                       )
                     : selectedClient == null
-                        ? const Center(
-                            child: Text(
-                              "يرجى اختيار أحد العملاء من القائمة بالأعلى لبدء التحليل والمطابقة التلقائية مع معايير البنوك.",
-                              style: TextStyle(color: TfcColors.outline),
-                              textAlign: TextAlign.center,
-                            ),
-                          )
+                        ? _buildGeneralAdvisorView()
                         : Row(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
@@ -647,16 +641,23 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
                                                                  child: Container(
                                                                    margin: const EdgeInsets.symmetric(vertical: 6),
                                                                    padding: const EdgeInsets.all(12),
+                                                                   constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.65),
                                                                    decoration: BoxDecoration(
                                                                      color: isUser ? TfcColors.primary.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.08),
                                                                      borderRadius: BorderRadius.circular(12),
                                                                      border: Border.all(color: isUser ? TfcColors.primary.withValues(alpha: 0.4) : Colors.white12),
                                                                    ),
-                                                                   child: Text(
-                                                                     msg['text'] ?? '',
-                                                                     style: const TextStyle(color: Colors.white, fontSize: 13),
-                                                                   ),
-                                                                 ),
+                                                                    child: MarkdownBody(
+                                                                      data: msg['text'] ?? '',
+                                                                      styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                                                                        p: const TextStyle(color: Colors.white, fontSize: 13, height: 1.5),
+                                                                        h1: const TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold, fontSize: 16),
+                                                                        h2: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                                                                        h3: const TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold, fontSize: 13),
+                                                                        listBullet: const TextStyle(color: TfcColors.primary),
+                                                                      ),
+                                                                    ),
+                                                                  ),
                                                                );
                                                              },
                                                            ),
@@ -921,5 +922,226 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     }
 
     return (totalInstallments / totalSalary) * 100;
+  }
+
+  Widget _buildGeneralAdvisorView() {
+    final suggestions = [
+      "ما هي القواعد المصرفية ونسبة الـ DBR وفقاً لتعليمات البنك المركزي؟",
+      "ما هي شروط برامج تمويل ملاك الكمبوندات والعقارات في البنوك المصرية؟",
+      "كيف يتم احتساب أقصى مبلغ تمويل وقسط شهري متاح للعميل؟",
+      "ما هي مميزات وشروط برامج التمويل بضمان رخصة السيارة الحديثة؟",
+    ];
+
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Banner
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [TfcColors.primary.withValues(alpha: 0.15), Colors.blueAccent.withValues(alpha: 0.08)],
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: TfcColors.primary.withValues(alpha: 0.25)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: TfcColors.primary.withValues(alpha: 0.2),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.account_balance, color: TfcColors.primary, size: 24),
+                ),
+                const SizedBox(width: 14),
+                const Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "المستشار الاقتصادي والمصرفي الذكي - The Future Club 🇪🇬",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        "استشارات مصرفية فورية، شروط وقواعد البنوك المصرية، حسابات التمويل والـ DBR، ودراسة أي حالة أو عميل.",
+                        style: TextStyle(color: TfcColors.outline, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Messages List
+          Expanded(
+            child: _chatMessages.isEmpty
+                ? SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 30),
+                        Icon(Icons.psychology_outlined, size: 64, color: TfcColors.primary.withValues(alpha: 0.3)),
+                        const SizedBox(height: 16),
+                        const Text(
+                          "مرحباً بك في غرفة الاستشارات المصرفية والاقتصادية الذكية!",
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          "يمكنك طرح أي استفسار اقتصادي، السؤال عن برامج وفائدة البنوك المصرية، أو كتابة معطيات أي عميل لدراستها واقتراح البنك المناسب فوراً.",
+                          style: TextStyle(color: Colors.white60, fontSize: 12),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        const Text("أسئلة شائعة يمكنك البدء بها:", style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          alignment: WrapAlignment.center,
+                          children: suggestions.map((s) {
+                            return InkWell(
+                              onTap: () {
+                                _chatController.text = s;
+                                ref.read(banksRepositoryProvider).getAllBanks().then((progs) {
+                                  final List<Map<String, dynamic>> allP = [];
+                                  for (var b in progs) {
+                                    final pList = b['bank_programs_details'] as List?;
+                                    if (pList != null) {
+                                      for (var p in pList) {
+                                        allP.add({...p, 'banks': b});
+                                      }
+                                    }
+                                  }
+                                  _sendChatMessage(null, allP);
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: Colors.white12),
+                                ),
+                                child: Text(s, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: _chatMessages.length,
+                    itemBuilder: (ctx, idx) {
+                      final msg = _chatMessages[idx];
+                      final isUser = msg['role'] == 'user';
+                      return Align(
+                        alignment: isUser ? Alignment.centerLeft : Alignment.centerRight,
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          padding: const EdgeInsets.all(14),
+                          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                          decoration: BoxDecoration(
+                            color: isUser ? TfcColors.primary.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: isUser ? TfcColors.primary.withValues(alpha: 0.4) : Colors.white12),
+                          ),
+                          child: MarkdownBody(
+                            data: msg['text'] ?? '',
+                            styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
+                              p: const TextStyle(color: Colors.white, fontSize: 13, height: 1.5),
+                              h1: const TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold, fontSize: 16),
+                              h2: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                              h3: const TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold, fontSize: 13),
+                              listBullet: const TextStyle(color: TfcColors.primary),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+          const SizedBox(height: 12),
+
+          // Input Box
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _chatController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: "اكتب استفسارك المصرفي أو الاقتصادي، أو الصق بيانات العميل لدراستها...",
+                    hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
+                    filled: true,
+                    fillColor: Colors.black.withValues(alpha: 0.3),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.white12),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                  onSubmitted: (_) {
+                    ref.read(banksRepositoryProvider).getAllBanks().then((progs) {
+                      final List<Map<String, dynamic>> allP = [];
+                      for (var b in progs) {
+                        final pList = b['bank_programs_details'] as List?;
+                        if (pList != null) {
+                          for (var p in pList) {
+                            allP.add({...p, 'banks': b});
+                          }
+                        }
+                      }
+                      _sendChatMessage(null, allP);
+                    });
+                  },
+                ),
+              ),
+              const SizedBox(width: 10),
+              IconButton(
+                onPressed: _isSendingChat
+                    ? null
+                    : () {
+                        ref.read(banksRepositoryProvider).getAllBanks().then((progs) {
+                          final List<Map<String, dynamic>> allP = [];
+                          for (var b in progs) {
+                            final pList = b['bank_programs_details'] as List?;
+                            if (pList != null) {
+                              for (var p in pList) {
+                                allP.add({...p, 'banks': b});
+                              }
+                            }
+                          }
+                          _sendChatMessage(null, allP);
+                        });
+                      },
+                icon: _isSendingChat
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: TfcColors.primary))
+                    : Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: TfcColors.primary,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.send, color: Colors.black, size: 18),
+                      ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }

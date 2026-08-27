@@ -370,93 +370,195 @@ final aiChatProvider = Provider((ref) {
   final settings = ref.watch(aiSettingsProvider);
 
   Future<String> chatWithAi({
-    required ClientModel client,
-    required List<Map<String, dynamic>> availablePrograms,
-    required List<Map<String, String>> chatHistory, // [{role: user/assistant, text: ...}]
+    ClientModel? client,
+    List<Map<String, dynamic>>? availablePrograms,
+    required List<Map<String, String>> chatHistory,
     required String userQuestion,
   }) async {
-    final clientDti = _calculateDti(client);
-    double totalSalary = 0.0;
-    if (client.salaryTransferMethod == 'bank_transfer') {
-      for (var b in client.salaryBankDetails) {
-        totalSalary += double.tryParse(b['amount'] ?? '0') ?? 0.0;
+    final progs = availablePrograms ?? [];
+    
+    // Build context details if a client is selected
+    String clientContext = '';
+    if (client != null) {
+      final clientDti = _calculateDti(client);
+      double totalSalary = 0.0;
+      if (client.salaryTransferMethod == 'bank_transfer') {
+        for (var b in client.salaryBankDetails) {
+          totalSalary += double.tryParse(b['amount'] ?? '0') ?? 0.0;
+        }
+      } else {
+        totalSalary = client.cashSalaryAmount ?? 0.0;
       }
-    } else {
-      totalSalary = client.cashSalaryAmount ?? 0.0;
+      final double totalLoans = client.existingLoans.fold(0.0, (prev, l) => prev + l.installmentValue);
+      final double totalCardsFive = client.creditCardsRequests.fold(0.0, (prev, c) => prev + c.fivePercentCalc);
+      final double totalObligations = totalLoans + totalCardsFive;
+      final double maxDbrObligation = totalSalary * 0.50;
+      final double remainingBudget = (maxDbrObligation - totalObligations).clamp(0, maxDbrObligation);
+
+      clientContext = '''
+📌 **بيانات العميل الحالي المرفق بالمحادثة:**
+- **الاسم:** ${client.fullName}
+- **السن:** ${_calculateAge(client.birthDate)} سنة
+- **المحافظة:** ${client.governorate}
+- **طبيعة الوظيفة والقطاع:** ${client.employmentType} (${client.isInsured ? "مؤمن عليه" : "غير مؤمن عليه"})
+- **جهة العمل:** ${client.companyName ?? "غير محدد"} - المسمى الوظيفي: ${client.jobTitle ?? "غير محدد"}
+- **إجمالي الراتب الموثق:** ${totalSalary.toStringAsFixed(0)} ج.م (${client.salaryTransferMethod})
+- **التقييم الائتماني (I-Score):** ${client.creditScore} نقطة
+- **التمويل المطلوب:** ${client.requestedAmount.toStringAsFixed(0)} ج.م
+- **إجمالي الالتزامات الشهرية القائمة:** ${totalObligations.toStringAsFixed(0)} ج.م
+- **نسبة العبء الائتماني الحالية (DTI):** ${clientDti.toStringAsFixed(1)}% (الحد الأقصى للبنك المركزي 50%)
+- **ميزانية القسط الشهري المتاح للتمويل الجديد (DBR Margin):** ${remainingBudget.toStringAsFixed(0)} ج.م شهرياً
+- **الأصول الضامنة:** يملك وحدة بكمبوند: ${client.hasCompoundUnit ? "نعم" : "لا"} | يملك سيارة حديثة: ${client.hasModernCar ? "نعم" : "لا"}
+''';
     }
 
-    final String contextSummary = '''
-أنت مستشار ائتماني ذكي لشركة "The Future Club". تجيب على استفسارات وأسئلة موظفي الشركة بدقة وخبيرة وحرفية عالية.
-بيانات العميل الحالي المحلل:
-- الاسم: ${client.fullName}
-- طبيعة الوظيفة: ${client.employmentType} (${client.isInsured ? "مؤمن عليه" : "غير مؤمن عليه"})
-- الشركة: ${client.companyName ?? "غير محدد"} - الوظيفة: ${client.jobTitle ?? "غير محدد"}
-- إجمالي الراتب: $totalSalary ج.م (${client.salaryTransferMethod})
-- التقييم الائتماني I-Score: ${client.creditScore}
-- المبلغ المطلوب: ${client.requestedAmount} ج.م
-- نسبة الـ DTI الحالية: ${clientDti.toStringAsFixed(1)}%
-- يملك وحدة في كمبوند: ${client.hasCompoundUnit ? "نعم" : "لا"}
-- يملك سيارة حديثة: ${client.hasModernCar ? "نعم" : "لا"}
-- دليل البنوك المتاحة للشركة: ${availablePrograms.length} برنامج بنكي.
+    final String systemPrompt = '''
+أنت "المستشار المالي والاقتصادي والبنكي الذكي" لشركة The Future Club (TFC) للاستشارات المالية والتمويلية في جمهورية مصر العربية.
+أنت خبير اقتصادي ومصرفي رفيع المستوى وملم بكافة:
+1. **تعليمات وقواعد البنك المركزي المصري (CBE)**، بما فيها نسب عبء الدين (DBR / DTI بحد أقصى 50% للتمويل الاستهلاكي والعقاري).
+2. **القطاع المصرفي المصري وبرامج البنوك المصرية**: (البنك الأهلي المصري، بنك مصر، بنك القاهرة، CIB، QNB، بنك الإسكندرية، البنك العربي الإفريقي، بنك التعمير والإسكان، مصرف أبوظبي الإسلامي، وباقي البنوك العاملة في مصر).
+3. **أنواع برامج التمويل والتسهيلات الائتمانية**: (قروض شخصية بتحويل وبدون تحويل راتب، برامج أصحاب المهن الحرة والأنشطة التجارية، برامج ملاك الوحدات بالكمبوندات والعقارات، برامج أصحاب السيارات الحديثة، بطاقات الائتمان، شراء المديونيات وتوحيد الأقساط، التمويل العقاري، وتمويل المشروعات).
+4. **التحليل المالي والائتماني للعملاء**: قراءة كشوف الحسابات البنكية، مفردات المرتب، تقارير الآي سكور (I-Score)، واحتساب الحد الأقصى للقسط والمبلغ التمويلي المتاح.
+5. **تقديم الاستشارات الاقتصادية**: أسعار الفائدة والشهادات والتضخم وتوجيه العملاء وموظفي الشركة نحو أفضل المنتجات والحلول المصرفية المناسبة لكل حالة.
+
+$clientContext
+
+${progs.isNotEmpty ? "قاعدة بيانات برامج البنوك المتاحة بالنظام:\n" + progs.map((p) {
+  final b = p['banks'] as Map?;
+  final bName = b?['bank_name'] ?? p['bank_name'] ?? '';
+  final c = p['core_programs'] as Map?;
+  final pName = c?['program_name'] ?? p['program_name'] ?? '';
+  final rate = p['interest_rate'] ?? '';
+  final max = p['max_loan_amount'] ?? '';
+  final desc = p['description'] ?? '';
+  return "- بنك: $bName | برنامج: $pName | فائدة: $rate% | حد أقصى: $max ج.م | الشروط: $desc";
+}).join("\n") : ""}
+
+**تعليمات الرد وطريقة التعامل:**
+- تحدث بأسلوب خبير مصرفي واقتصادي ودود، واثق، ومحترف وبلغة عربية واضحة ومنسقة باستخدام Markdown الجميل.
+- إذا سألك الموظف عن أي معلومة بنكية عامة، أو سعر فائدة، أو شروط بنك معين، أو استشارة اقتصادية؛ أجب بإسهاب ودقة واحترافية.
+- إذا كان هناك عميل مرفق، قم بتحليل بياناته وتوجيه الموظف لأفضل البنوك والحلول المناسبة لحالته، وحساب أقصى تمويل وقسط ممكن له، وإعطاء نصائح لرفع فرصة الموافقة الائتمانية.
+- إذا قام الموظف بكتابة بيانات عميل يدويًا داخل الشات، قم بدراستها وتحليلها فوراً وإعطائه تقريراً كاملاً ومقترحاً للبنوك.
 ''';
 
-    if (settings.apiKey.trim().isEmpty) {
-      // Fallback local response
-      await Future.delayed(const Duration(milliseconds: 600));
-      if (userQuestion.contains('قروض') || userQuestion.contains('قسط') || userQuestion.contains('dbr') || userQuestion.contains('dti')) {
-        return 'بناءً على ملف العميل المالية: إجمالي راتبه الموثق هو ($totalSalary ج.م)، ونسبة الـ DTI الحالية هي (${clientDti.toStringAsFixed(1)}%). المتبقي المتاح من الـ DBR للتمويل الجديد هو (${(50 - clientDti).clamp(0, 50).toStringAsFixed(1)}%) بقسط شهري أقصى مسموح به يعادل (${((totalSalary * 0.50) - (totalSalary * clientDti / 100)).clamp(0, totalSalary).toStringAsFixed(0)} ج.م).';
-      } else if (userQuestion.contains('كمبوند') || userQuestion.contains('عقار') || userQuestion.contains('سيارة')) {
-        return 'فيما يتعلق بالأصول التمويلية: العميل ${client.hasCompoundUnit ? "يملك وحدة في كمبوند" : "لا يملك وحدة في كمبوند"}، و${client.hasModernCar ? "يملك سيارة حديثة" : "لا يملك سيارة حديثة"}. يمكنك ترشيح البرامج الخاصة بالملاك بناءً على ذلك.';
-      } else if (userQuestion.contains('مستندات') || userQuestion.contains('أوراق')) {
-        return 'المستندات الأساسية المطلوبة للتقديم بالبنوك المرشحة: شهادة مرتب حديثة موجهة للبنك، كشف حساب بنكي 6 أشهر مختوم، صورة بطاقة الرقم القومي سارية، وإثبات ملكية (عقد كمبوند أو رخصة سيارة) إن وجد.';
-      } else {
-        return 'بناءً على فحص الملف الائتماني للعميل (${client.fullName}) والبرامج المتاحة بالبنوك: ننصح بمراجعة طبيعة القطاع الوظيفي ومدى انتظام كشف الحساب لضمان الحصول على الموافقة الائتمانية دون معوقات.';
-      }
-    }
+    // Call Gemini API if Key is provided, else fallback to expert local assistant
+    if (settings.apiKey.trim().isNotEmpty) {
+      try {
+        final url = Uri.parse(
+            'https://generativelanguage.googleapis.com/v1beta/models/${settings.model}:generateContent?key=${settings.apiKey}');
 
-    try {
-      final url = Uri.parse(
-          'https://generativelanguage.googleapis.com/v1beta/models/${settings.model}:generateContent?key=${settings.apiKey}');
+        final contents = [
+          {
+            'parts': [{'text': systemPrompt}]
+          },
+          ...chatHistory.where((m) => (m['text']?.trim().isNotEmpty ?? false)).map((msg) => {
+                'role': msg['role'] == 'user' ? 'user' : 'model',
+                'parts': [
+                  {'text': msg['text'] ?? ''}
+                ]
+              }),
+          {
+            'role': 'user',
+            'parts': [
+              {'text': userQuestion}
+            ]
+          }
+        ];
 
-      final contents = [
-        {
-          'parts': [{'text': contextSummary}]
-        },
-        ...chatHistory.map((msg) => {
-              'role': msg['role'] == 'user' ? 'user' : 'model',
-              'parts': [
-                {'text': msg['text'] ?? ''}
-              ]
-            }),
-        {
-          'role': 'user',
-          'parts': [
-            {'text': userQuestion}
-          ]
-        }
-      ];
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({'contents': contents}),
+        );
 
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'contents': contents}),
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        final candidates = responseData['candidates'] as List?;
-        if (candidates != null && candidates.isNotEmpty) {
-          final content = candidates[0]['content'];
-          final parts = content['parts'] as List?;
-          if (parts != null && parts.isNotEmpty) {
-            return parts[0]['text'] as String;
+        if (response.statusCode == 200) {
+          final responseData = jsonDecode(response.body);
+          final candidates = responseData['candidates'] as List?;
+          if (candidates != null && candidates.isNotEmpty) {
+            final content = candidates[0]['content'];
+            final parts = content['parts'] as List?;
+            if (parts != null && parts.isNotEmpty) {
+              return parts[0]['text'] as String;
+            }
           }
         }
+      } catch (e) {
+        _logger.e('Gemini Chat API Error: $e');
       }
-      return 'تعذر الحصول على إجابة من الذكاء الاصطناعي حالياً.';
-    } catch (e) {
-      return 'حدث خطأ في الاتصال بالذكاء الاصطناعي: $e';
     }
+
+    // Expert built-in fallback answers if API Key not provided or offline
+    await Future.delayed(const Duration(milliseconds: 500));
+    final q = userQuestion.toLowerCase();
+
+    if (client != null) {
+      final clientDti = _calculateDti(client);
+      double totalSalary = 0.0;
+      if (client.salaryTransferMethod == 'bank_transfer') {
+        for (var b in client.salaryBankDetails) {
+          totalSalary += double.tryParse(b['amount'] ?? '0') ?? 0.0;
+        }
+      } else {
+        totalSalary = client.cashSalaryAmount ?? 0.0;
+      }
+      final double totalLoans = client.existingLoans.fold(0.0, (prev, l) => prev + l.installmentValue);
+      final double totalCardsFive = client.creditCardsRequests.fold(0.0, (prev, c) => prev + c.fivePercentCalc);
+      final double totalObligations = totalLoans + totalCardsFive;
+      final double maxDbrObligation = totalSalary * 0.50;
+      final double remainingBudget = (maxDbrObligation - totalObligations).clamp(0, maxDbrObligation);
+
+      if (q.contains('قسط') || q.contains('dbr') || q.contains('dti') || q.contains('مبلغ') || q.contains('تمويل')) {
+        return '''
+### 📊 التحليل المالي والائتماني للعميل (${client.fullName}):
+- **إجمالي الراتب الموثق:** ${totalSalary.toStringAsFixed(0)} ج.م
+- **إجمالي الالتزامات الشهرية القائمة:** ${totalObligations.toStringAsFixed(0)} ج.م (قروض: ${totalLoans.toStringAsFixed(0)} ج.م + بطاقات 5%: ${totalCardsFive.toStringAsFixed(0)} ج.م)
+- **نسبة العبء الائتماني الحالية (DTI):** ${clientDti.toStringAsFixed(1)}%
+- **الحد الأقصى للقسط الشهري المسموح به للتمويل الجديد:** **${remainingBudget.toStringAsFixed(0)} ج.م شهرياً**.
+- **المبلغ التمويلي التقريبي المتاح:** يتراوح بين **${(remainingBudget * 36).toStringAsFixed(0)} ج.م** إلى **${(remainingBudget * 60).toStringAsFixed(0)} ج.م** (بناءً على فترة السداد 3-5 سنوات).
+''';
+      }
+    }
+
+    if (q.contains('dbr') || q.contains('عبء الدين') || q.contains('المركزي')) {
+      return '''
+### 📌 القواعد المصرفية للـ DBR (نسبة عبء الدين) في مصر:
+1. **الحد الأقصى:** 50% من إجمالي الدخل الشهري المثبت للعميل (وفقاً لتعليمات البنك المركزي المصري CBE).
+2. **حساب الالتزامات:** يشمل أقساط كافة القروض القائمة + 5% من إجمالي الحد الائتماني لجميع البطاقات الائتمانية (سواء كانت مستخدمة أو غير مستخدمة).
+3. **هامش التمويل الجديد:** `(الراتب × 50%) - إجمالي الأقساط والالتزامات القائمة`.
+''';
+    } else if (q.contains('كمبوند') || q.contains('عقار')) {
+      return '''
+### 🏡 برامج ملاك الوحدات في الكمبوندات والعقارات:
+تتيح العديد من البنوك المصرية (مثل البنك الأهلي، CIB، بنك مصر، العربي الأفريقي) برامج تمويل بضمان ملكية وحدة في كمبوند أو عقار معتمد:
+- **المميزات:** مبالغ تمويل تصل إلى 2 - 5 مليون جنيه بدون اشتراط تحويل راتب أو إثبات دخل تقليدي.
+- **الشروط الأساسية:** عقد الوحدة + إيصالات سداد الأقساط بانتظام (سداد 20% فأكثر من ثمن الوحدة) + إثبات مرور 6 أشهر على الأقل.
+''';
+    } else if (q.contains('سيارة') || q.contains('سيارات')) {
+      return '''
+### 🚗 برامج أصحاب السيارات الحديثة:
+- تمنح البنوك تمويلاً شخصياً بضمان رخصة سيارة حديثة (موديل آخر 3 إلى 5 سنوات).
+- **الحد الأقصى للتمويل:** يصل إلى 50% - 75% من القيمة السوقية التقديرية للسيارة.
+- **المستندات:** رخصة السيارة سارية وباسم العميل + كشف حساب بنكي يوضح الحركة المالية.
+''';
+    } else if (q.contains('i-score') || q.contains('اي سكور') || q.contains('تقرير ائتماني')) {
+      return '''
+### 📈 تقييم الـ I-Score وأثره على الموافقة الائتمانية:
+- **أعلى من 700:** تصنيف ممتاز 🟢 (موافقة فورية وشروط ميسرة).
+- **من 600 إلى 699:** تصنيف جيد 🟡 (موافقة عادية مع تدقيق الدخل).
+- **أقل من 600:** تصنيف منخفض 🔴 (يتطلب تسوية المتأخرات أو رفع التقييم بإغلاق البطاقات وسداد المستحقات).
+''';
+    }
+
+    return '''
+مرحباً بك! أنا **المستشار المالي والاقتصادي الذكي لشركة TFC**. 🏦
+
+يمكنني مساعدتك في:
+1. **دراسة أي ملف عميل وتحليله ائتمانياً** وتحديد أقصى قسط وتمويل متاح له وفقاً لضوابط الـ DBR.
+2. **استشارات البنوك المصرية** وشروط التمويل الشخصي والمهن الحرة وملاك الكمبوندات والسيارات.
+3. **صياغة التقارير التمويلية** ومقارنة أسعار الفائدة والبرامج البنكية.
+
+*تفضل بطرح سؤالك أو كتابة بيانات العميل لتحليلها فوراً.*
+''';
   }
 
   return chatWithAi;
