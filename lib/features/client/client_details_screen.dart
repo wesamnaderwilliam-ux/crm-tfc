@@ -1265,7 +1265,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         ),
         _buildCollapsibleSection(
           key: 'distribution',
-          title: 'توزيع أرباح العملاء',
+          title: 'توزيع العملاء',
           icon: Icons.pie_chart_outline,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,

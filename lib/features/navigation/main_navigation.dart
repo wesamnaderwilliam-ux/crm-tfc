@@ -49,7 +49,9 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
 
   void selectAiClient(String id) {
     setState(() {
+      _selectedClientId = null;
       _aiClientId = id.isEmpty ? null : id;
+      _showNewClientForm = false;
     });
   }
 
@@ -448,20 +450,25 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       final detailsIdx = navItems.indexWhere((item) => item.label == 'تفاصيل وإدارة العملاء');
       if (detailsIdx != -1 && _selectedIndex != detailsIdx) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          setState(() {
-            _selectedIndex = detailsIdx;
-          });
+          if (mounted) {
+            setState(() {
+              _selectedIndex = detailsIdx;
+            });
+          }
         });
       }
     }
 
+    // Adjust AI client navigation helper
     if (_aiClientId != null) {
       final aiIdx = navItems.indexWhere((item) => item.label == 'المساعد الذكي (AI)');
       if (aiIdx != -1 && _selectedIndex != aiIdx) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          setState(() {
-            _selectedIndex = aiIdx;
-          });
+          if (mounted) {
+            setState(() {
+              _selectedIndex = aiIdx;
+            });
+          }
         });
       }
     }

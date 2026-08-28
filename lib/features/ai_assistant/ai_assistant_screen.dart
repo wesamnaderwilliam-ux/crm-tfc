@@ -37,7 +37,22 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
     super.initState();
     if (widget.initialClientId != null && widget.initialClientId!.isNotEmpty) {
       _selectedClientId = widget.initialClientId;
-      // Trigger analysis immediately after build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _runAiAnalysis();
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant AiAssistantScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialClientId != oldWidget.initialClientId &&
+        widget.initialClientId != null &&
+        widget.initialClientId!.isNotEmpty &&
+        widget.initialClientId != _selectedClientId) {
+      setState(() {
+        _selectedClientId = widget.initialClientId;
+      });
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _runAiAnalysis();
       });
@@ -45,7 +60,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
   }
 
   Future<void> _runAiAnalysis() async {
-    if (_selectedClientId == null) return;
+    if (_selectedClientId == null || _isAnalyzing) return;
     final clientState = ref.read(clientProvider);
     final client = clientState.clients.firstWhereOrNull((c) => c.id == _selectedClientId);
     if (client == null) return;
@@ -54,14 +69,7 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       _isAnalyzing = true;
       _analysisResult = null;
       _matchingProgramsList = [];
-      _analysisStep = "جاري قراءة الملف الائتماني والمالي للعميل...";
-    });
-
-    // Simulate step-by-step processing for premium UI feel
-    await Future.delayed(const Duration(milliseconds: 900));
-    if (!mounted) return;
-    setState(() {
-      _analysisStep = "جاري تحميل وتصنيف برامج التمويل المتاحة بالبنوك...";
+      _analysisStep = "جاري قراءة الملف الائتماني والمالي للعميل ومطابقة البنوك...";
     });
 
     // Load available banks/programs - fetch ALL banks and flatten their programs
@@ -92,18 +100,6 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
       debugPrint("Error loading bank programs context: $e");
     }
 
-    await Future.delayed(const Duration(milliseconds: 950));
-    if (!mounted) return;
-    setState(() {
-      _analysisStep = "جاري مطابقة المعايير وإجراء حسابات العبء الائتماني (DTI)...";
-    });
-
-    await Future.delayed(const Duration(milliseconds: 800));
-    if (!mounted) return;
-    setState(() {
-      _analysisStep = "جاري صياغة التقرير الاستشاري الائتماني بالذكاء الاصطناعي...";
-    });
-
     try {
       final analyze = ref.read(aiAnalysisProvider);
       final result = await analyze(client: client, availablePrograms: allPrograms);
@@ -121,7 +117,6 @@ class _AiAssistantScreenState extends ConsumerState<AiAssistantScreen> {
 
       // If AI/simulation returned IDs but none matched, show all programs as fallback
       if (matchedDetails.isEmpty && allPrograms.isNotEmpty) {
-        // Take up to 3 programs as recommendations
         matchedDetails.addAll(allPrograms.take(3));
       }
 
