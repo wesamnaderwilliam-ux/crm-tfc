@@ -220,6 +220,7 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
+    final isAdmin = authState.role == 'admin' || authState.role == 'manager';
     final isStrictAdmin = authState.role == 'admin';
     final clientState = ref.watch(clientProvider);
     final employeesState = ref.watch(employeesProvider);
@@ -317,27 +318,29 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
                         },
                       ),
                     ),
-                    if (!isWide) const SizedBox(height: 12),
-                    if (isWide) const SizedBox(width: 12),
+                    if (isAdmin || authState.role == 'bank_employee') ...[
+                      if (!isWide) const SizedBox(height: 12),
+                      if (isWide) const SizedBox(width: 12),
 
-                    // Employee Filter
-                    Expanded(
-                      flex: isWide ? 1 : 0,
-                      child: _buildFilterDropdown(
-                        value: _selectedEmployeeFilter,
-                        hint: "كل المندوبين",
-                        items: [
-                          const DropdownMenuItem(value: 'all', child: Text("كل المندوبين", textDirection: TextDirection.rtl)),
-                          ...uniqueEmployees.entries.map((e) => DropdownMenuItem(
-                                value: e.key,
-                                child: Text(e.value, textDirection: TextDirection.rtl),
-                              ))
-                        ],
-                        onChanged: (val) {
-                          if (val != null) setState(() => _selectedEmployeeFilter = val);
-                        },
+                      // Employee Filter
+                      Expanded(
+                        flex: isWide ? 1 : 0,
+                        child: _buildFilterDropdown(
+                          value: _selectedEmployeeFilter,
+                          hint: "كل مسؤولي البنوك",
+                          items: [
+                            const DropdownMenuItem(value: 'all', child: Text("كل مسؤولي البنوك", textDirection: TextDirection.rtl)),
+                            ...uniqueEmployees.entries.map((e) => DropdownMenuItem(
+                                  value: e.key,
+                                  child: Text(e.value, textDirection: TextDirection.rtl),
+                                ))
+                          ],
+                          onChanged: (val) {
+                            if (val != null) setState(() => _selectedEmployeeFilter = val);
+                          },
+                        ),
                       ),
-                    ),
+                    ],
                     if (!isWide) const SizedBox(height: 12),
                     if (isWide) const SizedBox(width: 12),
 
@@ -448,16 +451,17 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
             columnSpacing: 20,
             headingRowColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.02)),
             dataRowMaxHeight: 60,
-            columns: const [
-              DataColumn(label: Text("العميل", style: TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary))),
-              DataColumn(label: Text("البنك", style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text("البرنامج", style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text("المندوب", style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text("المبلغ المطلوب", style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text("تاريخ التحويل", style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text("الحالة", style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text("مبلغ الموافقة", style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text("الإجراء", style: TextStyle(fontWeight: FontWeight.bold))),
+            columns: [
+              const DataColumn(label: Text("العميل", style: TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary))),
+              const DataColumn(label: Text("البنك", style: TextStyle(fontWeight: FontWeight.bold))),
+              const DataColumn(label: Text("البرنامج", style: TextStyle(fontWeight: FontWeight.bold))),
+              if (isAdmin || authState.role == 'bank_employee')
+                const DataColumn(label: Text("المسؤول بالبنك", style: TextStyle(fontWeight: FontWeight.bold))),
+              const DataColumn(label: Text("المبلغ المطلوب", style: TextStyle(fontWeight: FontWeight.bold))),
+              const DataColumn(label: Text("تاريخ التحويل", style: TextStyle(fontWeight: FontWeight.bold))),
+              const DataColumn(label: Text("الحالة", style: TextStyle(fontWeight: FontWeight.bold))),
+              const DataColumn(label: Text("مبلغ الموافقة", style: TextStyle(fontWeight: FontWeight.bold))),
+              const DataColumn(label: Text("الإجراء", style: TextStyle(fontWeight: FontWeight.bold))),
             ],
             rows: data.map((d) {
               return DataRow(
@@ -477,7 +481,8 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
                   ),
                   DataCell(Text(d['bank_name'])),
                   DataCell(Text(d['program_name'])),
-                  DataCell(Text(d['employee_name'])),
+                  if (isAdmin || authState.role == 'bank_employee')
+                    DataCell(Text(d['employee_name'])),
                   DataCell(Text("${_formatNumber(d['requested_amount'])} ج.م")),
                   DataCell(Text(_formatDate(d['transfer_date']))),
                   DataCell(_buildStatusChip(d['status'])),
@@ -539,7 +544,8 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
                 const SizedBox(height: 12),
                 _buildInfoRow("البنك", d['bank_name'], Icons.account_balance),
                 _buildInfoRow("البرنامج", d['program_name'], Icons.category),
-                _buildInfoRow("المندوب", d['employee_name'], Icons.person),
+                if (isAdmin || authState.role == 'bank_employee')
+                  _buildInfoRow("المسؤول بالبنك", d['employee_name'], Icons.person),
                 _buildInfoRow("المبلغ المطلوب", "${_formatNumber(d['requested_amount'])} ج.م", Icons.monetization_on),
                 _buildInfoRow("تاريخ التحويل", _formatDate(d['transfer_date']), Icons.calendar_today),
                 if (d['approved_amount'] != null)

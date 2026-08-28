@@ -1001,6 +1001,7 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
     });
 
     final authState = ref.watch(authProvider);
+    final isAdmin = authState.role == 'admin' || authState.role == 'manager';
     final isStrictAdmin = authState.role == 'admin';
 
     return GlassCard(
@@ -1109,7 +1110,8 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
 
                       // Info Rows
                       _buildDetailRow("البرنامج", op.programName),
-                      _buildDetailRow("الموظف", op.employeeName),
+                      if (isAdmin || authState.role == 'bank_employee')
+                        _buildDetailRow("الموظف المسئول", op.employeeName),
                       _buildDetailRow("المبلغ المطلوب", "${_formatNumber(op.requestedAmount)} ج.م"),
                       _buildDetailRow(
                         "تاريخ التحويل",
