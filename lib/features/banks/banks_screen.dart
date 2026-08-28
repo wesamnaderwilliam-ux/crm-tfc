@@ -677,7 +677,7 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
             ),
           ),
 
-          if (!widget.isBankEmployee) ...[
+          if (widget.isAdmin) ...[
             TabBar(
               controller: _tabController,
               indicatorColor: TfcColors.primary,
