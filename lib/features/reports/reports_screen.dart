@@ -43,6 +43,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
   List<OperationEntry> _allOperations = [];
   List<ExpenseModel> _allExpenses = [];
   List<Map<String, dynamic>> _allTargets = [];
+  List<Map<String, dynamic>> _allDistributions = [];
 
   @override
   void initState() {
@@ -82,15 +83,66 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
           .from('employee_targets')
           .select('*');
 
+      // 4. Fetch all distributions with relations
+      final distResponse = await SupabaseConfig.client
+          .from('distribution_entries')
+          .select('''
+            id,
+            program_id,
+            bank_id,
+            employee_id,
+            status,
+            client_id,
+            created_at,
+            core_programs ( program_name ),
+            banks ( bank_name ),
+            bank_employees ( employee_name, phone_1 ),
+            clients ( full_name, representative_name, created_by, created_at )
+          ''');
+
       final List<dynamic> opsRows = opsResponse as List<dynamic>;
       final List<dynamic> expRows = expResponse as List<dynamic>;
       final List<dynamic> targetRows = targetsResponse as List<dynamic>;
+      final List<dynamic> distRows = distResponse as List<dynamic>;
+
+      final List<Map<String, dynamic>> parsedDist = distRows.map((r) {
+        final clientData = r['clients'] as Map<String, dynamic>?;
+        final bankData = r['banks'] as Map<String, dynamic>?;
+        final programData = r['core_programs'] as Map<String, dynamic>?;
+        final empData = r['bank_employees'] as Map<String, dynamic>?;
+
+        DateTime? createdAt;
+        if (r['created_at'] != null) {
+          try {
+            createdAt = DateTime.parse(r['created_at'].toString());
+          } catch (_) {}
+        } else if (clientData != null && clientData['created_at'] != null) {
+          try {
+            createdAt = DateTime.parse(clientData['created_at'].toString());
+          } catch (_) {}
+        }
+
+        return {
+          'id': r['id'],
+          'client_id': r['client_id'],
+          'client_name': clientData != null ? clientData['full_name'] : 'عميل',
+          'program_name': programData != null ? programData['program_name'] : 'برنامج غير محدد',
+          'program_id': r['program_id'],
+          'bank_name': bankData != null ? bankData['bank_name'] : 'بنك غير محدد',
+          'bank_id': r['bank_id'],
+          'employee_id': r['employee_id'],
+          'employee_name': empData != null ? '${empData['employee_name']}'.trim() : 'لم يحدد بعد',
+          'status': r['status'] ?? 'pending',
+          'created_at': createdAt,
+        };
+      }).toList();
 
       if (mounted) {
         setState(() {
           _allOperations = opsRows.map((r) => OperationEntry.fromJson(r)).toList();
           _allExpenses = expRows.map((r) => ExpenseModel.fromJson(r)).toList();
           _allTargets = targetRows.map((r) => Map<String, dynamic>.from(r)).toList();
+          _allDistributions = parsedDist;
           _isLoading = false;
         });
       }
@@ -674,13 +726,23 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
     for (var emp in employees) {
       if (emp.role == 'bank_employee') continue;
 
-      // Count clients assigned
-      final empClients = clients.where((c) => c.assignedEmployeeId == emp.id || c.representativeName == emp.fullName).toList();
+      final empFullName = (emp.fullName as String? ?? '').trim().toLowerCase();
+      final empEmail = (emp.email as String? ?? '').trim().toLowerCase();
+      final empId = emp.id.toString();
+
+      // Count clients assigned to this employee
+      final empClients = clients.where((c) {
+        final rep = (c.representativeName ?? '').trim().toLowerCase();
+        final creator = (c.createdBy ?? '').trim().toLowerCase();
+        return (rep.isNotEmpty && (rep == empFullName || rep == empEmail || rep == empId)) ||
+               (creator.isNotEmpty && (creator == empFullName || creator == empEmail || creator == empId));
+      }).toList();
 
       // Approved operations for this employee
       final empApprovedOps = _allOperations.where((op) {
         final d = op.approvalDate ?? op.transferDate;
-        final isMatch = op.employeeName.trim().toLowerCase() == emp.fullName.trim().toLowerCase();
+        final opEmp = op.employeeName.trim().toLowerCase();
+        final isMatch = opEmp == empFullName || (empFullName.isNotEmpty && opEmp.contains(empFullName));
         return isMatch && op.status == 'approved' && _isDateInSelectedPeriod(d);
       }).toList();
 
@@ -900,7 +962,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 3. تبويب تقارير أداء البنوك ونسب القبول ومسؤولي التنسيق
+  // 3. تبويب تقارير أداء البنوك ونسب القبول ومسؤولي التنسيق (شامل التوزيع والعمليات)
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildBanksReportsTab(List banks) {
     // Filter operations in period
@@ -909,56 +971,97 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
       return _isDateInSelectedPeriod(d);
     }).toList();
 
-    // Group by bank name
-    final Map<String, List<OperationEntry>> opsByBank = {};
+    // Filter distributions in period
+    final periodDists = _allDistributions.where((d) {
+      final dt = d['created_at'] as DateTime?;
+      return dt != null ? _isDateInSelectedPeriod(dt) : true;
+    }).toList();
+
+    // Collect all unique bank names from banks, operations, and distributions
+    final Set<String> allBankNames = {};
+    for (var b in banks) {
+      final name = (b['bank_name'] ?? '').toString().trim();
+      if (name.isNotEmpty) allBankNames.add(name);
+    }
     for (var op in periodOps) {
-      if (op.bankName.isNotEmpty) {
-        opsByBank.putIfAbsent(op.bankName, () => []).add(op);
-      }
+      if (op.bankName.trim().isNotEmpty) allBankNames.add(op.bankName.trim());
+    }
+    for (var dist in periodDists) {
+      final name = (dist['bank_name'] ?? '').toString().trim();
+      if (name.isNotEmpty && name != 'بنك غير محدد') allBankNames.add(name);
     }
 
     final List<Map<String, dynamic>> bankStats = [];
 
-    opsByBank.forEach((bName, ops) {
-      final totalReferrals = ops.length;
-      final approvedOps = ops.where((o) => o.status == 'approved').toList();
-      final rejectedOps = ops.where((o) => o.status == 'rejected').toList();
-      final approvedCount = approvedOps.length;
-      final rejectedCount = rejectedOps.length;
-      final double approvalRate = totalReferrals > 0 ? (approvedCount / totalReferrals) * 100 : 0.0;
+    for (var bName in allBankNames) {
+      final bankOps = periodOps.where((o) => o.bankName.trim().toLowerCase() == bName.toLowerCase()).toList();
+      final bankDists = periodDists.where((d) => (d['bank_name'] ?? '').toString().trim().toLowerCase() == bName.toLowerCase()).toList();
+
+      final totalOpsCount = bankOps.length;
+      final approvedOps = bankOps.where((o) => o.status == 'approved').toList();
+      final rejectedOps = bankOps.where((o) => o.status == 'rejected').toList();
+      final approvedOpsCount = approvedOps.length;
+      final rejectedOpsCount = rejectedOps.length;
+
+      final totalDistsCount = bankDists.length;
+      final acceptedDists = bankDists.where((d) => d['status'] == 'accepted').toList();
+      final rejectedDists = bankDists.where((d) => d['status'] == 'rejected').toList();
+      final acceptedDistsCount = acceptedDists.length;
+      final rejectedDistsCount = rejectedDists.length;
+
+      // Acceptance / Approval Rates
+      final double opsApprovalRate = totalOpsCount > 0 ? (approvedOpsCount / totalOpsCount) * 100 : 0.0;
+      final double distAcceptanceRate = totalDistsCount > 0 ? (acceptedDistsCount / totalDistsCount) * 100 : 0.0;
       final double totalApprovedAmount = approvedOps.fold(0.0, (sum, o) => sum + (o.approvedAmount ?? o.requestedAmount));
 
       // Most used program for this bank
       final Map<String, int> progCount = {};
-      for (var o in ops) {
-        progCount[o.programName] = (progCount[o.programName] ?? 0) + 1;
+      for (var o in bankOps) {
+        if (o.programName.isNotEmpty) progCount[o.programName] = (progCount[o.programName] ?? 0) + 1;
+      }
+      for (var d in bankDists) {
+        final pName = (d['program_name'] ?? '').toString();
+        if (pName.isNotEmpty && pName != 'برنامج غير محدد') progCount[pName] = (progCount[pName] ?? 0) + 1;
       }
       final sortedProgs = progCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
       final topProgs = sortedProgs.take(2).map((e) => "${e.key} (${e.value})").join("، ");
 
       // Most active bank employee
       final Map<String, int> empCount = {};
-      for (var o in ops) {
+      for (var o in bankOps) {
         if (o.employeeName.isNotEmpty && o.employeeName != 'لم يحدد') {
           empCount[o.employeeName] = (empCount[o.employeeName] ?? 0) + 1;
         }
       }
+      for (var d in bankDists) {
+        final eName = (d['employee_name'] ?? '').toString();
+        if (eName.isNotEmpty && eName != 'لم يحدد بعد') {
+          empCount[eName] = (empCount[eName] ?? 0) + 1;
+        }
+      }
       final sortedEmps = empCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
-      final topBankEmp = sortedEmps.isNotEmpty ? "${sortedEmps.first.key} (${sortedEmps.first.value} عملية)" : "—";
+      final topBankEmp = sortedEmps.isNotEmpty ? "${sortedEmps.first.key} (${sortedEmps.first.value} تعامل)" : "—";
 
-      bankStats.add({
-        'bank_name': bName,
-        'total_clients_referred': totalReferrals,
-        'approved_count': approvedCount,
-        'rejected_count': rejectedCount,
-        'approval_rate': approvalRate,
-        'total_approved_amount': totalApprovedAmount,
-        'top_programs': topProgs.isNotEmpty ? topProgs : '—',
-        'top_bank_employee': topBankEmp,
-      });
-    });
+      if (totalOpsCount > 0 || totalDistsCount > 0) {
+        bankStats.add({
+          'bank_name': bName,
+          'total_dists_count': totalDistsCount,
+          'accepted_dists_count': acceptedDistsCount,
+          'rejected_dists_count': rejectedDistsCount,
+          'dist_acceptance_rate': distAcceptanceRate,
+          'total_ops_count': totalOpsCount,
+          'approved_ops_count': approvedOpsCount,
+          'rejected_ops_count': rejectedOpsCount,
+          'ops_approval_rate': opsApprovalRate,
+          'total_approved_amount': totalApprovedAmount,
+          'top_programs': topProgs.isNotEmpty ? topProgs : '—',
+          'top_bank_employee': topBankEmp,
+        });
+      }
+    }
 
-    bankStats.sort((a, b) => (b['total_clients_referred'] as int).compareTo(a['total_clients_referred'] as int));
+    bankStats.sort((a, b) => ((b['total_ops_count'] as int) + (b['total_dists_count'] as int))
+        .compareTo((a['total_ops_count'] as int) + (a['total_dists_count'] as int)));
 
     return SingleChildScrollView(
       child: Column(
@@ -970,7 +1073,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "أداء البنوك ونسب الموافقة (${_getPeriodLabel()})",
+                "أداء البنوك الشامل (توزيعات + عمليات) (${_getPeriodLabel()})",
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
               ),
               ElevatedButton.icon(
@@ -1003,44 +1106,59 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text("🏦 تفاصيل أداء البنوك الشريكة (${bankStats.length} بنك)",
+                Text("🏦 تفاصيل أداء البنوك الشامل (${bankStats.length} بنك)",
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: TfcColors.primary)),
                 const SizedBox(height: 12),
                 bankStats.isEmpty
                     ? const Padding(
                         padding: EdgeInsets.all(24.0),
-                        child: Center(child: Text("لا توجد عمليات مسجلة بالبنوك في هذه الفترة", style: TextStyle(color: TfcColors.outline))),
+                        child: Center(child: Text("لا توجد توزيعات أو عمليات مسجلة بالبنوك في هذه الفترة", style: TextStyle(color: TfcColors.outline))),
                       )
                     : SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: DataTable(
                           columns: const [
                             DataColumn(label: Text("اسم البنك", style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
-                            DataColumn(label: Text("العملاء المحولين", style: TextStyle(fontWeight: FontWeight.bold))),
-                            DataColumn(label: Text("المقبول", style: TextStyle(fontWeight: FontWeight.bold))),
-                            DataColumn(label: Text("المرفوض", style: TextStyle(fontWeight: FontWeight.bold))),
-                            DataColumn(label: Text("نسبة القبول", style: TextStyle(fontWeight: FontWeight.bold))),
+                            DataColumn(label: Text("عملاء التوزيع", style: TextStyle(fontWeight: FontWeight.bold))),
+                            DataColumn(label: Text("قبول التوزيع", style: TextStyle(fontWeight: FontWeight.bold))),
+                            DataColumn(label: Text("نسبة قبول التوزيع", style: TextStyle(fontWeight: FontWeight.bold))),
+                            DataColumn(label: Text("عملاء العمليات", style: TextStyle(fontWeight: FontWeight.bold))),
+                            DataColumn(label: Text("موافقة العمليات", style: TextStyle(fontWeight: FontWeight.bold))),
+                            DataColumn(label: Text("نسبة قبول العمليات", style: TextStyle(fontWeight: FontWeight.bold))),
                             DataColumn(label: Text("إجمالي التمويل المعتمد", style: TextStyle(fontWeight: FontWeight.bold))),
                             DataColumn(label: Text("أكثر برنامج تنفيذاً", style: TextStyle(fontWeight: FontWeight.bold))),
                             DataColumn(label: Text("أكثر مسؤول تم التعامل معه", style: TextStyle(fontWeight: FontWeight.bold))),
                           ],
                           rows: bankStats.map((b) {
-                            final rate = b['approval_rate'] as double;
+                            final distRate = b['dist_acceptance_rate'] as double;
+                            final opsRate = b['ops_approval_rate'] as double;
                             return DataRow(
                               cells: [
                                 DataCell(Text(b['bank_name'], style: const TextStyle(fontWeight: FontWeight.bold))),
-                                DataCell(Text("${b['total_clients_referred']}")),
-                                DataCell(Text("${b['approved_count']}", style: const TextStyle(color: Colors.greenAccent))),
-                                DataCell(Text("${b['rejected_count']}", style: const TextStyle(color: Colors.redAccent))),
+                                DataCell(Text("${b['total_dists_count']}")),
+                                DataCell(Text("${b['accepted_dists_count']}", style: const TextStyle(color: Colors.greenAccent))),
                                 DataCell(
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: rate >= 60 ? Colors.green.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.2),
+                                      color: distRate >= 50 ? Colors.green.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
-                                    child: Text("${rate.toStringAsFixed(1)}%",
-                                        style: TextStyle(color: rate >= 60 ? Colors.greenAccent : Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                                    child: Text("${distRate.toStringAsFixed(1)}%",
+                                        style: TextStyle(color: distRate >= 50 ? Colors.greenAccent : Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
+                                DataCell(Text("${b['total_ops_count']}")),
+                                DataCell(Text("${b['approved_ops_count']}", style: const TextStyle(color: Colors.greenAccent))),
+                                DataCell(
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: opsRate >= 60 ? Colors.green.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text("${opsRate.toStringAsFixed(1)}%",
+                                        style: TextStyle(color: opsRate >= 60 ? Colors.greenAccent : Colors.orangeAccent, fontWeight: FontWeight.bold)),
                                   ),
                                 ),
                                 DataCell(Text("${_formatNumber(b['total_approved_amount'])} ج.م", style: const TextStyle(fontWeight: FontWeight.bold))),
@@ -1060,7 +1178,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // 4. تبويب تقارير البرامج التمويلية ونسب الاستخدام حسب البنك
+  // 4. تبويب تقارير البرامج التمويلية ونسب الاستخدام حسب البنك (شامل التوزيع والعمليات)
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildProgramsReportsTab(List banks) {
     final periodOps = _allOperations.where((op) {
@@ -1068,45 +1186,76 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
       return _isDateInSelectedPeriod(d);
     }).toList();
 
-    final totalPeriodOpsCount = periodOps.length;
+    final periodDists = _allDistributions.where((d) {
+      final dt = d['created_at'] as DateTime?;
+      return dt != null ? _isDateInSelectedPeriod(dt) : true;
+    }).toList();
 
-    // Group by program name
-    final Map<String, List<OperationEntry>> opsByProgram = {};
+    final totalPeriodOpsCount = periodOps.length;
+    final totalPeriodDistsCount = periodDists.length;
+
+    // Collect all unique program names
+    final Set<String> allProgNames = {};
     for (var op in periodOps) {
-      final pName = op.programName.isNotEmpty ? op.programName : 'برنامج غير محدد';
-      opsByProgram.putIfAbsent(pName, () => []).add(op);
+      final pName = op.programName.trim();
+      if (pName.isNotEmpty) allProgNames.add(pName);
+    }
+    for (var dist in periodDists) {
+      final pName = (dist['program_name'] ?? '').toString().trim();
+      if (pName.isNotEmpty && pName != 'برنامج غير محدد') allProgNames.add(pName);
     }
 
     final List<Map<String, dynamic>> programStats = [];
 
-    opsByProgram.forEach((pName, ops) {
-      final totalOps = ops.length;
-      final approvedOps = ops.where((o) => o.status == 'approved').toList();
-      final double usagePercentage = totalPeriodOpsCount > 0 ? (totalOps / totalPeriodOpsCount) * 100 : 0.0;
-      final double totalAmount = ops.fold(0.0, (sum, o) => sum + (o.approvedAmount ?? o.requestedAmount));
+    for (var pName in allProgNames) {
+      final progOps = periodOps.where((o) => o.programName.trim().toLowerCase() == pName.toLowerCase()).toList();
+      final progDists = periodDists.where((d) => (d['program_name'] ?? '').toString().trim().toLowerCase() == pName.toLowerCase()).toList();
 
-      // Bank usage distribution for this program
+      final totalOps = progOps.length;
+      final approvedOps = progOps.where((o) => o.status == 'approved').toList();
+      final totalDists = progDists.length;
+      final acceptedDists = progDists.where((d) => d['status'] == 'accepted').toList();
+
+      final double opsApprovalRate = totalOps > 0 ? (approvedOps.length / totalOps) * 100 : 0.0;
+      final double distAcceptanceRate = totalDists > 0 ? (acceptedDists.length / totalDists) * 100 : 0.0;
+
+      final double opsUsagePct = totalPeriodOpsCount > 0 ? (totalOps / totalPeriodOpsCount) * 100 : 0.0;
+      final double distsUsagePct = totalPeriodDistsCount > 0 ? (totalDists / totalPeriodDistsCount) * 100 : 0.0;
+      final double totalAmount = progOps.fold(0.0, (sum, o) => sum + (o.approvedAmount ?? o.requestedAmount));
+
+      // Bank usage distribution for this program (combining ops and distributions)
       final Map<String, int> bankCount = {};
-      for (var o in ops) {
-        bankCount[o.bankName] = (bankCount[o.bankName] ?? 0) + 1;
+      for (var o in progOps) {
+        if (o.bankName.isNotEmpty) bankCount[o.bankName] = (bankCount[o.bankName] ?? 0) + 1;
+      }
+      for (var d in progDists) {
+        final bName = (d['bank_name'] ?? '').toString();
+        if (bName.isNotEmpty && bName != 'بنك غير محدد') bankCount[bName] = (bankCount[bName] ?? 0) + 1;
       }
       final sortedBanks = bankCount.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+      final totalProgActions = totalOps + totalDists;
       final banksDistribution = sortedBanks.map((e) {
-        final pct = (e.value / totalOps) * 100;
+        final pct = totalProgActions > 0 ? (e.value / totalProgActions) * 100 : 0.0;
         return "${e.key} (${pct.toStringAsFixed(0)}%)";
       }).join("، ");
 
       programStats.add({
         'program_name': pName,
+        'total_dists': totalDists,
+        'accepted_dists': acceptedDists.length,
+        'dist_acceptance_rate': distAcceptanceRate,
+        'dist_usage_percentage': distsUsagePct,
         'total_ops': totalOps,
         'approved_ops': approvedOps.length,
-        'usage_percentage': usagePercentage,
+        'ops_approval_rate': opsApprovalRate,
+        'ops_usage_percentage': opsUsagePct,
         'total_amount': totalAmount,
         'banks_distribution': banksDistribution.isNotEmpty ? banksDistribution : '—',
       });
-    });
+    }
 
-    programStats.sort((a, b) => (b['total_ops'] as int).compareTo(a['total_ops'] as int));
+    programStats.sort((a, b) => ((b['total_ops'] as int) + (b['total_dists'] as int))
+        .compareTo((a['total_ops'] as int) + (a['total_dists'] as int)));
 
     return SingleChildScrollView(
       child: Column(
@@ -1118,7 +1267,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "تحليل البرامج التمويلية ونسب الاستخدام (${_getPeriodLabel()})",
+                "تحليل البرامج التمويلية (توزيعات + عمليات) (${_getPeriodLabel()})",
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
               ),
               ElevatedButton.icon(
@@ -1151,7 +1300,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text("📈 قائمة البرامج الأكثر طلباً وتنفيذاً (${programStats.length} برنامج)",
+                Text("📈 استهلاك ونسب نجاح البرامج التمويلية (${programStats.length} برنامج)",
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: TfcColors.primary)),
                 const SizedBox(height: 12),
                 programStats.isEmpty
@@ -1164,29 +1313,47 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
                         child: DataTable(
                           columns: const [
                             DataColumn(label: Text("اسم البرنامج", style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
-                            DataColumn(label: Text("نسبة الاستخدام", style: TextStyle(fontWeight: FontWeight.bold))),
+                            DataColumn(label: Text("عملاء التوزيع", style: TextStyle(fontWeight: FontWeight.bold))),
+                            DataColumn(label: Text("قبول التوزيع", style: TextStyle(fontWeight: FontWeight.bold))),
+                            DataColumn(label: Text("نسبة قبول التوزيع", style: TextStyle(fontWeight: FontWeight.bold))),
                             DataColumn(label: Text("العمليات المنفذة", style: TextStyle(fontWeight: FontWeight.bold))),
-                            DataColumn(label: Text("العمليات المعتمدة", style: TextStyle(fontWeight: FontWeight.bold))),
+                            DataColumn(label: Text("موافقة العمليات", style: TextStyle(fontWeight: FontWeight.bold))),
+                            DataColumn(label: Text("نسبة موافقة العمليات", style: TextStyle(fontWeight: FontWeight.bold))),
                             DataColumn(label: Text("إجمالي حجم التمويل", style: TextStyle(fontWeight: FontWeight.bold))),
                             DataColumn(label: Text("توزيع الاستخدام حسب البنوك", style: TextStyle(fontWeight: FontWeight.bold))),
                           ],
                           rows: programStats.map((p) {
-                            final pct = p['usage_percentage'] as double;
+                            final distRate = p['dist_acceptance_rate'] as double;
+                            final opsRate = p['ops_approval_rate'] as double;
                             return DataRow(
                               cells: [
                                 DataCell(Text(p['program_name'], style: const TextStyle(fontWeight: FontWeight.bold))),
+                                DataCell(Text("${p['total_dists']}")),
+                                DataCell(Text("${p['accepted_dists']}", style: const TextStyle(color: Colors.greenAccent))),
                                 DataCell(
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF6C5CE7).withValues(alpha: 0.2),
+                                      color: distRate >= 50 ? Colors.green.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.2),
                                       borderRadius: BorderRadius.circular(6),
                                     ),
-                                    child: Text("${pct.toStringAsFixed(1)}%", style: const TextStyle(color: Color(0xFF00CEC9), fontWeight: FontWeight.bold)),
+                                    child: Text("${distRate.toStringAsFixed(1)}%",
+                                        style: TextStyle(color: distRate >= 50 ? Colors.greenAccent : Colors.orangeAccent, fontWeight: FontWeight.bold)),
                                   ),
                                 ),
                                 DataCell(Text("${p['total_ops']}")),
                                 DataCell(Text("${p['approved_ops']}", style: const TextStyle(color: Colors.greenAccent))),
+                                DataCell(
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: opsRate >= 60 ? Colors.green.withValues(alpha: 0.2) : Colors.orange.withValues(alpha: 0.2),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text("${opsRate.toStringAsFixed(1)}%",
+                                        style: TextStyle(color: opsRate >= 60 ? Colors.greenAccent : Colors.orangeAccent, fontWeight: FontWeight.bold)),
+                                  ),
+                                ),
                                 DataCell(Text("${_formatNumber(p['total_amount'])} ج.م", style: const TextStyle(fontWeight: FontWeight.bold))),
                                 DataCell(Text(p['banks_distribution'])),
                               ],

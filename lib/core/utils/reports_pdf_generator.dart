@@ -288,37 +288,48 @@ class ReportsPdfGenerator {
 
     pdf.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(24),
+        pageFormat: PdfPageFormat.a4.landscape,
+        margin: const pw.EdgeInsets.all(18),
         textDirection: pw.TextDirection.rtl,
         theme: pw.ThemeData.withFont(base: font, bold: boldFont),
         build: (context) => [
-          _buildHeader("🏦 تقرير أداء البنوك ونسب القبول ومسؤولي التنسيق", periodLabel, font, boldFont),
+          _buildHeader("🏦 تقرير أداء البنوك الشامل (توزيعات + عمليات)", periodLabel, font, boldFont),
 
-          pw.Text("🏛️ مؤشرات أداء البنوك وحجم التمويلات الممنوحة (${bankStats.length} بنك)", 
+          pw.Text("🏛️ مؤشرات أداء البنوك وحجم التمويلات (${bankStats.length} بنك)",
             textDirection: pw.TextDirection.rtl,
             style: pw.TextStyle(fontSize: 12, font: boldFont, color: PdfColors.blueGrey900),
           ),
           pw.SizedBox(height: 8),
 
           bankStats.isEmpty
-              ? pw.Text("لا توجد عمليات مسجلة بالبنوك في هذه الفترة.", textDirection: pw.TextDirection.rtl, style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600))
+              ? pw.Text("لا توجد توزيعات أو عمليات مسجلة بالبنوك في هذه الفترة.", textDirection: pw.TextDirection.rtl, style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600))
               : pw.TableHelper.fromTextArray(
                   border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
-                  headerStyle: pw.TextStyle(font: boldFont, fontSize: 8, color: PdfColors.white),
+                  headerStyle: pw.TextStyle(font: boldFont, fontSize: 7, color: PdfColors.white),
                   headerDecoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFF0F766E)),
-                  cellStyle: pw.TextStyle(font: font, fontSize: 8),
+                  cellStyle: pw.TextStyle(font: font, fontSize: 7),
                   cellAlignment: pw.Alignment.center,
-                  headers: ['أكثر موظف بنكي تم التعامل معه', 'البرامج الأكثر تنفيذاً', 'إجمالي التمويل المعتمد', 'نسبة القبول', 'المرفوض', 'المقبول', 'العملاء المحولين', 'اسم البنك'],
+                  headers: [
+                    'اسم البنك',
+                    'عملاء التوزيع',
+                    'قبول التوزيع',
+                    'نسبة قبول التوزيع',
+                    'عملاء العمليات',
+                    'موافقة العمليات',
+                    'نسبة قبول العمليات',
+                    'إجمالي التمويل المعتمد',
+                    'أكثر موظف بنكي',
+                  ],
                   data: bankStats.map((b) => [
-                    b['top_bank_employee'] ?? '—',
-                    b['top_programs'] ?? '—',
-                    "${_formatNumber(b['total_approved_amount'] ?? 0)} ج.م",
-                    "${(b['approval_rate'] as double).toStringAsFixed(1)}%",
-                    "${b['rejected_count']}",
-                    "${b['approved_count']}",
-                    "${b['total_clients_referred']}",
                     b['bank_name'] ?? '—',
+                    "${b['total_dists_count']}",
+                    "${b['accepted_dists_count']}",
+                    "${(b['dist_acceptance_rate'] as double).toStringAsFixed(1)}%",
+                    "${b['total_ops_count']}",
+                    "${b['approved_ops_count']}",
+                    "${(b['ops_approval_rate'] as double).toStringAsFixed(1)}%",
+                    "${_formatNumber(b['total_approved_amount'] ?? 0)} ج.م",
+                    b['top_bank_employee'] ?? '—',
                   ]).toList(),
                 ),
         ],
@@ -342,8 +353,8 @@ class ReportsPdfGenerator {
 
     pdf.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(24),
+        pageFormat: PdfPageFormat.a4.landscape,
+        margin: const pw.EdgeInsets.all(18),
         textDirection: pw.TextDirection.rtl,
         theme: pw.ThemeData.withFont(base: font, bold: boldFont),
         build: (context) => [
@@ -359,18 +370,31 @@ class ReportsPdfGenerator {
               ? pw.Text("لا توجد بيانات برامج منفذة في هذه الفترة.", textDirection: pw.TextDirection.rtl, style: pw.TextStyle(fontSize: 9, color: PdfColors.grey600))
               : pw.TableHelper.fromTextArray(
                   border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
-                  headerStyle: pw.TextStyle(font: boldFont, fontSize: 8, color: PdfColors.white),
+                  headerStyle: pw.TextStyle(font: boldFont, fontSize: 7, color: PdfColors.white),
                   headerDecoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFF1E293B)),
-                  cellStyle: pw.TextStyle(font: font, fontSize: 8),
+                  cellStyle: pw.TextStyle(font: font, fontSize: 7),
                   cellAlignment: pw.Alignment.center,
-                  headers: ['توزيع الاستخدام على البنوك', 'إجمالي مبالغ التمويل', 'العمليات المعتمدة', 'العمليات المحولة', 'نسبة الاستخدام الكلية', 'اسم البرنامج التمويلي'],
+                  headers: [
+                    'اسم البرنامج',
+                    'عملاء التوزيع',
+                    'قبول التوزيع',
+                    'نسبة قبول التوزيع',
+                    'العمليات المنفذة',
+                    'موافقة العمليات',
+                    'نسبة موافقة العمليات',
+                    'إجمالي مبالغ التمويل',
+                    'توزيع الاستخدام على البنوك',
+                  ],
                   data: programStats.map((p) => [
-                    p['banks_distribution'] ?? '—',
-                    "${_formatNumber(p['total_amount'] ?? 0)} ج.م",
-                    "${p['approved_ops']}",
-                    "${p['total_ops']}",
-                    "${(p['usage_percentage'] as double).toStringAsFixed(1)}%",
                     p['program_name'] ?? '—',
+                    "${p['total_dists']}",
+                    "${p['accepted_dists']}",
+                    "${(p['dist_acceptance_rate'] as double).toStringAsFixed(1)}%",
+                    "${p['total_ops']}",
+                    "${p['approved_ops']}",
+                    "${(p['ops_approval_rate'] as double).toStringAsFixed(1)}%",
+                    "${_formatNumber(p['total_amount'] ?? 0)} ج.م",
+                    p['banks_distribution'] ?? '—',
                   ]).toList(),
                 ),
         ],
