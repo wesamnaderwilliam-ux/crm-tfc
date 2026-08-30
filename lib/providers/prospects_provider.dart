@@ -16,8 +16,36 @@ final googleSheetConfigProvider = StateNotifierProvider<GoogleSheetConfigNotifie
 });
 
 class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
+  static const _localCacheKey = 'cached_prospects_data_v1';
+
   ProspectsNotifier() : super(const AsyncValue.loading()) {
     fetchProspects();
+  }
+
+  /// Load from local cache
+  Future<List<ProspectModel>> _loadFromLocalCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_localCacheKey);
+      if (raw != null && raw.isNotEmpty) {
+        final list = jsonDecode(raw) as List;
+        return list.map((e) => ProspectModel.fromJson(Map<String, dynamic>.from(e))).toList();
+      }
+    } catch (e) {
+      debugPrint('⚠️ Error loading prospects local cache: $e');
+    }
+    return [];
+  }
+
+  /// Save to local cache
+  Future<void> _saveToLocalCache(List<ProspectModel> prospects) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonStr = jsonEncode(prospects.map((p) => p.toJson()).toList());
+      await prefs.setString(_localCacheKey, jsonStr);
+    } catch (e) {
+      debugPrint('⚠️ Error saving prospects to local cache: $e');
+    }
   }
 
   Future<void> fetchProspects() async {
@@ -25,21 +53,32 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
       state = const AsyncValue.loading();
     }
     try {
-      if (!SupabaseConfig.isInitialized) {
-        state = const AsyncValue.data([]);
+      // 1. Try fetching from Supabase
+      if (SupabaseConfig.isInitialized) {
+        final response = await SupabaseConfig.client
+            .from('prospects')
+            .select()
+            .order('created_at', ascending: false);
+
+        final prospects = (response as List).map((e) => ProspectModel.fromJson(e)).toList();
+        
+        // Also merge any local-only prospects that were added locally if any
+        final localList = await _loadFromLocalCache();
+        final localOnly = localList.where((p) => p.id.startsWith('local_')).toList();
+        
+        final combined = [...localOnly, ...prospects];
+        state = AsyncValue.data(combined);
+        await _saveToLocalCache(combined);
         return;
       }
 
-      final response = await SupabaseConfig.client
-          .from('prospects')
-          .select()
-          .order('created_at', ascending: false);
-
-      final prospects = (response as List).map((e) => ProspectModel.fromJson(e)).toList();
-      state = AsyncValue.data(prospects);
+      // 2. If Supabase is not initialized, load from LocalStorage cache
+      final localProspects = await _loadFromLocalCache();
+      state = AsyncValue.data(localProspects);
     } catch (e, st) {
       debugPrint('❌ fetchProspects ERROR: $e');
-      state = AsyncValue.data([]);
+      final localProspects = await _loadFromLocalCache();
+      state = AsyncValue.data(localProspects);
     }
   }
 
@@ -51,93 +90,96 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
       if (idx != -1) {
         current[idx] = prospect;
         state = AsyncValue.data([...current]);
+      } else {
+        current.add(prospect);
+        state = AsyncValue.data([...current]);
       }
 
-      if (!SupabaseConfig.isInitialized || prospect.id.isEmpty) {
-        return true;
+      // Always persist to local cache immediately
+      await _saveToLocalCache(state.value ?? []);
+
+      // 2. Persist to Supabase if initialized and not a temporary local ID
+      if (SupabaseConfig.isInitialized && !prospect.id.startsWith('local_') && prospect.id.isNotEmpty) {
+        final data = prospect.toJson();
+        data.remove('id');
+        data.remove('created_at');
+        data['updated_at'] = DateTime.now().toIso8601String();
+
+        if (data['assigned_to_id'] == '') {
+          data['assigned_to_id'] = null;
+        }
+
+        await SupabaseConfig.client
+            .from('prospects')
+            .update(data)
+            .eq('id', prospect.id);
       }
-
-      final data = prospect.toJson();
-      data.remove('id');
-      data.remove('created_at');
-      data['updated_at'] = DateTime.now().toIso8601String();
-
-      // Clean empty string IDs to null for UUID fields if necessary
-      if (data['assigned_to_id'] == '') {
-        data['assigned_to_id'] = null;
-      }
-
-      await SupabaseConfig.client
-          .from('prospects')
-          .update(data)
-          .eq('id', prospect.id);
 
       return true;
     } catch (e) {
       debugPrint('❌ Supabase updateProspect FAILED: $e');
-      // Even if remote DB failed or has different schema, local state was updated
+      // Local state is already updated and cached, return true
       return true;
     }
   }
 
   Future<bool> addSingleProspect(ProspectModel prospect) async {
     try {
-      if (!SupabaseConfig.isInitialized) {
-        final localProspect = prospect.copyWith();
-        final current = state.value ?? [];
-        state = AsyncValue.data([
-          prospect.id.isEmpty
-              ? ProspectModel(
-                  id: 'local_${DateTime.now().millisecondsSinceEpoch}',
-                  fullName: prospect.fullName,
-                  phoneNumber: prospect.phoneNumber,
-                  secondaryPhoneNumber: prospect.secondaryPhoneNumber,
-                  nationalId: prospect.nationalId,
-                  governorate: prospect.governorate,
-                  jobTitle: prospect.jobTitle,
-                  companyName: prospect.companyName,
-                  salaryAmount: prospect.salaryAmount,
-                  notes: prospect.notes,
-                  rawData: prospect.rawData,
-                  assignedToId: prospect.assignedToId,
-                  assignedToName: prospect.assignedToName,
-                  status: prospect.status,
-                  isConverted: prospect.isConverted,
-                  convertedClientId: prospect.convertedClientId,
-                  createdAt: prospect.createdAt,
-                  updatedAt: prospect.updatedAt,
-                )
-              : prospect,
-          ...current,
-        ]);
-        return true;
-      }
-
       final insertData = prospect.toInsertJson();
       if (insertData['assigned_to_id'] == '') {
         insertData['assigned_to_id'] = null;
       }
 
-      try {
-        final response = await SupabaseConfig.client
-            .from('prospects')
-            .insert(insertData)
-            .select()
-            .single();
+      if (SupabaseConfig.isInitialized) {
+        try {
+          final response = await SupabaseConfig.client
+              .from('prospects')
+              .insert(insertData)
+              .select()
+              .single();
 
-        final savedProspect = ProspectModel.fromJson(response);
-        final current = state.value ?? [];
-        state = AsyncValue.data([savedProspect, ...current]);
-        return true;
-      } catch (insertError) {
-        debugPrint('⚠️ Supabase insert with select failed ($insertError), attempting raw insert...');
-        await SupabaseConfig.client.from('prospects').insert(insertData);
-        await fetchProspects();
-        return true;
+          final savedProspect = ProspectModel.fromJson(response);
+          final current = state.value ?? [];
+          final updated = [savedProspect, ...current];
+          state = AsyncValue.data(updated);
+          await _saveToLocalCache(updated);
+          return true;
+        } catch (insertError) {
+          debugPrint('⚠️ Supabase insert with select failed ($insertError), trying raw insert...');
+          await SupabaseConfig.client.from('prospects').insert(insertData);
+          await fetchProspects();
+          return true;
+        }
       }
+
+      // Fallback or Simulation mode: Add locally with generated ID and persist
+      final fallbackProspect = ProspectModel(
+        id: prospect.id.isNotEmpty ? prospect.id : 'local_${DateTime.now().millisecondsSinceEpoch}',
+        fullName: prospect.fullName,
+        phoneNumber: prospect.phoneNumber,
+        secondaryPhoneNumber: prospect.secondaryPhoneNumber,
+        nationalId: prospect.nationalId,
+        governorate: prospect.governorate,
+        jobTitle: prospect.jobTitle,
+        companyName: prospect.companyName,
+        salaryAmount: prospect.salaryAmount,
+        notes: prospect.notes,
+        rawData: prospect.rawData,
+        assignedToId: prospect.assignedToId,
+        assignedToName: prospect.assignedToName,
+        status: prospect.status,
+        isConverted: prospect.isConverted,
+        convertedClientId: prospect.convertedClientId,
+        createdAt: prospect.createdAt,
+        updatedAt: prospect.updatedAt,
+      );
+      final current = state.value ?? [];
+      final updated = [fallbackProspect, ...current];
+      state = AsyncValue.data(updated);
+      await _saveToLocalCache(updated);
+      return true;
     } catch (e) {
       debugPrint('❌ Supabase addSingleProspect FAILED: $e');
-      // Fallback: Add to local state so user's work is never blocked or lost
       final fallbackProspect = ProspectModel(
         id: 'local_${DateTime.now().millisecondsSinceEpoch}',
         fullName: prospect.fullName,
@@ -159,7 +201,9 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
         updatedAt: prospect.updatedAt,
       );
       final current = state.value ?? [];
-      state = AsyncValue.data([fallbackProspect, ...current]);
+      final updated = [fallbackProspect, ...current];
+      state = AsyncValue.data(updated);
+      await _saveToLocalCache(updated);
       return true;
     }
   }
@@ -170,7 +214,7 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
       return false;
     }
 
-    // Optimistically update local state
+    // Optimistically update local state & cache
     final current = state.value ?? [];
     final updated = current.map((p) {
       if (validIds.contains(p.id)) {
@@ -179,22 +223,21 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
       return p;
     }).toList();
     state = AsyncValue.data(updated);
+    await _saveToLocalCache(updated);
 
     try {
-      if (!SupabaseConfig.isInitialized) {
-        return true;
-      }
-
-      for (final id in validIds) {
-        if (!id.startsWith('local_')) {
-          await SupabaseConfig.client
-              .from('prospects')
-              .update({
-                'assigned_to_id': employeeId.isEmpty ? null : employeeId,
-                'assigned_to_name': employeeName,
-                'updated_at': DateTime.now().toIso8601String(),
-              })
-              .eq('id', id);
+      if (SupabaseConfig.isInitialized) {
+        for (final id in validIds) {
+          if (!id.startsWith('local_')) {
+            await SupabaseConfig.client
+                .from('prospects')
+                .update({
+                  'assigned_to_id': employeeId.isEmpty ? null : employeeId,
+                  'assigned_to_name': employeeName,
+                  'updated_at': DateTime.now().toIso8601String(),
+                })
+                .eq('id', id);
+          }
         }
       }
       return true;
@@ -207,16 +250,16 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
   Future<bool> deleteProspect(String id) async {
     if (id.isEmpty) return false;
 
-    // Optimistically remove from local state
+    // Optimistically remove from local state and cache
     final current = state.value ?? [];
-    state = AsyncValue.data(current.where((p) => p.id != id).toList());
+    final updated = current.where((p) => p.id != id).toList();
+    state = AsyncValue.data(updated);
+    await _saveToLocalCache(updated);
 
     try {
-      if (!SupabaseConfig.isInitialized || id.startsWith('local_')) {
-        return true;
+      if (SupabaseConfig.isInitialized && !id.startsWith('local_')) {
+        await SupabaseConfig.client.from('prospects').delete().eq('id', id);
       }
-
-      await SupabaseConfig.client.from('prospects').delete().eq('id', id);
       return true;
     } catch (e) {
       debugPrint('❌ Supabase deleteProspect FAILED: $e');
@@ -227,25 +270,29 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
   Future<int> addProspectsList(List<ProspectModel> newProspects) async {
     if (newProspects.isEmpty) return 0;
     try {
-      if (!SupabaseConfig.isInitialized) {
-        final current = state.value ?? [];
-        state = AsyncValue.data([...newProspects, ...current]);
+      if (SupabaseConfig.isInitialized) {
+        final data = newProspects.map((p) {
+          final map = p.toInsertJson();
+          if (map['assigned_to_id'] == '') map['assigned_to_id'] = null;
+          return map;
+        }).toList();
+
+        await SupabaseConfig.client.from('prospects').insert(data);
+        await fetchProspects();
         return newProspects.length;
       }
 
-      final data = newProspects.map((p) {
-        final map = p.toInsertJson();
-        if (map['assigned_to_id'] == '') map['assigned_to_id'] = null;
-        return map;
-      }).toList();
-
-      await SupabaseConfig.client.from('prospects').insert(data);
-      await fetchProspects();
+      final current = state.value ?? [];
+      final updated = [...newProspects, ...current];
+      state = AsyncValue.data(updated);
+      await _saveToLocalCache(updated);
       return newProspects.length;
     } catch (e) {
       debugPrint('❌ Supabase addProspectsList FAILED: $e');
       final current = state.value ?? [];
-      state = AsyncValue.data([...newProspects, ...current]);
+      final updated = [...newProspects, ...current];
+      state = AsyncValue.data(updated);
+      await _saveToLocalCache(updated);
       return newProspects.length;
     }
   }
