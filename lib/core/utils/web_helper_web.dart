@@ -11,3 +11,31 @@ void openHtmlWindow(String htmlContent) {
   final url = html.Url.createObjectUrlFromBlob(blob);
   html.window.open(url, '_blank');
 }
+
+String getUrlHash() {
+  try {
+    final h = html.window.location.hash;
+    if (h.startsWith('#')) {
+      return h.substring(1);
+    }
+    return h;
+  } catch (_) {
+    return '';
+  }
+}
+
+void setUrlHash(String hash) {
+  try {
+    final current = getUrlHash();
+    if (current != hash) {
+      html.window.location.hash = hash.isEmpty ? '' : '#$hash';
+    }
+  } catch (_) {}
+}
+
+void listenToPopState(void Function() onPopState) {
+  try {
+    html.window.onPopState.listen((_) => onPopState());
+    html.window.onHashChange.listen((_) => onPopState());
+  } catch (_) {}
+}

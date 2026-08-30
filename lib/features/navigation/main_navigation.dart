@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/theme.dart';
 import '../../core/widgets/interactive_hover_card.dart';
+import '../../core/utils/web_helper.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../providers/employees_provider.dart';
@@ -23,6 +25,38 @@ import '../ai_assistant/ai_assistant_screen.dart';
 import '../client/credit_calculator_screen.dart';
 import '../reports/reports_screen.dart';
 
+class _NavHistoryEntry {
+  final int index;
+  final String? clientId;
+  final String? aiClientId;
+  final bool showNewClientForm;
+
+  _NavHistoryEntry({
+    required this.index,
+    this.clientId,
+    this.aiClientId,
+    this.showNewClientForm = false,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'index': index,
+    'clientId': clientId,
+    'aiClientId': aiClientId,
+    'showNewClientForm': showNewClientForm,
+  };
+
+  factory _NavHistoryEntry.fromJson(Map<String, dynamic> json) => _NavHistoryEntry(
+    index: json['index'] as int? ?? 0,
+    clientId: json['clientId'] as String?,
+    aiClientId: json['aiClientId'] as String?,
+    showNewClientForm: json['showNewClientForm'] as bool? ?? false,
+  );
+
+  bool matches(int idx, String? cId, String? aiId, bool isNew) {
+    return index == idx && clientId == cId && aiClientId == aiId && showNewClientForm == isNew;
+  }
+}
+
 class MainNavigationWrapper extends ConsumerStatefulWidget {
   const MainNavigationWrapper({super.key});
 
@@ -38,14 +72,166 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
   bool _showNewClientForm = false;
   bool _headerVisible = true; // Toggle header visibility
 
-  // Navigation History Stack for "Back" button
-  final List<int> _historyStack = [0];
+  // Navigation History Stack for "Back" button across ANY section/details/forms
+  final List<_NavHistoryEntry> _historyStack = [
+    _NavHistoryEntry(index: 0)
+  ];
+
+  bool _isRestoringState = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _restoreSavedState();
+    listenToPopState(() {
+      if (mounted) {
+        _restoreStateFromUrlHash();
+      }
+    });
+  }
+
+  // ── Persistent & URL State Sync ───────────────────────────────────────────
+  Future<void> _restoreSavedState() async {
+    _isRestoringState = true;
+    try {
+      // 1. First priority: URL hash (e.g. #tab=2&client=123)
+      final hash = getUrlHash();
+      if (hash.isNotEmpty) {
+        if (_applyHashState(hash)) {
+          _isRestoringState = false;
+          return;
+        }
+      }
+
+      // 2. Second priority: Local storage (SharedPreferences)
+      final prefs = await SharedPreferences.getInstance();
+      final savedIdx = prefs.getInt('nav_selected_index');
+      final savedClientId = prefs.getString('nav_selected_client_id');
+      final savedAiId = prefs.getString('nav_selected_ai_id');
+      final savedNewClient = prefs.getBool('nav_show_new_client') ?? false;
+
+      if (savedIdx != null) {
+        setState(() {
+          _selectedIndex = savedIdx;
+          _selectedClientId = (savedClientId != null && savedClientId.isNotEmpty) ? savedClientId : null;
+          _aiClientId = (savedAiId != null && savedAiId.isNotEmpty) ? savedAiId : null;
+          _showNewClientForm = savedNewClient;
+          _historyStack.clear();
+          _historyStack.add(_NavHistoryEntry(
+            index: _selectedIndex,
+            clientId: _selectedClientId,
+            aiClientId: _aiClientId,
+            showNewClientForm: _showNewClientForm,
+          ));
+        });
+        _syncStateToStorageAndUrl();
+      }
+    } catch (_) {
+    } finally {
+      _isRestoringState = false;
+    }
+  }
+
+  void _restoreStateFromUrlHash() {
+    final hash = getUrlHash();
+    if (hash.isNotEmpty) {
+      _applyHashState(hash);
+    }
+  }
+
+  bool _applyHashState(String hash) {
+    try {
+      final uri = Uri.parse('app://tfc?$hash');
+      final tabParam = uri.queryParameters['tab'];
+      final clientParam = uri.queryParameters['client'];
+      final aiParam = uri.queryParameters['ai'];
+      final newParam = uri.queryParameters['new'];
+
+      if (tabParam != null) {
+        final parsedIdx = int.tryParse(tabParam) ?? 0;
+        final cId = (clientParam != null && clientParam.isNotEmpty) ? clientParam : null;
+        final aiId = (aiParam != null && aiParam.isNotEmpty) ? aiParam : null;
+        final isNew = newParam == '1' || newParam == 'true';
+
+        setState(() {
+          _selectedIndex = parsedIdx;
+          _selectedClientId = cId;
+          _aiClientId = aiId;
+          _showNewClientForm = isNew;
+
+          if (_historyStack.isEmpty || !_historyStack.last.matches(parsedIdx, cId, aiId, isNew)) {
+            _historyStack.add(_NavHistoryEntry(
+              index: parsedIdx,
+              clientId: cId,
+              aiClientId: aiId,
+              showNewClientForm: isNew,
+            ));
+          }
+        });
+        _saveToPrefs();
+        return true;
+      }
+    } catch (_) {}
+    return false;
+  }
+
+  void _syncStateToStorageAndUrl() {
+    if (_isRestoringState) return;
+    _saveToPrefs();
+
+    // Build URL hash: e.g. tab=2&client=XYZ
+    final params = <String>[];
+    params.add('tab=$_selectedIndex');
+    if (_selectedClientId != null && _selectedClientId!.isNotEmpty) {
+      params.add('client=${Uri.encodeComponent(_selectedClientId!)}');
+    }
+    if (_aiClientId != null && _aiClientId!.isNotEmpty) {
+      params.add('ai=${Uri.encodeComponent(_aiClientId!)}');
+    }
+    if (_showNewClientForm) {
+      params.add('new=1');
+    }
+
+    setUrlHash(params.join('&'));
+  }
+
+  Future<void> _saveToPrefs() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('nav_selected_index', _selectedIndex);
+      if (_selectedClientId != null && _selectedClientId!.isNotEmpty) {
+        await prefs.setString('nav_selected_client_id', _selectedClientId!);
+      } else {
+        await prefs.remove('nav_selected_client_id');
+      }
+      if (_aiClientId != null && _aiClientId!.isNotEmpty) {
+        await prefs.setString('nav_selected_ai_id', _aiClientId!);
+      } else {
+        await prefs.remove('nav_selected_ai_id');
+      }
+      await prefs.setBool('nav_show_new_client', _showNewClientForm);
+    } catch (_) {}
+  }
+
+  void _pushHistory(int index, {String? clientId, String? aiClientId, bool showNew = false}) {
+    if (_historyStack.isEmpty || !_historyStack.last.matches(index, clientId, aiClientId, showNew)) {
+      _historyStack.add(_NavHistoryEntry(
+        index: index,
+        clientId: clientId,
+        aiClientId: aiClientId,
+        showNewClientForm: showNew,
+      ));
+    }
+  }
 
   void selectClient(String id) {
     setState(() {
       _selectedClientId = id.isEmpty ? null : id;
       _showNewClientForm = false;
+      _aiClientId = null;
+      _pushHistory(_selectedIndex, clientId: _selectedClientId);
     });
+    _syncStateToStorageAndUrl();
   }
 
   void selectAiClient(String id) {
@@ -53,7 +239,19 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       _selectedClientId = null;
       _aiClientId = id.isEmpty ? null : id;
       _showNewClientForm = false;
+      _pushHistory(_selectedIndex, aiClientId: _aiClientId);
     });
+    _syncStateToStorageAndUrl();
+  }
+
+  void openNewClientForm() {
+    setState(() {
+      _showNewClientForm = true;
+      _selectedClientId = null;
+      _aiClientId = null;
+      _pushHistory(_selectedIndex, showNew: true);
+    });
+    _syncStateToStorageAndUrl();
   }
 
   void navigateToTab(int index, {bool isBack = false}) {
@@ -63,47 +261,39 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       _showNewClientForm = false;
       _selectedIndex = index;
       if (!isBack) {
-        if (_historyStack.isEmpty || _historyStack.last != index) {
-          _historyStack.add(index);
-        }
+        _pushHistory(index);
       }
     });
+    _syncStateToStorageAndUrl();
   }
 
   void _goBack() {
-    if (_showNewClientForm) {
-      setState(() {
-        _showNewClientForm = false;
-      });
-      return;
-    }
-
-    if (_selectedClientId != null) {
-      setState(() {
-        _selectedClientId = null;
-      });
-      return;
-    }
-
     if (_historyStack.length > 1) {
       setState(() {
         _historyStack.removeLast();
-        _selectedIndex = _historyStack.last;
+        final prev = _historyStack.last;
+        _selectedIndex = prev.index;
+        _selectedClientId = prev.clientId;
+        _aiClientId = prev.aiClientId;
+        _showNewClientForm = prev.showNewClientForm;
       });
+      _syncStateToStorageAndUrl();
     } else {
-      navigateToTab(0); // Default to home
+      // If stack is at root, go to dashboard / home
+      navigateToTab(0);
     }
   }
 
   void _goHome() {
     setState(() {
       _historyStack.clear();
-      _historyStack.add(0);
       _selectedIndex = 0;
       _selectedClientId = null;
       _aiClientId = null;
       _showNewClientForm = false;
+      _historyStack.add(_NavHistoryEntry(index: 0));
     });
+    _syncStateToStorageAndUrl();
   }
 
   Map<String, bool> _resolveEffectivePermissions(
@@ -360,7 +550,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
           icon: Icons.person_search_rounded,
           screen: _showNewClientForm
               ? NewClientScreen(onComplete: () {
-                  setState(() => _showNewClientForm = false);
+                  _goBack();
                 })
               : ClientDetailsScreen(
                   key: ValueKey(_selectedClientId ?? 'none'),
@@ -368,9 +558,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                   onBack: _goBack,
                   onClientSelected: selectClient,
                   onViewAiAnalysis: selectAiClient,
-                  onOpenNewClientForm: () {
-                    setState(() => _showNewClientForm = true);
-                  },
+                  onOpenNewClientForm: openNewClientForm,
                 ),
         ));
       }
@@ -453,31 +641,19 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       }
     }
 
-    // Adjust selected client navigation helper
-    if (_selectedClientId != null) {
+    // Ensure index matches if navigating to client details
+    if (_selectedClientId != null || _showNewClientForm) {
       final detailsIdx = navItems.indexWhere((item) => item.label == 'تفاصيل وإدارة العملاء');
       if (detailsIdx != -1 && _selectedIndex != detailsIdx) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            setState(() {
-              _selectedIndex = detailsIdx;
-            });
-          }
-        });
+        _selectedIndex = detailsIdx;
       }
     }
 
-    // Adjust AI client navigation helper
+    // Ensure index matches if navigating to AI assistant
     if (_aiClientId != null) {
       final aiIdx = navItems.indexWhere((item) => item.label == 'المساعد الذكي (AI)');
       if (aiIdx != -1 && _selectedIndex != aiIdx) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            setState(() {
-              _selectedIndex = aiIdx;
-            });
-          }
-        });
+        _selectedIndex = aiIdx;
       }
     }
 
@@ -487,9 +663,15 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
 
     final currentNavItem = navItems.isNotEmpty ? navItems[_selectedIndex] : null;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SafeArea(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _goBack();
+      },
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
         child: Column(
           children: [
             // Universal Top Header — collapsible on tap
@@ -727,8 +909,9 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _NavItem {
