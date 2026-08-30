@@ -148,17 +148,28 @@ class ClientVisibilityHelper {
     final isManager = role == 'manager' || subordinates.isNotEmpty;
 
     return prospects.where((prospect) {
-      final cleanAssignedId = _clean(prospect.assignedToId);
-      final cleanAssignedName = _clean(prospect.assignedToName);
+      final assignedId = prospect.assignedToId ?? '';
+      final assignedName = prospect.assignedToName ?? '';
+
+      // Direct ID check first
+      if (currentUserId.isNotEmpty && assignedId == currentUserId) {
+        return true;
+      }
+
+      final cleanAssignedId = _clean(assignedId);
+      final cleanAssignedName = _clean(assignedName);
 
       final matchesCurrentUser =
           _matchesProfile(cleanAssignedId, currentUserProfile) ||
-              _matchesProfile(cleanAssignedName, currentUserProfile);
+          _matchesProfile(cleanAssignedName, currentUserProfile);
 
       if (matchesCurrentUser) return true;
 
       if (isManager) {
         for (final sub in subordinates) {
+          if (sub.id.isNotEmpty && assignedId == sub.id) {
+            return true;
+          }
           if (_matchesProfile(cleanAssignedId, sub) ||
               _matchesProfile(cleanAssignedName, sub)) {
             return true;

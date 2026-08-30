@@ -381,8 +381,21 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                           ],
                           rows: filtered.map((prospect) {
                             final isSelected = _selectedProspectIds.contains(prospect.id);
+                            final isConverted = prospect.isConverted || prospect.status == 'converted';
                             return DataRow(
                               selected: isSelected,
+                              color: WidgetStateProperty.resolveWith<Color?>((states) {
+                                if (isConverted) {
+                                  return const Color(0xFF0F3824).withValues(alpha: 0.85); // أخضر كامل واضح ومريح
+                                }
+                                if (states.contains(WidgetState.hovered)) {
+                                  return Colors.white.withValues(alpha: 0.06);
+                                }
+                                if (states.contains(WidgetState.selected)) {
+                                  return TfcColors.primary.withValues(alpha: 0.15);
+                                }
+                                return null;
+                              }),
                               onSelectChanged: (val) {
                                 setState(() {
                                   if (val == true) {
@@ -423,18 +436,25 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                             children: [
                                               Text(
                                                 prospect.fullName,
-                                                style: const TextStyle(
-                                                  color: TfcColors.primary,
+                                                style: TextStyle(
+                                                  color: isConverted ? Colors.greenAccent : TfcColors.primary,
                                                   fontWeight: FontWeight.bold,
+                                                  fontSize: 14,
                                                   decoration: TextDecoration.underline,
                                                 ),
                                               ),
-                                              if (prospect.isConverted)
-                                                const Text('تم التحويل لعميل رسمياً', style: TextStyle(color: Colors.greenAccent, fontSize: 11)),
+                                              if (isConverted)
+                                                const Row(
+                                                  children: [
+                                                    Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 12),
+                                                    SizedBox(width: 4),
+                                                    Text('تم التحويل لعميل رسمياً 🌟', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 11)),
+                                                  ],
+                                                ),
                                             ],
                                           ),
                                           const SizedBox(width: 6),
-                                          const Icon(Icons.open_in_new, size: 14, color: TfcColors.primary),
+                                          Icon(Icons.open_in_new, size: 14, color: isConverted ? Colors.greenAccent : TfcColors.primary),
                                         ],
                                       ),
                                     ),
@@ -446,39 +466,46 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                     : const Text('غير محدد', style: TextStyle(color: Colors.white70)),
                                 ),
                                 DataCell(Text(
-                                  '${prospect.companyName ?? ''} ${prospect.jobTitle != null ? '(${prospect.jobTitle})' : ''}'.trim(),
-                                  style: const TextStyle(color: Colors.white70),
+                                  '${prospect.companyName ?? ''} ${prospect.jobTitle != null ? '(${prospect.jobTitle})' : ''}'.trim().isEmpty
+                                      ? 'غير محدد'
+                                      : '${prospect.companyName ?? ''} ${prospect.jobTitle != null ? '(${prospect.jobTitle})' : ''}'.trim(),
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
                                 )),
-                                DataCell(Text(prospect.governorate ?? 'غير محدد', style: const TextStyle(color: Colors.white70))),
+                                DataCell(Text(prospect.governorate ?? 'غير محدد', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500))),
                                 DataCell(
-                                  DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      value: (prospect.assignedToId != null && prospect.assignedToId!.isNotEmpty)
-                                          ? prospect.assignedToId
-                                          : 'unassigned',
-                                      dropdownColor: const Color(0xFF1E2430),
-                                      style: const TextStyle(color: Colors.white, fontSize: 12),
-                                      items: [
-                                        const DropdownMenuItem(value: 'unassigned', child: Text('غير مسند')),
-                                        ...employeesState.employees
-                                            .where((emp) => emp.role != 'bank_employee')
-                                            .map((emp) => DropdownMenuItem(
-                                                  value: emp.id,
-                                                  child: Text(emp.fullName),
-                                                )),
-                                      ],
-                                      onChanged: (newEmpId) async {
-                                        if (newEmpId == 'unassigned') {
-                                          final updated = prospect.copyWith(assignedToId: '', assignedToName: '');
-                                          await ref.read(prospectsProvider.notifier).updateProspect(updated);
-                                        } else if (newEmpId != null) {
-                                          final emp = employeesState.employees.firstWhere((e) => e.id == newEmpId);
-                                          final updated = prospect.copyWith(assignedToId: emp.id, assignedToName: emp.fullName);
-                                          await ref.read(prospectsProvider.notifier).updateProspect(updated);
-                                        }
-                                      },
-                                    ),
-                                  ),
+                                  isAdmin
+                                      ? DropdownButtonHideUnderline(
+                                          child: DropdownButton<String>(
+                                            value: (prospect.assignedToId != null && prospect.assignedToId!.isNotEmpty)
+                                                ? prospect.assignedToId
+                                                : 'unassigned',
+                                            dropdownColor: const Color(0xFF1E2430),
+                                            style: const TextStyle(color: Colors.white, fontSize: 12),
+                                            items: [
+                                              const DropdownMenuItem(value: 'unassigned', child: Text('غير مسند')),
+                                              ...employeesState.employees
+                                                  .where((emp) => emp.role != 'bank_employee')
+                                                  .map((emp) => DropdownMenuItem(
+                                                        value: emp.id,
+                                                        child: Text(emp.fullName),
+                                                      )),
+                                            ],
+                                            onChanged: (newEmpId) async {
+                                              if (newEmpId == 'unassigned') {
+                                                final updated = prospect.copyWith(assignedToId: '', assignedToName: '');
+                                                await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                              } else if (newEmpId != null) {
+                                                final emp = employeesState.employees.firstWhere((e) => e.id == newEmpId);
+                                                final updated = prospect.copyWith(assignedToId: emp.id, assignedToName: emp.fullName);
+                                                await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                              }
+                                            },
+                                          ),
+                                        )
+                                      : Text(
+                                          prospect.assignedToName ?? 'غير مسند',
+                                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                        ),
                                 ),
                                 DataCell(
                                   DropdownButtonHideUnderline(
@@ -494,8 +521,12 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                       ],
                                       onChanged: (newStatus) async {
                                         if (newStatus != null) {
-                                          final updated = prospect.copyWith(status: newStatus);
-                                           await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                          final isNowConverted = newStatus == 'converted';
+                                          final updated = prospect.copyWith(
+                                            status: newStatus,
+                                            isConverted: isNowConverted,
+                                          );
+                                          await ref.read(prospectsProvider.notifier).updateProspect(updated);
                                         }
                                       },
                                     ),
@@ -546,7 +577,7 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                         ),
 
                                       // Convert to Client Button
-                                      if (!prospect.isConverted)
+                                      if (!isConverted)
                                         ElevatedButton.icon(
                                           onPressed: () => _handleConvertToClient(context, prospect),
                                           icon: const Icon(Icons.arrow_forward, size: 14),
@@ -556,6 +587,23 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                             foregroundColor: Colors.white,
                                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                          ),
+                                        )
+                                      else
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.greenAccent.withValues(alpha: 0.2),
+                                            borderRadius: BorderRadius.circular(6),
+                                            border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.check, color: Colors.greenAccent, size: 14),
+                                              SizedBox(width: 4),
+                                              Text('عميل معتمد', style: TextStyle(color: Colors.greenAccent, fontSize: 11, fontWeight: FontWeight.bold)),
+                                            ],
                                           ),
                                         ),
                                     ],
@@ -956,7 +1004,7 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
   // Handle Syncing from Google Sheets
   Future<void> _handleSyncFromGoogleSheets(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
-    final configState = ref.watch(googleSheetConfigProvider);
+    final configState = ref.read(googleSheetConfigProvider);
     final config = configState.value;
 
     if (config == null || config.sheetUrl.isEmpty) {
@@ -978,60 +1026,140 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
       return;
     }
 
+    // Build set of existing phone numbers to avoid duplicates
+    final existingProspects = ref.read(prospectsProvider).value ?? [];
+    final existingClients = ref.read(clientProvider).clients;
+
+    // Normalize phone: remove spaces, dashes, + prefix
+    String normalizePhone(String? phone) {
+      if (phone == null) return '';
+      return phone.replaceAll(RegExp(r'[\s\-\+\(\)]'), '').trim();
+    }
+
+    final existingPhones = <String>{
+      ...existingProspects
+          .map((p) => normalizePhone(p.phoneNumber))
+          .where((p) => p.isNotEmpty),
+      ...existingClients
+          .map((c) => normalizePhone(c.phoneNumber))
+          .where((p) => p.isNotEmpty),
+    };
+
     final mappings = config.fieldMappings;
     final newProspects = <ProspectModel>[];
+    int skippedCount = 0;
 
     for (final row in rawRows) {
       String name = 'عميل جديد';
       String? phone;
+      String? secondaryPhone;
+      String? nationalId;
       String? company;
       String? job;
       String? gov;
       double? salary;
+      String? notes;
+      String? employmentType;
+      String? salaryTransferMethod;
+      String? status;
+      final rawData = Map<String, dynamic>.from(row);
 
+      // Apply field mappings - each sheet column → target field
       mappings.forEach((sheetHeader, targetField) {
         final val = row[sheetHeader];
-        if (val != null && val.isNotEmpty) {
+        if (val != null && val.toString().trim().isNotEmpty) {
+          final strVal = val.toString().trim();
           switch (targetField) {
             case 'full_name':
-              name = val;
+              name = strVal;
               break;
             case 'phone_number':
-              phone = val;
+              phone = strVal;
+              break;
+            case 'secondary_phone_number':
+              secondaryPhone = strVal;
+              break;
+            case 'national_id':
+              nationalId = strVal;
               break;
             case 'company_name':
-              company = val;
+              company = strVal;
               break;
             case 'job_title':
-              job = val;
+              job = strVal;
               break;
             case 'governorate':
-              gov = val;
+              gov = strVal;
               break;
             case 'salary_amount':
-              salary = double.tryParse(val.replaceAll(',', ''));
+            case 'cash_salary_amount':
+              salary = double.tryParse(strVal.replaceAll(',', '').replaceAll('٬', ''));
+              break;
+            case 'notes':
+              notes = strVal;
+              break;
+            case 'employment_type':
+              employmentType = strVal;
+              break;
+            case 'salary_transfer_method':
+              salaryTransferMethod = strVal;
+              break;
+            case 'status':
+              status = strVal;
               break;
           }
+          // Store mapped value in rawData under target field key
+          rawData[targetField] = strVal;
         }
       });
+
+      // Check for duplicate phone number
+      final normalizedPhone = normalizePhone(phone);
+      if (normalizedPhone.isNotEmpty && existingPhones.contains(normalizedPhone)) {
+        skippedCount++;
+        continue; // Skip duplicate
+      }
+
+      // Add phone to existing set to avoid duplicates within same sheet batch
+      if (normalizedPhone.isNotEmpty) {
+        existingPhones.add(normalizedPhone);
+      }
 
       newProspects.add(ProspectModel(
         id: '',
         fullName: name,
         phoneNumber: phone,
+        secondaryPhoneNumber: secondaryPhone,
+        nationalId: nationalId,
         companyName: company,
         jobTitle: job,
         governorate: gov,
         salaryAmount: salary,
-        rawData: row,
+        notes: notes,
+        rawData: rawData,
+        status: status ?? 'pending',
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       ));
     }
 
+    if (newProspects.isEmpty) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('لم تتم إضافة بيانات جديدة - تم تخطي $skippedCount عميل مكرر (رقم الهاتف موجود مسبقاً).')),
+      );
+      return;
+    }
+
     await ref.read(prospectsProvider.notifier).addProspectsList(newProspects);
     messenger.showSnackBar(
-      SnackBar(content: Text('تمت مزامنة واستيراد ${newProspects.length} عميل محتمل بنجاح!')),
+      SnackBar(
+        content: Text(
+          'تمت المزامنة: ✅ ${newProspects.length} عميل جديد${skippedCount > 0 ? ' | ⏭️ تم تخطي $skippedCount مكرر' : ''}',
+          textAlign: TextAlign.right,
+        ),
+        backgroundColor: const Color(0xFF0F3824),
+        duration: const Duration(seconds: 5),
+      ),
     );
   }
 
@@ -1039,126 +1167,380 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
   void _showAddOrEditProspectDialog(BuildContext context, {ProspectModel? prospect}) {
     final isEdit = prospect != null;
     final employeesState = ref.read(employeesProvider);
+    final authState = ref.read(authProvider);
+    final isAdmin = authState.role == 'admin';
+
+    // Controllers
     final nameCtrl = TextEditingController(text: prospect?.fullName ?? '');
     final phoneCtrl = TextEditingController(text: prospect?.phoneNumber ?? '');
+    final phone2Ctrl = TextEditingController(text: prospect?.secondaryPhoneNumber ?? '');
+    final nationalIdCtrl = TextEditingController(text: prospect?.nationalId ?? '');
     final companyCtrl = TextEditingController(text: prospect?.companyName ?? '');
     final jobCtrl = TextEditingController(text: prospect?.jobTitle ?? '');
     final govCtrl = TextEditingController(text: prospect?.governorate ?? '');
+    final salaryCtrl = TextEditingController(text: prospect?.salaryAmount?.toString() ?? '');
+    final notesCtrl = TextEditingController(text: prospect?.notes ?? '');
+
+    // Form key for validation
+    final formKey = GlobalKey<FormState>();
+
+    // State
     String status = prospect?.status ?? 'pending';
     String? assignedEmployeeId = prospect?.assignedToId;
     String? assignedEmployeeName = prospect?.assignedToName;
+
+    // Auto-assign to current user if company_employee and not editing
+    if (!isEdit && authState.role == 'company_employee') {
+      assignedEmployeeId = authState.user?.id;
+      assignedEmployeeName = authState.fullName;
+    }
 
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) => AlertDialog(
           backgroundColor: const Color(0xFF1E2430),
-          title: Text(isEdit ? 'تعديل بيانات العميل المحتمل' : 'إضافة عميل محتمل جديد', style: const TextStyle(color: Colors.white)),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(controller: nameCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'الاسم الكامل', labelStyle: TextStyle(color: Colors.white70))),
-                const SizedBox(height: 12),
-                TextField(controller: phoneCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'رقم الهاتف', labelStyle: TextStyle(color: Colors.white70))),
-                const SizedBox(height: 12),
-                TextField(controller: companyCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'جهة العمل / الشركة', labelStyle: TextStyle(color: Colors.white70))),
-                const SizedBox(height: 12),
-                TextField(controller: jobCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'المسمى الوظيفي', labelStyle: TextStyle(color: Colors.white70))),
-                const SizedBox(height: 12),
-                TextField(controller: govCtrl, style: const TextStyle(color: Colors.white), decoration: const InputDecoration(labelText: 'المحافظة', labelStyle: TextStyle(color: Colors.white70))),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: (assignedEmployeeId != null && assignedEmployeeId!.isNotEmpty) ? assignedEmployeeId : null,
-                  dropdownColor: const Color(0xFF1E2430),
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'الموظف المسند إليه', labelStyle: TextStyle(color: Colors.white70)),
-                  items: [
-                    const DropdownMenuItem(value: null, child: Text('غير مسند')),
-                    ...employeesState.employees
-                        .where((emp) => emp.role != 'bank_employee')
-                        .map((emp) => DropdownMenuItem(
-                              value: emp.id,
-                              child: Text(emp.fullName),
-                            )),
+          title: Row(
+            children: [
+              Icon(
+                isEdit ? Icons.edit_outlined : Icons.person_add_alt_1,
+                color: TfcColors.primary,
+                size: 22,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                isEdit ? 'تعديل بيانات العميل المحتمل' : 'إضافة عميل محتمل جديد',
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: 520,
+            child: Form(
+              key: formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ─── البيانات الإلزامية ───────────────────────────────
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: TfcColors.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: TfcColors.primary.withValues(alpha: 0.3)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.star, color: TfcColors.primary, size: 14),
+                          SizedBox(width: 6),
+                          Text('البيانات الإلزامية', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold, fontSize: 13)),
+                        ],
+                      ),
+                    ),
+
+                    // الاسم الكامل (إلزامي)
+                    TextFormField(
+                      controller: nameCtrl,
+                      style: const TextStyle(color: Colors.white),
+                      textAlign: TextAlign.right,
+                      validator: (val) => val == null || val.trim().isEmpty ? '⚠️ الاسم الكامل مطلوب' : null,
+                      decoration: InputDecoration(
+                        labelText: 'الاسم الكامل *',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        prefixIcon: const Icon(Icons.person, color: TfcColors.primary, size: 18),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // رقم الهاتف (إلزامي)
+                    TextFormField(
+                      controller: phoneCtrl,
+                      style: const TextStyle(color: Colors.white),
+                      keyboardType: TextInputType.phone,
+                      textAlign: TextAlign.right,
+                      validator: (val) => val == null || val.trim().isEmpty ? '⚠️ رقم الهاتف مطلوب' : null,
+                      decoration: InputDecoration(
+                        labelText: 'رقم الهاتف *',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        prefixIcon: const Icon(Icons.phone, color: TfcColors.primary, size: 18),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ─── البيانات الاختيارية ───────────────────────────────
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                      ),
+                      child: const Row(
+                        children: [
+                          Icon(Icons.tune, color: Colors.white54, size: 14),
+                          SizedBox(width: 6),
+                          Text('البيانات الاختيارية (يمكن إكمالها لاحقاً)', style: TextStyle(color: Colors.white54, fontWeight: FontWeight.bold, fontSize: 12)),
+                        ],
+                      ),
+                    ),
+
+                    // رقم الهاتف الثاني
+                    TextField(
+                      controller: phone2Ctrl,
+                      style: const TextStyle(color: Colors.white),
+                      keyboardType: TextInputType.phone,
+                      textAlign: TextAlign.right,
+                      decoration: InputDecoration(
+                        labelText: 'رقم الهاتف البديل',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        prefixIcon: const Icon(Icons.phone_android, color: Colors.white38, size: 18),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // الرقم القومي
+                    TextField(
+                      controller: nationalIdCtrl,
+                      style: const TextStyle(color: Colors.white),
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.right,
+                      decoration: InputDecoration(
+                        labelText: 'الرقم القومي',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        prefixIcon: const Icon(Icons.badge_outlined, color: Colors.white38, size: 18),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // جهة العمل والمسمى الوظيفي جنبًا إلى جنب
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: companyCtrl,
+                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            textAlign: TextAlign.right,
+                            decoration: InputDecoration(
+                              labelText: 'جهة العمل',
+                              labelStyle: const TextStyle(color: Colors.white70, fontSize: 12),
+                              prefixIcon: const Icon(Icons.business_outlined, color: Colors.white38, size: 18),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: jobCtrl,
+                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            textAlign: TextAlign.right,
+                            decoration: InputDecoration(
+                              labelText: 'المسمى الوظيفي',
+                              labelStyle: const TextStyle(color: Colors.white70, fontSize: 12),
+                              prefixIcon: const Icon(Icons.work_outline, color: Colors.white38, size: 18),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+
+                    // المحافظة والدخل جنبًا إلى جنب
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: govCtrl,
+                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            textAlign: TextAlign.right,
+                            decoration: InputDecoration(
+                              labelText: 'المحافظة',
+                              labelStyle: const TextStyle(color: Colors.white70, fontSize: 12),
+                              prefixIcon: const Icon(Icons.location_on_outlined, color: Colors.white38, size: 18),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: TextField(
+                            controller: salaryCtrl,
+                            style: const TextStyle(color: Colors.white, fontSize: 13),
+                            keyboardType: TextInputType.number,
+                            textAlign: TextAlign.right,
+                            decoration: InputDecoration(
+                              labelText: 'الدخل الشهري (جـ.م)',
+                              labelStyle: const TextStyle(color: Colors.white70, fontSize: 12),
+                              prefixIcon: const Icon(Icons.attach_money, color: Colors.white38, size: 18),
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+
+                    // الموظف المسند إليه (Admin فقط)
+                    if (isAdmin)
+                      DropdownButtonFormField<String>(
+                        value: (assignedEmployeeId != null && assignedEmployeeId!.isNotEmpty) ? assignedEmployeeId : null,
+                        dropdownColor: const Color(0xFF1E2430),
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          labelText: 'الموظف المسند إليه',
+                          labelStyle: const TextStyle(color: Colors.white70),
+                          prefixIcon: const Icon(Icons.person_pin_outlined, color: Colors.white38, size: 18),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        ),
+                        items: [
+                          const DropdownMenuItem(value: null, child: Text('غير مسند', style: TextStyle(color: Colors.white54))),
+                          ...employeesState.employees
+                              .where((emp) => emp.role != 'bank_employee')
+                              .map((emp) => DropdownMenuItem(
+                                    value: emp.id,
+                                    child: Text(emp.fullName),
+                                  )),
+                        ],
+                        onChanged: (val) {
+                          setDialogState(() {
+                            assignedEmployeeId = val;
+                            if (val != null) {
+                              final emp = employeesState.employees.firstWhere((e) => e.id == val);
+                              assignedEmployeeName = emp.fullName;
+                            } else {
+                              assignedEmployeeName = null;
+                            }
+                          });
+                        },
+                      ),
+                    if (isAdmin) const SizedBox(height: 10),
+
+                    // الحالة
+                    DropdownButtonFormField<String>(
+                      value: status,
+                      dropdownColor: const Color(0xFF1E2430),
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'الحالة',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        prefixIcon: const Icon(Icons.flag_outlined, color: Colors.white38, size: 18),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: 'pending', child: Text('قيد الانتظار')),
+                        DropdownMenuItem(value: 'contacted', child: Text('تم التواصل')),
+                        DropdownMenuItem(value: 'rejected', child: Text('مرفوض / غير مهتم')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setDialogState(() => status = val);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 10),
+
+                    // ملاحظات
+                    TextField(
+                      controller: notesCtrl,
+                      style: const TextStyle(color: Colors.white),
+                      maxLines: 3,
+                      textAlign: TextAlign.right,
+                      decoration: InputDecoration(
+                        labelText: 'ملاحظات',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        prefixIcon: const Icon(Icons.notes, color: Colors.white38, size: 18),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
                   ],
-                  onChanged: (val) {
-                    setDialogState(() {
-                      assignedEmployeeId = val;
-                      if (val != null) {
-                        final emp = employeesState.employees.firstWhere((e) => e.id == val);
-                        assignedEmployeeName = emp.fullName;
-                      } else {
-                        assignedEmployeeName = null;
-                      }
-                    });
-                  },
                 ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: status,
-                  dropdownColor: const Color(0xFF1E2430),
-                  style: const TextStyle(color: Colors.white),
-                  decoration: const InputDecoration(labelText: 'الحالة', labelStyle: TextStyle(color: Colors.white70)),
-                  items: const [
-                    DropdownMenuItem(value: 'pending', child: Text('قيد الانتظار')),
-                    DropdownMenuItem(value: 'contacted', child: Text('تم التواصل')),
-                    DropdownMenuItem(value: 'rejected', child: Text('مرفوض / غير مهتم')),
-                  ],
-                  onChanged: (val) {
-                    if (val != null) {
-                      setDialogState(() => status = val);
-                    }
-                  },
-                ),
-              ],
+              ),
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
-            ElevatedButton(
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء', style: TextStyle(color: Colors.white54))),
+            ElevatedButton.icon(
               onPressed: () async {
-                if (nameCtrl.text.trim().isEmpty) return;
+                if (!formKey.currentState!.validate()) return;
                 final navigator = Navigator.of(ctx);
                 final messenger = ScaffoldMessenger.of(context);
                 navigator.pop();
+
+                // Build the rawData map
+                final rawData = <String, dynamic>{
+                  if (nationalIdCtrl.text.trim().isNotEmpty) 'national_id': nationalIdCtrl.text.trim(),
+                  if (phone2Ctrl.text.trim().isNotEmpty) 'secondary_phone_number': phone2Ctrl.text.trim(),
+                  if (companyCtrl.text.trim().isNotEmpty) 'company_name': companyCtrl.text.trim(),
+                  if (jobCtrl.text.trim().isNotEmpty) 'job_title': jobCtrl.text.trim(),
+                  if (govCtrl.text.trim().isNotEmpty) 'governorate': govCtrl.text.trim(),
+                  if (salaryCtrl.text.trim().isNotEmpty) 'salary_amount': salaryCtrl.text.trim(),
+                  if (notesCtrl.text.trim().isNotEmpty) 'notes': notesCtrl.text.trim(),
+                };
+
                 if (isEdit) {
                   final updated = prospect.copyWith(
                     fullName: nameCtrl.text.trim(),
                     phoneNumber: phoneCtrl.text.trim(),
-                    companyName: companyCtrl.text.trim(),
-                    jobTitle: jobCtrl.text.trim(),
-                    governorate: govCtrl.text.trim(),
-                    assignedToId: assignedEmployeeId ?? '',
-                    assignedToName: assignedEmployeeName ?? '',
+                    secondaryPhoneNumber: phone2Ctrl.text.trim().isNotEmpty ? phone2Ctrl.text.trim() : null,
+                    nationalId: nationalIdCtrl.text.trim().isNotEmpty ? nationalIdCtrl.text.trim() : null,
+                    companyName: companyCtrl.text.trim().isNotEmpty ? companyCtrl.text.trim() : null,
+                    jobTitle: jobCtrl.text.trim().isNotEmpty ? jobCtrl.text.trim() : null,
+                    governorate: govCtrl.text.trim().isNotEmpty ? govCtrl.text.trim() : null,
+                    salaryAmount: double.tryParse(salaryCtrl.text.trim()),
+                    notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : null,
+                    assignedToId: assignedEmployeeId ?? prospect.assignedToId,
+                    assignedToName: assignedEmployeeName ?? prospect.assignedToName,
                     status: status,
+                    rawData: {...prospect.rawData, ...rawData},
                   );
-                  final success = await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                  await ref.read(prospectsProvider.notifier).updateProspect(updated);
                   messenger.showSnackBar(
-                    SnackBar(content: Text(success ? 'تم تحديث بيانات العميل المحتمل بنجاح!' : 'فشل في تحديث البيانات')),
+                    const SnackBar(content: Text('✅ تم تحديث بيانات العميل المحتمل بنجاح!'), backgroundColor: Color(0xFF0F3824)),
                   );
                 } else {
                   final newP = ProspectModel(
                     id: '',
                     fullName: nameCtrl.text.trim(),
                     phoneNumber: phoneCtrl.text.trim(),
-                    companyName: companyCtrl.text.trim(),
-                    jobTitle: jobCtrl.text.trim(),
-                    governorate: govCtrl.text.trim(),
+                    secondaryPhoneNumber: phone2Ctrl.text.trim().isNotEmpty ? phone2Ctrl.text.trim() : null,
+                    nationalId: nationalIdCtrl.text.trim().isNotEmpty ? nationalIdCtrl.text.trim() : null,
+                    companyName: companyCtrl.text.trim().isNotEmpty ? companyCtrl.text.trim() : null,
+                    jobTitle: jobCtrl.text.trim().isNotEmpty ? jobCtrl.text.trim() : null,
+                    governorate: govCtrl.text.trim().isNotEmpty ? govCtrl.text.trim() : null,
+                    salaryAmount: double.tryParse(salaryCtrl.text.trim()),
+                    notes: notesCtrl.text.trim().isNotEmpty ? notesCtrl.text.trim() : null,
                     assignedToId: assignedEmployeeId,
                     assignedToName: assignedEmployeeName,
                     status: status,
+                    rawData: rawData,
                     createdAt: DateTime.now(),
                     updatedAt: DateTime.now(),
                   );
-                  final success = await ref.read(prospectsProvider.notifier).addSingleProspect(newP);
+                  await ref.read(prospectsProvider.notifier).addSingleProspect(newP);
                   messenger.showSnackBar(
-                    SnackBar(content: Text(success ? 'تم إضافة العميل المحتمل بنجاح وحفظه في قاعدة البيانات!' : 'فشل في إضافة العميل - تم حفظه محلياً')),
+                    const SnackBar(
+                      content: Text('✅ تم إضافة العميل المحتمل بنجاح وحفظه في قاعدة البيانات!'),
+                      backgroundColor: Color(0xFF0F3824),
+                    ),
                   );
                 }
               },
-              style: ElevatedButton.styleFrom(backgroundColor: TfcColors.primary),
-              child: const Text('حفظ', style: TextStyle(color: Colors.black)),
+              icon: Icon(isEdit ? Icons.save : Icons.person_add_alt_1, size: 18),
+              label: Text(isEdit ? 'حفظ التعديلات' : 'إضافة العميل', style: const TextStyle(fontWeight: FontWeight.bold)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: TfcColors.primary,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              ),
             ),
           ],
         ),
