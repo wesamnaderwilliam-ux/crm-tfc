@@ -21,6 +21,7 @@ import '../settings/settings_screen.dart';
 import '../employees/employees_screen.dart';
 import '../ai_assistant/ai_assistant_screen.dart';
 import '../client/credit_calculator_screen.dart';
+import '../reports/reports_screen.dart';
 
 class MainNavigationWrapper extends ConsumerStatefulWidget {
   const MainNavigationWrapper({super.key});
@@ -407,6 +408,13 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
           label: 'الحسابات والميزانية',
           icon: Icons.account_balance_wallet_rounded,
           screen: AccountsScreen(onViewClient: selectClient),
+        ));
+
+        // Reports Center - Admin Only
+        navItems.add(_NavItem(
+          label: 'التقارير والإحصائيات',
+          icon: Icons.analytics_rounded,
+          screen: ReportsScreen(onViewClient: selectClient),
         ));
       }
 
