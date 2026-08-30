@@ -144,16 +144,21 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
-    final isAdmin = authState.role == 'admin' || authState.role == 'manager' || authState.user?.email == 'wezonader@gmail.com';
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(color: TfcColors.primary));
+    }
 
-    if (!isAdmin) {
-      return const Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Center(
-          child: Text("عذراً، هذا القسم مخصص للإدارة العليا والأدمن فقط.", 
-            style: TextStyle(color: TfcColors.error, fontSize: 16, fontWeight: FontWeight.bold),
-          ),
+    final authState = ref.watch(authProvider);
+    final isCurrentUserAdmin = authState.role == 'admin' ||
+        authState.role == 'manager' ||
+        authState.user?.email == 'wezonader@gmail.com' ||
+        (authState.user?.email?.toLowerCase().contains('wezonader') ?? false);
+
+    if (!isCurrentUserAdmin) {
+      return const Center(
+        child: Text(
+          "عذراً، هذا القسم مخصص للإدارة العليا والأدمن فقط.",
+          style: TextStyle(color: TfcColors.error, fontSize: 16, fontWeight: FontWeight.bold),
         ),
       );
     }
@@ -162,49 +167,50 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
     final empState = ref.watch(employeesProvider);
     final banksAsync = ref.watch(allBanksProvider);
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header & Period Selector Bar
-            _buildTopBar(),
-            const SizedBox(height: 16),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Header & Period Selector Bar
+              _buildTopBar(),
+              const SizedBox(height: 16),
 
-            // Tab Bar
-            TabBar(
-              controller: _tabController,
-              indicatorColor: TfcColors.primary,
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelColor: TfcColors.primary,
-              unselectedLabelColor: TfcColors.outline,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              tabs: const [
-                Tab(icon: Icon(Icons.account_balance_wallet_outlined, size: 20), text: "التقارير المحاسبية والمالية"),
-                Tab(icon: Icon(Icons.badge_outlined, size: 20), text: "تقارير الموظفين والتارجت"),
-                Tab(icon: Icon(Icons.account_balance_outlined, size: 20), text: "تقارير أداء البنوك"),
-                Tab(icon: Icon(Icons.category_outlined, size: 20), text: "تقارير البرامج التمويلية"),
-              ],
-            ),
-            const SizedBox(height: 16),
+              // Tab Bar
+              TabBar(
+                controller: _tabController,
+                indicatorColor: TfcColors.primary,
+                indicatorSize: TabBarIndicatorSize.tab,
+                labelColor: TfcColors.primary,
+                unselectedLabelColor: TfcColors.outline,
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                tabs: const [
+                  Tab(icon: Icon(Icons.account_balance_wallet_outlined, size: 20), text: "التقارير المحاسبية والمالية"),
+                  Tab(icon: Icon(Icons.badge_outlined, size: 20), text: "تقارير الموظفين والتارجت"),
+                  Tab(icon: Icon(Icons.account_balance_outlined, size: 20), text: "تقارير أداء البنوك"),
+                  Tab(icon: Icon(Icons.category_outlined, size: 20), text: "تقارير البرامج التمويلية"),
+                ],
+              ),
+              const SizedBox(height: 16),
 
-            // Content
-            Expanded(
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator(color: TfcColors.primary))
-                  : TabBarView(
-                      controller: _tabController,
-                      children: [
-                        _buildFinancialReportsTab(clientState.clients),
-                        _buildEmployeesReportsTab(empState.employees, clientState.clients),
-                        _buildBanksReportsTab(banksAsync.value ?? []),
-                        _buildProgramsReportsTab(banksAsync.value ?? []),
-                      ],
-                    ),
-            ),
-          ],
+              // Content
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildFinancialReportsTab(clientState.clients),
+                    _buildEmployeesReportsTab(empState.employees, clientState.clients),
+                    _buildBanksReportsTab(banksAsync.value ?? []),
+                    _buildProgramsReportsTab(banksAsync.value ?? []),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
