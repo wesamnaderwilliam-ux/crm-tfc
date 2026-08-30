@@ -169,48 +169,69 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
 
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header & Period Selector Bar
-              _buildTopBar(),
-              const SizedBox(height: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Header & Period Selector Bar
+            _buildTopBar(),
+            const SizedBox(height: 16),
 
-              // Tab Bar
-              TabBar(
+            // Tab Bar
+            TabBar(
+              controller: _tabController,
+              indicatorColor: TfcColors.primary,
+              indicatorSize: TabBarIndicatorSize.tab,
+              labelColor: TfcColors.primary,
+              unselectedLabelColor: TfcColors.outline,
+              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              tabs: const [
+                Tab(icon: Icon(Icons.account_balance_wallet_outlined, size: 20), text: "التقارير المحاسبية والمالية"),
+                Tab(icon: Icon(Icons.badge_outlined, size: 20), text: "تقارير الموظفين والتارجت"),
+                Tab(icon: Icon(Icons.account_balance_outlined, size: 20), text: "تقارير أداء البنوك"),
+                Tab(icon: Icon(Icons.category_outlined, size: 20), text: "تقارير البرامج التمويلية"),
+              ],
+            ),
+            const SizedBox(height: 16),
+
+            // Content
+            Expanded(
+              child: TabBarView(
                 controller: _tabController,
-                indicatorColor: TfcColors.primary,
-                indicatorSize: TabBarIndicatorSize.tab,
-                labelColor: TfcColors.primary,
-                unselectedLabelColor: TfcColors.outline,
-                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                tabs: const [
-                  Tab(icon: Icon(Icons.account_balance_wallet_outlined, size: 20), text: "التقارير المحاسبية والمالية"),
-                  Tab(icon: Icon(Icons.badge_outlined, size: 20), text: "تقارير الموظفين والتارجت"),
-                  Tab(icon: Icon(Icons.account_balance_outlined, size: 20), text: "تقارير أداء البنوك"),
-                  Tab(icon: Icon(Icons.category_outlined, size: 20), text: "تقارير البرامج التمويلية"),
+                children: [
+                  Builder(builder: (context) {
+                    try {
+                      return _buildFinancialReportsTab(clientState.clients);
+                    } catch (e) {
+                      return Center(child: Text("خطأ في عرض التقرير المالي: $e", style: const TextStyle(color: Colors.redAccent)));
+                    }
+                  }),
+                  Builder(builder: (context) {
+                    try {
+                      return _buildEmployeesReportsTab(empState.employees, clientState.clients);
+                    } catch (e) {
+                      return Center(child: Text("خطأ في عرض تقرير الموظفين: $e", style: const TextStyle(color: Colors.redAccent)));
+                    }
+                  }),
+                  Builder(builder: (context) {
+                    try {
+                      return _buildBanksReportsTab(banksAsync.value ?? []);
+                    } catch (e) {
+                      return Center(child: Text("خطأ في عرض تقرير البنوك: $e", style: const TextStyle(color: Colors.redAccent)));
+                    }
+                  }),
+                  Builder(builder: (context) {
+                    try {
+                      return _buildProgramsReportsTab(banksAsync.value ?? []);
+                    } catch (e) {
+                      return Center(child: Text("خطأ في عرض تقرير البرامج: $e", style: const TextStyle(color: Colors.redAccent)));
+                    }
+                  }),
                 ],
               ),
-              const SizedBox(height: 16),
-
-              // Content
-              Expanded(
-                child: TabBarView(
-                  controller: _tabController,
-                  children: [
-                    _buildFinancialReportsTab(clientState.clients),
-                    _buildEmployeesReportsTab(empState.employees, clientState.clients),
-                    _buildBanksReportsTab(banksAsync.value ?? []),
-                    _buildProgramsReportsTab(banksAsync.value ?? []),
-                  ],
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
