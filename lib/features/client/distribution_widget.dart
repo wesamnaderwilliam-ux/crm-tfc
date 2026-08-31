@@ -17,6 +17,7 @@ class BankSelection {
   String? employeeId;
   String? employeeName;
   String status; // 'pending', 'accepted', 'rejected'
+  bool isClosed; // true = مغلق (مع الاحتفاظ بالحالة الأصلية)
 
   BankSelection({
     this.id,
@@ -25,6 +26,7 @@ class BankSelection {
     this.employeeId,
     this.employeeName,
     this.status = 'pending',
+    this.isClosed = false,
   });
 }
 
@@ -120,6 +122,7 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
             bank_id,
             employee_id,
             status,
+            is_closed,
             core_programs ( program_name ),
             banks ( bank_name ),
             bank_employees ( employee_name, phone_1 )
@@ -152,7 +155,8 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
         final selections = progRows.where((r) {
           if (!isBankEmp) return true;
           // Hide closed distributions from bank employees
-          if (r['status'] == 'closed') return false;
+          final rowIsClosed = r['is_closed'] == true || r['status'] == 'closed';
+          if (rowIsClosed) return false;
 
           final empData = r['bank_employees'] as Map<String, dynamic>?;
           final rowEmpId = (r['employee_id']?.toString() ?? '').trim();
@@ -166,6 +170,9 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
         }).map((r) {
           final bankData = r['banks'] as Map<String, dynamic>?;
           final empData = r['bank_employees'] as Map<String, dynamic>?;
+          final rowIsClosed = r['is_closed'] == true || r['status'] == 'closed';
+          var rowStatus = r['status'] as String? ?? 'pending';
+          if (rowStatus == 'closed') rowStatus = 'pending'; // Fallback if old closed string was present
 
           return BankSelection(
             id: r['id'] as String,
@@ -177,7 +184,8 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
                     ? '${empData['employee_name']} ${empData['phone_1'] ?? ""}'.trim()
                     : '${empData['employee_name']}'.trim())
                 : null,
-            status: r['status'] as String? ?? 'pending',
+            status: rowStatus,
+            isClosed: rowIsClosed,
           );
         }).toList();
 
@@ -277,9 +285,8 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
         ? 'مقبول'
         : sel.status == 'rejected'
             ? 'مرفوض'
-            : sel.status == 'closed'
-                ? 'مغلق'
-                : 'قيد الانتظار';
+            : 'قيد الانتظار';
+    final closedStatusSuffix = sel.isClosed ? ' (مغلق 🔒)' : '';
 
     if (!SupabaseConfig.isInitialized) {
       // In simulation mode, mock ID generation and log update
@@ -288,10 +295,10 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
       final clientState = ref.read(clientProvider);
       final client = clientState.clients.firstWhereOrNull((c) => c.id == widget.clientId);
       if (client != null) {
-        final actionText = isNew ? 'إضافة توزيع بنك جديد' : 'تحديث توزيع البنك';
+        final actionText = isNew ? 'إضافة توزيع بنك جديد' : (sel.isClosed ? 'إغلاق توزيع البنك' : 'تحديث توزيع البنك');
         final notesText = isNew 
-            ? 'تم إضافة توزيع للبنك: $bankName بحالة ($statusArabic)'
-            : 'تم تحديث حالة توزيع البنك ($bankName) لتصبح: $statusArabic';
+            ? 'تم إضافة توزيع للبنك: $bankName بحالة ($statusArabic)$closedStatusSuffix'
+            : 'تم تحديث حالة توزيع البنك ($bankName) لتصبح: $statusArabic$closedStatusSuffix';
 
         final newHistory = [
           InteractionLogModel(
@@ -319,15 +326,8 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
         'bank_id': sel.bankId,
         'employee_id': sel.employeeId,
         'status': sel.status,
+        'is_closed': sel.isClosed,
       };
-
-      String statusArabic = sel.status == 'accepted'
-          ? 'مقبول'
-          : sel.status == 'rejected'
-              ? 'مرفوض'
-              : sel.status == 'closed'
-                  ? 'مغلق'
-                  : 'قيد الانتظار';
 
       if (sel.id == null) {
         final res = await SupabaseConfig.client
@@ -344,10 +344,10 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
       }
 
       final bankName = sel.bankName ?? 'بنك غير معروف';
-      final actionText = isNew ? 'إضافة توزيع بنك جديد' : 'تحديث توزيع البنك';
+      final actionText = isNew ? 'إضافة توزيع بنك جديد' : (sel.isClosed ? 'إغلاق توزيع البنك' : 'تحديث توزيع البنك');
       final notesText = isNew 
-          ? 'تم إضافة توزيع للبنك: $bankName بحالة ($statusArabic)'
-          : 'تم تحديث حالة توزيع البنك ($bankName) لتصبح: $statusArabic';
+          ? 'تم إضافة توزيع للبنك: $bankName بحالة ($statusArabic)$closedStatusSuffix'
+          : 'تم تحديث حالة توزيع البنك ($bankName) لتصبح: $statusArabic$closedStatusSuffix';
 
       // Insert log
       await SupabaseConfig.client.from('interaction_history').insert({
@@ -1002,7 +1002,7 @@ class _BankSelectionCard extends ConsumerWidget {
             _buildEmployeeSection(ref),
           ],
 
-          // Accept / Reject / Transfer to Operations buttons (admin only)
+          // Accept / Reject / Close / Transfer to Operations buttons (admin only)
           if (isAdmin && bankSelection.bankId != null) ...[
             const SizedBox(height: 12),
             Row(
@@ -1045,14 +1045,11 @@ class _BankSelectionCard extends ConsumerWidget {
                 Expanded(
                   child: _StatusButton(
                     label: "مغلق",
-                    icon: Icons.lock_outline,
-                    isActive: bankSelection.status == 'closed',
-                    activeColor: Colors.blueGrey,
+                    icon: bankSelection.isClosed ? Icons.lock : Icons.lock_outline,
+                    isActive: bankSelection.isClosed,
+                    activeColor: const Color(0xFFFFD700), // Elegant Gold (ذهبي أنيق)
                     onTap: () {
-                      bankSelection.status =
-                          bankSelection.status == 'closed'
-                              ? 'pending'
-                              : 'closed';
+                      bankSelection.isClosed = !bankSelection.isClosed;
                       onChanged();
                       onSave();
                     },

@@ -103,6 +103,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
             bank_id,
             employee_id,
             status,
+            is_closed,
             client_id,
             core_programs ( program_name ),
             banks ( bank_name ),
@@ -122,6 +123,9 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
         final bankData = r['banks'] as Map<String, dynamic>?;
         final programData = r['core_programs'] as Map<String, dynamic>?;
         final empData = r['bank_employees'] as Map<String, dynamic>?;
+        final isClosed = r['is_closed'] == true || r['status'] == 'closed';
+        var rowStatus = r['status']?.toString() ?? 'pending';
+        if (rowStatus == 'closed') rowStatus = 'pending';
 
         return {
           'id': r['id'],
@@ -137,12 +141,13 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                   ? '${empData['employee_name']} ${empData['phone_1'] ?? ""}'.trim()
                   : '${empData['employee_name']}'.trim())
               : 'لم يحدد بعد',
-          'status': r['status'] ?? 'pending',
+          'status': rowStatus,
+          'is_closed': isClosed,
         };
       }).where((d) {
         if (!isBankEmployee) return true;
         // Bank employees should never see closed distributions
-        if (d['status'] == 'closed') return false;
+        if (d['is_closed'] == true) return false;
 
         final rowEmpId = (d['employee_id']?.toString() ?? '').trim();
         final rowEmpName = (d['employee_name']?.toString() ?? '').trim().toLowerCase();
@@ -204,6 +209,45 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("خطأ أثناء التحديث: $e", textAlign: TextAlign.right),
+            backgroundColor: TfcColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _toggleDistributionClosed(String id, bool newClosedState) async {
+    try {
+      if (SupabaseConfig.isInitialized) {
+        await SupabaseConfig.client
+            .from('distribution_entries')
+            .update({'is_closed': newClosedState})
+            .eq('id', id);
+      }
+
+      setState(() {
+        final idx = _distributions.indexWhere((d) => d['id'] == id);
+        if (idx != -1) {
+          _distributions[idx]['is_closed'] = newClosedState;
+        }
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              newClosedState ? "تم إغلاق التوزيع بنجاح 🔒" : "تمت إعادة فتح التوزيع بنجاح 🔓",
+              textAlign: TextAlign.right,
+            ),
+            backgroundColor: newClosedState ? const Color(0xFFFFD700) : TfcColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("خطأ أثناء تغيير حالة الإغلاق: $e", textAlign: TextAlign.right),
             backgroundColor: TfcColors.error,
           ),
         );
@@ -345,7 +389,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
         return false;
       }
 
-      final isClosed = d['status'] == 'closed';
+      final isClosed = d['is_closed'] == true;
       
       // If user is Bank Employee: never see closed distributions
       if (isBankEmployee && isClosed) {
@@ -374,8 +418,8 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
       return true;
     }).toList();
 
-    final int activeCount = _distributions.where((d) => d['status'] != 'closed' && (authState.role == 'admin' || visibleClientIds.contains(d['client_id']))).length;
-    final int closedCount = _distributions.where((d) => d['status'] == 'closed' && (authState.role == 'admin' || visibleClientIds.contains(d['client_id']))).length;
+    final int activeCount = _distributions.where((d) => d['is_closed'] != true && (authState.role == 'admin' || visibleClientIds.contains(d['client_id']))).length;
+    final int closedCount = _distributions.where((d) => d['is_closed'] == true && (authState.role == 'admin' || visibleClientIds.contains(d['client_id']))).length;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -722,13 +766,13 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                   DataCell(Text(d['program_name'])),
                   DataCell(Text(d['bank_name'])),
                   DataCell(Text(d['employee_name'])),
-                  DataCell(_buildStatusChip(d['status'])),
+                  DataCell(_buildStatusChip(d['status'], isClosed: d['is_closed'] == true)),
                   DataCell(
                     (isAdmin || authState.role == 'bank_employee')
                         ? Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              _buildStatusActionsDropdown(d['id'], d['status']),
+                              _buildStatusActionsDropdown(d['id'], d['status'], d['is_closed'] == true),
                               if (d['status'] == 'accepted') ...[
                                 const SizedBox(width: 8),
                                 ElevatedButton.icon(
@@ -798,7 +842,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                         ),
                       ),
                     ),
-                    _buildStatusChip(d['status']),
+                    _buildStatusChip(d['status'], isClosed: d['is_closed'] == true),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -817,10 +861,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                         "تغيير الحالة:",
                         style: TextStyle(color: TfcColors.outline, fontSize: 13),
                       ),
-                      SizedBox(
-                        width: 150,
-                        child: _buildStatusActionsDropdown(d['id'], d['status']),
-                      ),
+                      _buildStatusActionsDropdown(d['id'], d['status'], d['is_closed'] == true),
                     ],
                   ),
                   if (d['status'] == 'accepted') ...[
@@ -883,25 +924,56 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
     );
   }
 
-  Widget _buildStatusChip(String status) {
+  Widget _buildStatusChip(String status, {bool isClosed = false}) {
     final color = _getStatusColor(status);
     final text = _statusNames[status] ?? status;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: color,
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
+          ),
+          child: Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
-      ),
+        if (isClosed) ...[
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.5)),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.lock, size: 10, color: Color(0xFFFFD700)),
+                SizedBox(width: 4),
+                Text(
+                  "مغلق",
+                  style: TextStyle(
+                    color: Color(0xFFFFD700),
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -911,34 +983,48 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
         return TfcColors.success;
       case 'rejected':
         return TfcColors.error;
-      case 'closed':
-        return Colors.blueGrey;
       case 'pending':
       default:
         return TfcColors.warning;
     }
   }
 
-  Widget _buildStatusActionsDropdown(String id, String currentStatus) {
-    return DropdownButtonHideUnderline(
-      child: DropdownButton<String>(
-        value: currentStatus,
-        dropdownColor: TfcColors.surfaceContainer,
-        borderRadius: BorderRadius.circular(10),
-        style: const TextStyle(color: Colors.white, fontSize: 12),
-        icon: const Icon(Icons.edit, size: 14, color: TfcColors.primary),
-        items: const [
-          DropdownMenuItem(value: 'pending', child: Text("قيد الانتظار ⏳", textDirection: TextDirection.rtl)),
-          DropdownMenuItem(value: 'accepted', child: Text("مقبول ✅", textDirection: TextDirection.rtl)),
-          DropdownMenuItem(value: 'rejected', child: Text("مرفوض ❌", textDirection: TextDirection.rtl)),
-          DropdownMenuItem(value: 'closed', child: Text("مغلق 🔒", textDirection: TextDirection.rtl)),
-        ],
-        onChanged: (val) {
-          if (val != null && val != currentStatus) {
-            _updateDistributionStatus(id, val);
-          }
-        },
-      ),
+  Widget _buildStatusActionsDropdown(String id, String currentStatus, bool isClosed) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        DropdownButtonHideUnderline(
+          child: DropdownButton<String>(
+            value: currentStatus,
+            dropdownColor: TfcColors.surfaceContainer,
+            borderRadius: BorderRadius.circular(10),
+            style: const TextStyle(color: Colors.white, fontSize: 12),
+            icon: const Icon(Icons.edit, size: 14, color: TfcColors.primary),
+            items: const [
+              DropdownMenuItem(value: 'pending', child: Text("قيد الانتظار ⏳", textDirection: TextDirection.rtl)),
+              DropdownMenuItem(value: 'accepted', child: Text("مقبول ✅", textDirection: TextDirection.rtl)),
+              DropdownMenuItem(value: 'rejected', child: Text("مرفوض ❌", textDirection: TextDirection.rtl)),
+            ],
+            onChanged: (val) {
+              if (val != null && val != currentStatus) {
+                _updateDistributionStatus(id, val);
+              }
+            },
+          ),
+        ),
+        const SizedBox(width: 6),
+        IconButton(
+          tooltip: isClosed ? "إلغاء الإغلاق (إعادة فتح)" : "إغلاق التوزيع",
+          icon: Icon(
+            isClosed ? Icons.lock : Icons.lock_open,
+            color: isClosed ? const Color(0xFFFFD700) : Colors.white38,
+            size: 16,
+          ),
+          onPressed: () => _toggleDistributionClosed(id, !isClosed),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+      ],
     );
   }
 }
