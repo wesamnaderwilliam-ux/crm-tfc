@@ -801,6 +801,35 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                 });
               }
 
+              // 1.5. Compile Google Sheet Raw Data into formatted notes
+              final rawNotesBuffer = StringBuffer();
+              if (prospect.notes != null && prospect.notes!.isNotEmpty) {
+                rawNotesBuffer.writeln(prospect.notes);
+                rawNotesBuffer.writeln('────────────────────────');
+              }
+              if (raw.isNotEmpty) {
+                rawNotesBuffer.writeln('📋 [بيانات مستوردة من شيت جوجل]:');
+                raw.forEach((k, v) {
+                  if (v != null && v.toString().trim().isNotEmpty) {
+                    rawNotesBuffer.writeln('• $k: $v');
+                  }
+                });
+              }
+
+              final notesContent = rawNotesBuffer.isNotEmpty ? rawNotesBuffer.toString().trim() : null;
+              final initialHistory = <InteractionLogModel>[];
+              if (notesContent != null) {
+                initialHistory.add(
+                  InteractionLogModel(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    actionType: 'تحويل من عميل محتمل',
+                    notes: notesContent,
+                    createdBy: prospect.assignedToName ?? 'النظام',
+                    createdAt: DateTime.now(),
+                  ),
+                );
+              }
+
               // 2. Build official ClientModel
               final newClient = ClientModel(
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -821,6 +850,7 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                 representativeName: prospect.assignedToName,
                 status: 'pending',
                 createdAt: DateTime.now(),
+                history: initialHistory,
                 hasCompoundUnit: hasCompound,
                 hasModernCar: hasCar,
                 compoundUnitsData: compoundUnits,
@@ -911,160 +941,340 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
   }
 
   // Prospect details modal popup displaying all Google Sheet fields
-  void _showProspectDetailsDialog(BuildContext context, ProspectModel prospect) {
+  // Prospect details modal popup displaying all Google Sheet fields with Admin editing capabilities
+  void _showProspectDetailsDialog(BuildContext context, ProspectModel initialProspect) {
+    final authState = ref.read(authProvider);
+    final isAdmin = authState.role == 'admin';
+
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF161B26),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                const Icon(Icons.badge_outlined, color: TfcColors.primary, size: 28),
-                const SizedBox(width: 10),
-                Text(
-                  'تفاصيل العميل المحتمل: ${prospect.fullName}',
-                  style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            IconButton(
-              icon: const Icon(Icons.close, color: Colors.white70),
-              onPressed: () => Navigator.pop(ctx),
-            ),
-          ],
-        ),
-        content: SizedBox(
-          width: 650,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Highlight Status Banner
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: TfcColors.primary.withValues(alpha: 0.3)),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      builder: (ctx) {
+        ProspectModel currentProspect = initialProspect;
+        final currentRawData = Map<String, dynamic>.from(initialProspect.rawData);
+
+        return StatefulBuilder(
+          builder: (dialogCtx, setDialogState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF161B26),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
                     children: [
-                      Row(
-                        children: [
-                          const Text('الحالة الحالية: ', style: TextStyle(color: Colors.white70)),
-                          _buildStatusBadge(prospect.status),
-                        ],
-                      ),
-                      Row(
-                        children: [
-                          const Text('الموظف المسند إليه: ', style: TextStyle(color: Colors.white70)),
-                          Text(
-                            prospect.assignedToName ?? 'غير مسند',
-                            style: const TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold),
-                          ),
-                        ],
+                      const Icon(Icons.badge_outlined, color: TfcColors.primary, size: 28),
+                      const SizedBox(width: 10),
+                      Text(
+                        'تفاصيل العميل المحتمل: ${currentProspect.fullName}',
+                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 20),
-
-                // Main Parsed Fields Section
-                const Text(
-                  '📊 البيانات الأساسية المحددة:',
-                  style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold, fontSize: 15),
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    _buildDetailInfoTile('👤 الاسم الكامل', prospect.fullName),
-                    if (prospect.phoneNumber != null && prospect.phoneNumber!.isNotEmpty)
-                      PhoneActionWidget(label: '📞 رقم الهاتف الأساسي', phoneNumber: prospect.phoneNumber!),
-                    if (prospect.secondaryPhoneNumber != null && prospect.secondaryPhoneNumber!.isNotEmpty)
-                      PhoneActionWidget(label: '📱 رقم الهاتف الإضافي', phoneNumber: prospect.secondaryPhoneNumber!),
-                    if (prospect.nationalId != null)
-                      _buildDetailInfoTile('🆔 الرقم القومي', prospect.nationalId!),
-                    _buildDetailInfoTile('🏢 جهة العمل / الشركة', prospect.companyName ?? 'غير محدد'),
-                    _buildDetailInfoTile('💼 المسمى الوظيفي', prospect.jobTitle ?? 'غير محدد'),
-                    _buildDetailInfoTile('📍 المحافظة', prospect.governorate ?? 'غير محدد'),
-                    if (prospect.salaryAmount != null)
-                      _buildDetailInfoTile('💰 صافي الدخل الشهري', '${prospect.salaryAmount} ج.م'),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // Raw Data from Google Sheet Section
-                if (prospect.rawData.isNotEmpty) ...[
-                  const Divider(color: Colors.white24),
-                  const SizedBox(height: 10),
-                  const Text(
-                    '📄 كافة الحقول الواردة من شيت جوجل (Raw Sheet Data):',
-                    style: TextStyle(color: Colors.lightBlueAccent, fontWeight: FontWeight.bold, fontSize: 15),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: prospect.rawData.entries.map((entry) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${entry.key}: ',
-                                style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 13),
-                              ),
-                              Expanded(
-                                child: Text(
-                                  entry.value?.toString() ?? '',
-                                  style: const TextStyle(color: Colors.white, fontSize: 13),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }).toList(),
-                    ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white70),
+                    onPressed: () => Navigator.pop(ctx),
                   ),
                 ],
+              ),
+              content: SizedBox(
+                width: 700,
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Highlight Status Banner
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: TfcColors.primary.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                const Text('الحالة الحالية: ', style: TextStyle(color: Colors.white70)),
+                                _buildStatusBadge(currentProspect.status),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                const Text('الموظف المسند إليه: ', style: TextStyle(color: Colors.white70)),
+                                Text(
+                                  currentProspect.assignedToName ?? 'غير مسند',
+                                  style: const TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Main Parsed Fields Section
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            '📊 البيانات الأساسية المحددة:',
+                            style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                          if (isAdmin)
+                            TextButton.icon(
+                              onPressed: () async {
+                                Navigator.pop(ctx);
+                                _showAddOrEditProspectDialog(context, prospect: currentProspect);
+                              },
+                              icon: const Icon(Icons.edit, size: 16, color: TfcColors.primary),
+                              label: const Text('تعديل البيانات الأساسية', style: TextStyle(color: TfcColors.primary, fontSize: 12)),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          _buildDetailInfoTile('👤 الاسم الكامل', currentProspect.fullName),
+                          if (currentProspect.phoneNumber != null && currentProspect.phoneNumber!.isNotEmpty)
+                            PhoneActionWidget(label: '📞 رقم الهاتف الأساسي', phoneNumber: currentProspect.phoneNumber!),
+                          if (currentProspect.secondaryPhoneNumber != null && currentProspect.secondaryPhoneNumber!.isNotEmpty)
+                            PhoneActionWidget(label: '📱 رقم الهاتف الإضافي', phoneNumber: currentProspect.secondaryPhoneNumber!),
+                          if (currentProspect.nationalId != null && currentProspect.nationalId!.isNotEmpty)
+                            _buildDetailInfoTile('🆔 الرقم القومي', currentProspect.nationalId!),
+                          _buildDetailInfoTile('🏢 جهة العمل / الشركة', currentProspect.companyName ?? 'غير محدد'),
+                          _buildDetailInfoTile('💼 المسمى الوظيفي', currentProspect.jobTitle ?? 'غير محدد'),
+                          _buildDetailInfoTile('📍 المحافظة', currentProspect.governorate ?? 'غير محدد'),
+                          if (currentProspect.salaryAmount != null)
+                            _buildDetailInfoTile('💰 صافي الدخل الشهري', '${currentProspect.salaryAmount} ج.م'),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Raw Data from Google Sheet Section
+                      const Divider(color: Colors.white24),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            '📄 كافة الحقول الواردة من شيت جوجل (Google Sheet Data):',
+                            style: TextStyle(color: Colors.lightBlueAccent, fontWeight: FontWeight.bold, fontSize: 15),
+                          ),
+                          if (isAdmin)
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                _showAddOrEditRawFieldDialog(
+                                  dialogCtx,
+                                  onSave: (newKey, newVal) async {
+                                    setDialogState(() {
+                                      currentRawData[newKey] = newVal;
+                                    });
+                                    final updated = currentProspect.copyWith(rawData: currentRawData);
+                                    await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                    currentProspect = updated;
+                                  },
+                                );
+                              },
+                              icon: const Icon(Icons.add, size: 16),
+                              label: const Text('إضافة حقل جديد', style: TextStyle(fontSize: 12)),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blueGrey.shade700,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      if (currentRawData.isEmpty)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.white10),
+                          ),
+                          child: const Center(
+                            child: Text('لا توجد حقول إضافية مسجلة من الشيت', style: TextStyle(color: Colors.white54, fontSize: 13)),
+                          ),
+                        )
+                      else
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withValues(alpha: 0.3),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: currentRawData.entries.map((entry) {
+                              return Container(
+                                margin: const EdgeInsets.symmetric(vertical: 4),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.03),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(
+                                        '${entry.key}: ',
+                                        style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 13),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 5,
+                                      child: Text(
+                                        entry.value?.toString() ?? '',
+                                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                                      ),
+                                    ),
+                                    if (isAdmin) ...[
+                                      // Edit Field Button
+                                      IconButton(
+                                        icon: const Icon(Icons.edit_outlined, color: Colors.lightBlueAccent, size: 18),
+                                        tooltip: 'تعديل هذا الحقل',
+                                        onPressed: () {
+                                          _showAddOrEditRawFieldDialog(
+                                            dialogCtx,
+                                            fieldKey: entry.key,
+                                            fieldValue: entry.value?.toString(),
+                                            onSave: (newKey, newVal) async {
+                                              setDialogState(() {
+                                                if (newKey != entry.key) {
+                                                  currentRawData.remove(entry.key);
+                                                }
+                                                currentRawData[newKey] = newVal;
+                                              });
+                                              final updated = currentProspect.copyWith(rawData: currentRawData);
+                                              await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                              currentProspect = updated;
+                                            },
+                                          );
+                                        },
+                                      ),
+                                      // Delete Field Button
+                                      IconButton(
+                                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                                        tooltip: 'حذف هذا الحقل',
+                                        onPressed: () async {
+                                          setDialogState(() {
+                                            currentRawData.remove(entry.key);
+                                          });
+                                          final updated = currentProspect.copyWith(rawData: currentRawData);
+                                          await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                          currentProspect = updated;
+                                        },
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('إغلاق', style: TextStyle(color: Colors.white70)),
+                ),
+                if (!currentProspect.isConverted)
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _handleConvertToClient(context, currentProspect);
+                    },
+                    icon: const Icon(Icons.transform, color: Colors.white),
+                    label: const Text('جاهز للتحويل لعميل رسمياً', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                  ),
               ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Dialog for Adding or Editing a Raw Data field from Google Sheet
+  void _showAddOrEditRawFieldDialog(
+    BuildContext context, {
+    String? fieldKey,
+    String? fieldValue,
+    required Future<void> Function(String key, String value) onSave,
+  }) {
+    final keyController = TextEditingController(text: fieldKey);
+    final valueController = TextEditingController(text: fieldValue);
+    final isEditing = fieldKey != null;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E2430),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: Text(
+          isEditing ? 'تعديل حقل شيت جوجل' : 'إضافة حقل شيت جديد',
+          style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: keyController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'اسم الحقل / العمود',
+                labelStyle: TextStyle(color: Colors.white70),
+                hintText: 'مثال: رقم السجل، عنوان الفرع...',
+              ),
             ),
-          ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: valueController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(
+                labelText: 'قيمة الحقل',
+                labelStyle: TextStyle(color: Colors.white70),
+                hintText: 'أدخل قيمة هذا الحقل...',
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('إغلاق', style: TextStyle(color: Colors.white70)),
+            child: const Text('إلغاء', style: TextStyle(color: Colors.white70)),
           ),
-          if (!prospect.isConverted)
-            ElevatedButton.icon(
-              onPressed: () {
+          ElevatedButton(
+            onPressed: () async {
+              final key = keyController.text.trim();
+              final val = valueController.text.trim();
+              if (key.isNotEmpty) {
                 Navigator.pop(ctx);
-                _handleConvertToClient(context, prospect);
-              },
-              icon: const Icon(Icons.transform, color: Colors.white),
-              label: const Text('جاهز للتحويل لعميل رسمياً', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-            ),
+                await onSave(key, val);
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: TfcColors.primary),
+            child: Text(isEditing ? 'حفظ التعديل' : 'إضافة', style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          ),
         ],
       ),
     );
