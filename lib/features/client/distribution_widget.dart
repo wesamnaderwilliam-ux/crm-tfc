@@ -151,6 +151,9 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
 
         final selections = progRows.where((r) {
           if (!isBankEmp) return true;
+          // Hide closed distributions from bank employees
+          if (r['status'] == 'closed') return false;
+
           final empData = r['bank_employees'] as Map<String, dynamic>?;
           final rowEmpId = (r['employee_id']?.toString() ?? '').trim();
           final rowEmpName = (empData?['employee_name']?.toString() ?? '').trim().toLowerCase();
@@ -274,7 +277,9 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
         ? 'مقبول'
         : sel.status == 'rejected'
             ? 'مرفوض'
-            : 'قيد الانتظار';
+            : sel.status == 'closed'
+                ? 'مغلق'
+                : 'قيد الانتظار';
 
     if (!SupabaseConfig.isInitialized) {
       // In simulation mode, mock ID generation and log update
@@ -316,12 +321,13 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
         'status': sel.status,
       };
 
-      final isNew = (sel.id == null);
       String statusArabic = sel.status == 'accepted'
           ? 'مقبول'
           : sel.status == 'rejected'
               ? 'مرفوض'
-              : 'قيد الانتظار';
+              : sel.status == 'closed'
+                  ? 'مغلق'
+                  : 'قيد الانتظار';
 
       if (sel.id == null) {
         final res = await SupabaseConfig.client
@@ -1030,6 +1036,23 @@ class _BankSelectionCard extends ConsumerWidget {
                           bankSelection.status == 'rejected'
                               ? 'pending'
                               : 'rejected';
+                      onChanged();
+                      onSave();
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _StatusButton(
+                    label: "مغلق",
+                    icon: Icons.lock_outline,
+                    isActive: bankSelection.status == 'closed',
+                    activeColor: Colors.blueGrey,
+                    onTap: () {
+                      bankSelection.status =
+                          bankSelection.status == 'closed'
+                              ? 'pending'
+                              : 'closed';
                       onChanged();
                       onSave();
                     },

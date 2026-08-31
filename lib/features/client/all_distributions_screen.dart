@@ -28,6 +28,9 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
   bool _isLoading = false;
   List<Map<String, dynamic>> _distributions = [];
   
+  // Tab Selection: 0 = النشطة (Active), 1 = المغلقة (Closed)
+  int _selectedTab = 0;
+
   // Filters
   String _selectedBankFilter = 'all';
   String _selectedProgramFilter = 'all';
@@ -38,6 +41,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
     'pending': 'قيد الانتظار ⏳',
     'accepted': 'مقبول ✅',
     'rejected': 'مرفوض ❌',
+    'closed': 'مغلق 🔒',
   };
 
   @override
@@ -137,6 +141,9 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
         };
       }).where((d) {
         if (!isBankEmployee) return true;
+        // Bank employees should never see closed distributions
+        if (d['status'] == 'closed') return false;
+
         final rowEmpId = (d['employee_id']?.toString() ?? '').trim();
         final rowEmpName = (d['employee_name']?.toString() ?? '').trim().toLowerCase();
 
@@ -329,11 +336,32 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
     );
     final visibleClientIds = visibleClients.map((c) => c.id).toSet();
 
+    // Separate into active vs closed datasets based on _selectedTab
+    final isBankEmployee = authState.role == 'bank_employee';
+    
     // Apply Filters locally
     final filtered = _distributions.where((d) {
       if (authState.role != 'admin' && !visibleClientIds.contains(d['client_id'])) {
         return false;
       }
+
+      final isClosed = d['status'] == 'closed';
+      
+      // If user is Bank Employee: never see closed distributions
+      if (isBankEmployee && isClosed) {
+        return false;
+      }
+
+      // If user is Admin / Manager: filter by active vs closed tabs
+      if (!isBankEmployee) {
+        if (_selectedTab == 0 && isClosed) {
+          return false; // Tab 0: Active only (pending, accepted, rejected)
+        }
+        if (_selectedTab == 1 && !isClosed) {
+          return false; // Tab 1: Closed only
+        }
+      }
+
       if (_selectedBankFilter != 'all' && d['bank_id'] != _selectedBankFilter) {
         return false;
       }
@@ -345,6 +373,9 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
       }
       return true;
     }).toList();
+
+    final int activeCount = _distributions.where((d) => d['status'] != 'closed' && (authState.role == 'admin' || visibleClientIds.contains(d['client_id']))).length;
+    final int closedCount = _distributions.where((d) => d['status'] == 'closed' && (authState.role == 'admin' || visibleClientIds.contains(d['client_id']))).length;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -369,6 +400,99 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Tabs Bar for Admin / Manager (Active vs Closed Distributions)
+            if (isAdmin) ...[
+              Container(
+                margin: const EdgeInsets.only(bottom: 16),
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white10),
+                ),
+                child: Row(
+                  textDirection: TextDirection.rtl,
+                  children: [
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => setState(() {
+                          _selectedTab = 0;
+                          _selectedStatusFilter = 'all';
+                        }),
+                        borderRadius: BorderRadius.circular(10),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: _selectedTab == 0 ? TfcColors.primary : Colors.transparent,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          alignment: Alignment.center,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.all_inclusive,
+                                size: 18,
+                                color: _selectedTab == 0 ? Colors.black : Colors.white70,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                "التوزيعات النشطة ($activeCount)",
+                                style: TextStyle(
+                                  color: _selectedTab == 0 ? Colors.black : Colors.white70,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () => setState(() {
+                          _selectedTab = 1;
+                          _selectedStatusFilter = 'all';
+                        }),
+                        borderRadius: BorderRadius.circular(10),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: _selectedTab == 1 ? Colors.blueGrey : Colors.transparent,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          alignment: Alignment.center,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.lock_outline,
+                                size: 18,
+                                color: _selectedTab == 1 ? Colors.white : Colors.white70,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                "توزيعات مغلقة ($closedCount)",
+                                style: TextStyle(
+                                  color: _selectedTab == 1 ? Colors.white : Colors.white70,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+
             // Filters Card
             ToggleableFilterPanel(
               title: "تصفية وتصفح التوزيعات 🔍",
@@ -502,10 +626,12 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator(color: TfcColors.primary))
                   : filtered.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Text(
-                            "لا توجد توزيعات مطابقة للتصفية المحددة.",
-                            style: TextStyle(color: TfcColors.outline, fontSize: 14),
+                            _selectedTab == 1
+                                ? "لا توجد توزيعات مغلقة حالياً 🔒"
+                                : "لا توجد توزيعات مطابقة للتصفية المحددة.",
+                            style: const TextStyle(color: TfcColors.outline, fontSize: 14),
                           ),
                         )
                       : LayoutBuilder(
@@ -785,6 +911,8 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
         return TfcColors.success;
       case 'rejected':
         return TfcColors.error;
+      case 'closed':
+        return Colors.blueGrey;
       case 'pending':
       default:
         return TfcColors.warning;
@@ -803,6 +931,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
           DropdownMenuItem(value: 'pending', child: Text("قيد الانتظار ⏳", textDirection: TextDirection.rtl)),
           DropdownMenuItem(value: 'accepted', child: Text("مقبول ✅", textDirection: TextDirection.rtl)),
           DropdownMenuItem(value: 'rejected', child: Text("مرفوض ❌", textDirection: TextDirection.rtl)),
+          DropdownMenuItem(value: 'closed', child: Text("مغلق 🔒", textDirection: TextDirection.rtl)),
         ],
         onChanged: (val) {
           if (val != null && val != currentStatus) {
