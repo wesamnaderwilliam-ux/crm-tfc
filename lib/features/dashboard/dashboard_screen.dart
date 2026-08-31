@@ -744,7 +744,9 @@ class _DashboardTargetPerformanceWidgetState extends ConsumerState<_DashboardTar
       final operations = opsRows.map((r) => OperationEntry.fromJson(r)).toList();
 
       final empState = ref.read(employeesProvider);
-      final activeEmployees = empState.employees.where((e) => e.employeeStatus == 'active').toList();
+      final activeEmployees = empState.employees
+          .where((e) => e.employeeStatus == 'active' && e.role != 'bank_employee')
+          .toList();
 
       // Find current employee profile
       final currentProfile = activeEmployees.firstWhereOrNull((e) => e.id == currentUserId);

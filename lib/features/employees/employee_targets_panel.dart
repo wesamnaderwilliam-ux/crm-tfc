@@ -199,7 +199,9 @@ class _EmployeeTargetsPanelState extends ConsumerState<EmployeeTargetsPanel> {
 
   void _showAddTargetDialog({bool isGroup = false}) {
     final empState = ref.read(employeesProvider);
-    final activeEmployees = empState.employees.where((e) => e.employeeStatus == 'active').toList();
+    final activeEmployees = empState.employees
+        .where((e) => e.employeeStatus == 'active' && e.role != 'bank_employee')
+        .toList();
 
     final targetController = TextEditingController();
     List<String> selectedEmployeeIds = [];
@@ -718,7 +720,9 @@ class _EmployeeTargetsPanelState extends ConsumerState<EmployeeTargetsPanel> {
   @override
   Widget build(BuildContext context) {
     final empState = ref.watch(employeesProvider);
-    final activeEmployees = empState.employees.where((e) => e.employeeStatus == 'active').toList();
+    final activeEmployees = empState.employees
+        .where((e) => e.employeeStatus == 'active' && e.role != 'bank_employee')
+        .toList();
     final authState = ref.watch(authProvider);
     final isAdmin = authState.role == 'admin';
 
