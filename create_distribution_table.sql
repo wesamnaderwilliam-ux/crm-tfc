@@ -10,7 +10,7 @@ create table if not exists public.distribution_entries (
     program_id uuid references public.core_programs(id) on delete cascade not null,
     bank_id uuid references public.banks(id) on delete cascade not null,
     employee_id uuid references public.bank_employees(id) on delete set null,
-    status text not null default 'pending' check (status in ('pending', 'accepted', 'rejected')),
+    status text not null default 'pending' check (status in ('pending', 'accepted', 'rejected', 'closed')),
     created_at timestamp with time zone default timezone('utc'::text, now()) not null,
     updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
     unique (client_id, program_id, bank_id)
