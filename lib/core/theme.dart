@@ -25,89 +25,89 @@ class TfcColors {
 }
 
 class TfcTheme {
-  static ThemeData get darkTheme {
-    return ThemeData(
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: Colors.transparent,
-      primaryColor: TfcColors.primary,
-      colorScheme: const ColorScheme.dark(
-        primary: TfcColors.primary,
-        onPrimary: TfcColors.onPrimary,
-        secondary: TfcColors.secondary,
-        onSecondary: TfcColors.onSecondary,
-        surface: TfcColors.surfaceDim,
-        onSurface: TfcColors.onSurface,
-        error: TfcColors.error,
+  // Static final singleton — created once, never re-allocated on rebuild
+  static final ThemeData darkTheme = ThemeData(
+    brightness: Brightness.dark,
+    scaffoldBackgroundColor: Colors.transparent,
+    primaryColor: TfcColors.primary,
+    colorScheme: const ColorScheme.dark(
+      primary: TfcColors.primary,
+      onPrimary: TfcColors.onPrimary,
+      secondary: TfcColors.secondary,
+      onSecondary: TfcColors.onSecondary,
+      surface: TfcColors.surfaceDim,
+      onSurface: TfcColors.onSurface,
+      error: TfcColors.error,
+    ),
+    dialogTheme: DialogThemeData(
+      backgroundColor: Color(0xFF0C0E12),
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+    ),
+    // Using system font (no HTTP download) — fast on all devices
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(
+        fontSize: 44,
+        fontWeight: FontWeight.bold,
+        color: TfcColors.primaryContainer,
+        letterSpacing: -0.88,
       ),
-      dialogTheme: DialogThemeData(
-        backgroundColor: TfcColors.surfaceDim.withValues(alpha: 0.92),
+      headlineLarge: TextStyle(
+        fontSize: 30,
+        fontWeight: FontWeight.w600,
+        color: TfcColors.primary,
+        letterSpacing: -0.3,
       ),
-      appBarTheme: const AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
+      headlineMedium: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w600,
+        color: TfcColors.onSurface,
       ),
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+      bodyLarge: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.normal,
+        color: TfcColors.onSurface,
       ),
-      textTheme: TextTheme(
-        displayLarge: GoogleFonts.inter(
-          fontSize: 44,
-          fontWeight: FontWeight.bold,
-          color: TfcColors.primaryContainer,
-          letterSpacing: -0.02,
-        ),
-        headlineLarge: GoogleFonts.inter(
-          fontSize: 30,
-          fontWeight: FontWeight.w600,
-          color: TfcColors.primary,
-          letterSpacing: -0.01,
-        ),
-        headlineMedium: GoogleFonts.inter(
-          fontSize: 22,
-          fontWeight: FontWeight.w600,
-          color: TfcColors.onSurface,
-        ),
-        bodyLarge: GoogleFonts.inter(
-          fontSize: 16,
-          fontWeight: FontWeight.normal,
-          color: TfcColors.onSurface,
-        ),
-        bodyMedium: GoogleFonts.inter(
-          fontSize: 14,
-          fontWeight: FontWeight.normal,
-          color: TfcColors.onSurfaceVariant,
-        ),
-        labelLarge: GoogleFonts.inter(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-          color: TfcColors.primary,
-          letterSpacing: 0.05,
-        ),
+      bodyMedium: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.normal,
+        color: TfcColors.onSurfaceVariant,
       ),
-      inputDecorationTheme: InputDecorationTheme(
-        filled: true,
-        fillColor: const Color(0xFF13171E).withValues(alpha: 0.8), // Dark inputs as requested
-        hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
-        labelStyle: GoogleFonts.inter(color: TfcColors.onSurfaceVariant),
-        floatingLabelStyle: GoogleFonts.inter(color: TfcColors.primary),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFF1C222E), width: 1),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Color(0xFF1C222E), width: 1),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: TfcColors.primary, width: 1.5),
-        ),
+      labelLarge: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: TfcColors.primary,
+        letterSpacing: 0.7,
       ),
-    );
-  }
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: const Color(0xFF13171E),
+      hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
+      labelStyle: const TextStyle(color: TfcColors.onSurfaceVariant),
+      floatingLabelStyle: const TextStyle(color: TfcColors.primary),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFF1C222E), width: 1),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Color(0xFF1C222E), width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: TfcColors.primary, width: 1.5),
+      ),
+    ),
+  );
 }
 
 // =============================================================================

@@ -236,9 +236,10 @@ class _EmployeeTargetsPanelState extends ConsumerState<EmployeeTargetsPanel> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Scrollbar(
-                          child: ListView(
-                            shrinkWrap: true,
-                            children: activeEmployees.map((emp) {
+                          child: ListView.builder(
+                            itemCount: activeEmployees.length,
+                            itemBuilder: (ctx, index) {
+                              final emp = activeEmployees[index];
                               final isSelected = selectedEmployeeIds.contains(emp.id);
                               return CheckboxListTile(
                                 title: Text(emp.fullName, textAlign: TextAlign.right),
@@ -259,7 +260,7 @@ class _EmployeeTargetsPanelState extends ConsumerState<EmployeeTargetsPanel> {
                                   });
                                 },
                               );
-                            }).toList(),
+                            },
                           ),
                         ),
                       ),

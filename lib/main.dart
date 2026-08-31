@@ -30,23 +30,11 @@ void main() async {
   );
 }
 
-class TfcCrmApp extends ConsumerWidget {
+class TfcCrmApp extends StatelessWidget {
   const TfcCrmApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authProvider);
-
-    // Determine which screen to show
-    Widget homeScreen;
-    if (!authState.isAuthenticated) {
-      homeScreen = const LoginScreen();
-    } else if (!authState.isConfirmed) {
-      homeScreen = const PendingConfirmationScreen();
-    } else {
-      homeScreen = const MainNavigationWrapper();
-    }
-
+  Widget build(BuildContext context) {
     return MaterialApp(
       title: 'TFC Financial CRM',
       debugShowCheckedModeBanner: false,
@@ -64,9 +52,26 @@ class TfcCrmApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
       ],
       
-      // Dynamic Authentication Routing with global glass background
-      home: TfcGlassBackground(child: homeScreen),
+      // Isolated Auth Router — prevents rebuilding MaterialApp on auth state changes
+      home: const TfcGlassBackground(child: _AppAuthRouter()),
     );
+  }
+}
+
+class _AppAuthRouter extends ConsumerWidget {
+  const _AppAuthRouter();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+
+    if (!authState.isAuthenticated) {
+      return const LoginScreen();
+    } else if (!authState.isConfirmed) {
+      return const PendingConfirmationScreen();
+    } else {
+      return const MainNavigationWrapper();
+    }
   }
 }
 

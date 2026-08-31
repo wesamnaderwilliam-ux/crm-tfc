@@ -37,15 +37,18 @@ class ProspectsNotifier extends StateNotifier<AsyncValue<List<ProspectModel>>> {
     return [];
   }
 
-  /// Save to local cache
+  /// Save to local cache asynchronously without blocking UI
   Future<void> _saveToLocalCache(List<ProspectModel> prospects) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final jsonStr = jsonEncode(prospects.map((p) => p.toJson()).toList());
-      await prefs.setString(_localCacheKey, jsonStr);
-    } catch (e) {
-      debugPrint('⚠️ Error saving prospects to local cache: $e');
-    }
+    // Run storage in unawaited microtask to keep UI 60fps smooth
+    Future.microtask(() async {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final jsonStr = jsonEncode(prospects.map((p) => p.toJson()).toList());
+        await prefs.setString(_localCacheKey, jsonStr);
+      } catch (e) {
+        debugPrint('⚠️ Error saving prospects to local cache: $e');
+      }
+    });
   }
 
   Future<void> fetchProspects() async {
