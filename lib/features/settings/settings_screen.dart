@@ -803,64 +803,23 @@ class _GoogleSheetsSettingsCard extends ConsumerStatefulWidget {
   ConsumerState<_GoogleSheetsSettingsCard> createState() => __GoogleSheetsSettingsCardState();
 }
 
-class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSettingsCard>
-    with SingleTickerProviderStateMixin {
-  late TextEditingController _urlController;
+class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSettingsCard> {
   late TextEditingController _prospectUrlController;
-  List<String> _detectedHeaders = [];
   List<String> _detectedProspectHeaders = [];
-  Map<String, String> _mappings = {};
   Map<String, String> _prospectMappings = {};
-  bool _isLoadingHeaders = false;
   bool _isLoadingProspectHeaders = false;
-  late TabController _tabController;
 
-  // ─── حقول العملاء العاديين ───
-  final Map<String, String> _targetClientFields = {
-    'full_name': '👤 [بيانات شخصية] الاسم الكامل للعميل',
-    'phone_number': '📞 [بيانات شخصية] رقم الهاتف الرئيسي',
-    'secondary_phone_number': '📱 [بيانات شخصية] رقم الهاتف الإضافي',
-    'national_id': '🪪 [بيانات شخصية] الرقم القومي (14 رقم)',
-    'birth_date': '📅 [بيانات شخصية] تاريخ الميلاد',
-    'governorate': '📍 [بيانات شخصية] المحافظة والمنطقة',
-    'employment_type': '💼 [بيانات وظيفية] نوع وطبيعة العمل',
-    'company_name': '🏢 [بيانات وظيفية] جهة العمل / الشركة',
-    'job_title': '👔 [بيانات وظيفية] المسمى الوظيفي',
-    'is_insured': '🛡️ [بيانات وظيفية] مؤمن عليه (نعم / لا)',
-    'salary_transfer_method': '🏦 [بيانات وظيفية] طريقة تحويل الراتب',
-    'cash_salary_amount': '💵 [بيانات وظيفية] مفصل الراتب / الدخل المالي',
-    'salary_bank_name': '🏦 [تفاصيل بنك الراتب] اسم البنك',
-    'salary_bank_amount': '💰 [تفاصيل بنك الراتب] قيمة المبلغ المحول',
-    'business_legal_entity': '⚖️ [أعمال خاصة] الكيان القانوني',
-    'business_activity_type': '🏭 [أعمال خاصة] نوع النشاط التجاري',
-    'company_start_date': '📅 [أعمال خاصة] تاريخ تأسيس النشاط',
-    'commercial_register_age': '📑 [أعمال خاصة] عمر السجل التجاري',
-    'has_tax_card': '💳 [أعمال خاصة] وجود بطاقة ضريبية',
-    'credit_score': '📊 [بيانات ائتمانية] التقييم الائتماني (I-Score)',
-    'requested_amount': '💰 [بيانات ائتمانية] مبلغ التمويل المطلوب',
-    'representative_name': '👨‍💼 [بيانات ائتمانية] المندوب المسؤول',
-    'status': '📌 [حالة العميل] حالة الطلب الحالية',
-    'loan_bank_name': '🏦 [قرض قائم] اسم البنك',
-    'loan_original_amount': '💰 [قرض قائم] إجمالي مبلغ القرض',
-    'loan_monthly_installment': '💵 [قرض قائم] القسط الشهري',
-    'loan_remaining_balance': '📉 [قرض قائم] الرصيد المتبقي',
-    'card_bank_name': '💳 [بطاقة ائتمان] اسم البنك المصدر',
-    'card_limit': '💎 [بطاقة ائتمان] الحد الائتماني',
-    'card_monthly_installment': '💵 [بطاقة ائتمان] القسط الشهري',
-    'notes': '📝 [ملاحظات] التفاصيل والملاحظات الإضافية',
-  };
-
-  // ─── حقول العملاء المحتملين ───
+  // ─── حقول العملاء المحتملين المتاحة للربط ───
   final Map<String, String> _targetProspectFields = {
     'full_name': '👤 الاسم الكامل للعميل المحتمل',
     'phone_number': '📞 رقم الهاتف الرئيسي',
     'secondary_phone_number': '📱 رقم الهاتف الإضافي',
     'national_id': '🪪 الرقم القومي',
-    'governorate': '📍 المحافظة',
+    'governorate': '📍 المحافظة / المنطقة',
     'job_title': '👔 المسمى الوظيفي',
     'company_name': '🏢 جهة العمل / الشركة',
     'salary_amount': '💰 الراتب / الدخل الشهري',
-    'notes': '📝 ملاحظات',
+    'notes': '📝 ملاحظات إضافية',
     'assigned_to_name': '👨‍💼 اسم الموظف المسند إليه',
     'status': '📌 الحالة (pending / contacted / converted)',
   };
@@ -868,16 +827,12 @@ class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSetting
   @override
   void initState() {
     super.initState();
-    _urlController = TextEditingController();
     _prospectUrlController = TextEditingController();
-    _tabController = TabController(length: 2, vsync: this);
   }
 
   @override
   void dispose() {
-    _urlController.dispose();
     _prospectUrlController.dispose();
-    _tabController.dispose();
     super.dispose();
   }
 
@@ -887,13 +842,17 @@ class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSetting
     final config = configState.value;
 
     if (config != null) {
-      if (_urlController.text.isEmpty && config.sheetUrl.isNotEmpty) {
-        _urlController.text = config.sheetUrl;
-        _mappings = Map.from(config.fieldMappings);
-      }
-      if (_prospectUrlController.text.isEmpty && config.prospectSheetUrl.isNotEmpty) {
-        _prospectUrlController.text = config.prospectSheetUrl;
-        _prospectMappings = Map.from(config.prospectFieldMappings);
+      if (_prospectUrlController.text.isEmpty) {
+        // Fallback to prospectSheetUrl or sheetUrl
+        final savedUrl = config.prospectSheetUrl.isNotEmpty
+            ? config.prospectSheetUrl
+            : config.sheetUrl;
+        _prospectUrlController.text = savedUrl;
+        
+        final savedMappings = config.prospectFieldMappings.isNotEmpty
+            ? config.prospectFieldMappings
+            : config.fieldMappings;
+        _prospectMappings = Map.from(savedMappings);
       }
     }
 
@@ -909,147 +868,25 @@ class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSetting
               Icon(Icons.table_chart, color: TfcColors.primary),
               SizedBox(width: 12),
               Text(
-                "ربط وتعيين حقول Google Sheet (خاص بالمسؤول)",
+                "ربط وتعيين حقول Google Sheet بالعملاء المحتملين",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: 8),
           const Text(
-            "ضع رابط شيت جوجل وقم بربط كل عمود بالحقل المناسب له:",
+            "ضع رابط شيت جوجل (Google Sheet Public URL)، وقم بربط أعمدة الشيت بحقول جدول العملاء المحتملين المناسبة:",
             style: TextStyle(color: TfcColors.outline, fontSize: 13),
             textDirection: TextDirection.rtl,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
-          // Tabs
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-            ),
-            child: TabBar(
-              controller: _tabController,
-              labelColor: Colors.black,
-              unselectedLabelColor: TfcColors.outline,
-              indicator: BoxDecoration(
-                color: TfcColors.primary,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              indicatorPadding: const EdgeInsets.all(4),
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-              tabs: const [
-                Tab(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.people, size: 16),
-                      SizedBox(width: 6),
-                      Text("العملاء"),
-                    ],
-                  ),
-                ),
-                Tab(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.person_search, size: 16),
-                      SizedBox(width: 6),
-                      Text("العملاء المحتملين"),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Tab Views
-          SizedBox(
-            height: 600,
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                // ── Tab 1: العملاء ──
-                _buildSheetTab(
-                  urlController: _urlController,
-                  detectedHeaders: _detectedHeaders,
-                  mappings: _mappings,
-                  targetFields: _targetClientFields,
-                  isLoading: _isLoadingHeaders,
-                  onFetch: _fetchHeaders,
-                  onMappingChanged: (header, val) {
-                    setState(() {
-                      if (val == null) {
-                        _mappings.remove(header);
-                      } else {
-                        _mappings[header] = val;
-                      }
-                    });
-                  },
-                ),
-                // ── Tab 2: العملاء المحتملين ──
-                _buildSheetTab(
-                  urlController: _prospectUrlController,
-                  detectedHeaders: _detectedProspectHeaders,
-                  mappings: _prospectMappings,
-                  targetFields: _targetProspectFields,
-                  isLoading: _isLoadingProspectHeaders,
-                  onFetch: _fetchProspectHeaders,
-                  onMappingChanged: (header, val) {
-                    setState(() {
-                      if (val == null) {
-                        _prospectMappings.remove(header);
-                      } else {
-                        _prospectMappings[header] = val;
-                      }
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
-
-          // Save Button
-          Align(
-            alignment: Alignment.centerRight,
-            child: ElevatedButton.icon(
-              onPressed: _saveGoogleSheetConfig,
-              icon: const Icon(Icons.save_rounded, size: 18),
-              label: const Text("حفظ جميع إعدادات Google Sheet"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: TfcColors.primary,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSheetTab({
-    required TextEditingController urlController,
-    required List<String> detectedHeaders,
-    required Map<String, String> mappings,
-    required Map<String, String> targetFields,
-    required bool isLoading,
-    required VoidCallback onFetch,
-    required void Function(String header, String? val) onMappingChanged,
-  }) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
           // URL Input & Fetch Button
           Row(
             children: [
               Expanded(
                 child: TextField(
-                  controller: urlController,
+                  controller: _prospectUrlController,
                   style: const TextStyle(color: Colors.white),
                   decoration: const InputDecoration(
                     labelText: "رابط Google Sheet (أو رابط النشر كـ CSV)",
@@ -1060,8 +897,8 @@ class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSetting
               ),
               const SizedBox(width: 12),
               ElevatedButton.icon(
-                onPressed: isLoading ? null : onFetch,
-                icon: isLoading
+                onPressed: _isLoadingProspectHeaders ? null : _fetchProspectHeaders,
+                icon: _isLoadingProspectHeaders
                     ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
                     : const Icon(Icons.download, size: 18),
                 label: const Text("جلب الحقول"),
@@ -1073,16 +910,16 @@ class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSetting
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           // Field Mappings
-          if (detectedHeaders.isNotEmpty || mappings.isNotEmpty) ...[
+          if (_detectedProspectHeaders.isNotEmpty || _prospectMappings.isNotEmpty) ...[
             const Text(
-              "تعيين حقول الشيت بأعمدة الجدول المناسبة:",
+              "تعيين حقول الشيت بأعمدة جدول العملاء المحتملين:",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: TfcColors.primary),
               textDirection: TextDirection.rtl,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -1091,7 +928,10 @@ class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSetting
                 border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
               ),
               child: Column(
-                children: (detectedHeaders.isNotEmpty ? detectedHeaders : mappings.keys.toList()).map((header) {
+                children: (_detectedProspectHeaders.isNotEmpty
+                        ? _detectedProspectHeaders
+                        : _prospectMappings.keys.toList())
+                    .map((header) {
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     child: Row(
@@ -1108,7 +948,7 @@ class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSetting
                         Expanded(
                           flex: 3,
                           child: DropdownButtonFormField<String>(
-                            value: mappings[header],
+                            value: _prospectMappings[header],
                             dropdownColor: const Color(0xFF1E2430),
                             style: const TextStyle(color: Colors.white, fontSize: 13),
                             decoration: InputDecoration(
@@ -1121,12 +961,20 @@ class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSetting
                                 value: null,
                                 child: Text('-- عدم الربط --', style: TextStyle(color: Colors.white38)),
                               ),
-                              ...targetFields.entries.map((e) => DropdownMenuItem(
+                              ..._targetProspectFields.entries.map((e) => DropdownMenuItem(
                                     value: e.key,
                                     child: Text(e.value, overflow: TextOverflow.ellipsis),
                                   )),
                             ],
-                            onChanged: (val) => onMappingChanged(header, val),
+                            onChanged: (val) {
+                              setState(() {
+                                if (val == null) {
+                                  _prospectMappings.remove(header);
+                                } else {
+                                  _prospectMappings[header] = val;
+                                }
+                              });
+                            },
                           ),
                         ),
                       ],
@@ -1135,7 +983,7 @@ class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSetting
                 }).toList(),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
           ] else ...[
             Container(
               padding: const EdgeInsets.all(20),
@@ -1149,7 +997,7 @@ class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSetting
                   Icon(Icons.table_chart_outlined, color: TfcColors.outline, size: 36),
                   SizedBox(height: 8),
                   Text(
-                    "أدخل رابط الشيت واضغط \"جلب الحقول\" لعرض أعمدة الشيت وربطها",
+                    "أدخل رابط الشيت واضغط \"جلب الحقول\" لعرض أعمدة الشيت وربطها بحقول العملاء المحتملين",
                     style: TextStyle(color: TfcColors.outline, fontSize: 13),
                     textAlign: TextAlign.center,
                     textDirection: TextDirection.rtl,
@@ -1157,41 +1005,27 @@ class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSetting
                 ],
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 16),
           ],
+
+          // Save Config Button
+          Align(
+            alignment: Alignment.centerRight,
+            child: ElevatedButton.icon(
+              onPressed: _saveGoogleSheetConfig,
+              icon: const Icon(Icons.save_rounded, size: 18),
+              label: const Text("حفظ إعدادات Google Sheet للعملاء المحتملين"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: TfcColors.primary,
+                foregroundColor: Colors.black,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+            ),
+          ),
         ],
       ),
     );
-  }
-
-  Future<void> _fetchHeaders() async {
-    final url = _urlController.text.trim();
-    if (url.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("يرجى إدخال رابط Google Sheet أولاً")),
-      );
-      return;
-    }
-    setState(() => _isLoadingHeaders = true);
-    final headers = await ref.read(googleSheetConfigProvider.notifier).fetchSheetHeaders(url);
-    setState(() {
-      _isLoadingHeaders = false;
-      _detectedHeaders = headers;
-      for (final h in headers) {
-        final lower = h.toLowerCase();
-        if (lower.contains('اسم') || lower.contains('name')) _mappings[h] = 'full_name';
-        if (lower.contains('هاتف') || lower.contains('موبايل') || lower.contains('phone')) _mappings[h] = 'phone_number';
-        if (lower.contains('شركة') || lower.contains('جهة') || lower.contains('company')) _mappings[h] = 'company_name';
-        if (lower.contains('وظيفة') || lower.contains('job') || lower.contains('title')) _mappings[h] = 'job_title';
-        if (lower.contains('محافظة') || lower.contains('gov')) _mappings[h] = 'governorate';
-        if (lower.contains('مرتب') || lower.contains('دخل') || lower.contains('salary')) _mappings[h] = 'cash_salary_amount';
-      }
-    });
-    if (headers.isEmpty && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("لم نتمكن من قراءة الحقول. تأكد أن الشيت منشور ومتاح للعموم")),
-      );
-    }
   }
 
   Future<void> _fetchProspectHeaders() async {
@@ -1220,24 +1054,23 @@ class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSetting
     });
     if (headers.isEmpty && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("لم نتمكن من قراءة الحقول. تأكد أن الشيت منشور ومتاح للعموم")),
+        const SnackBar(content: Text("لم نتمكن من قراءة الحقول. تأكد أن الشيت منشور ومتاح للعموم (Public)")),
       );
     }
   }
 
   Future<void> _saveGoogleSheetConfig() async {
-    final url = _urlController.text.trim();
     final prospectUrl = _prospectUrlController.text.trim();
-    if (url.isEmpty && prospectUrl.isEmpty) {
+    if (prospectUrl.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("يرجى إدخال رابط Google Sheet على الأقل في أحد التبويبين")),
+        const SnackBar(content: Text("يرجى إدخال رابط Google Sheet أولاً")),
       );
       return;
     }
 
     final config = GoogleSheetConfigModel(
-      sheetUrl: url,
-      fieldMappings: _mappings,
+      sheetUrl: prospectUrl,
+      fieldMappings: _prospectMappings,
       prospectSheetUrl: prospectUrl,
       prospectFieldMappings: _prospectMappings,
       lastSyncedAt: DateTime.now(),
@@ -1247,7 +1080,7 @@ class __GoogleSheetsSettingsCardState extends ConsumerState<_GoogleSheetsSetting
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(success ? "✅ تم حفظ إعدادات ربط Google Sheet بنجاح" : "حدث خطأ أثناء الحفظ"),
+          content: Text(success ? "✅ تم حفظ إعدادات ربط Google Sheet بالعملاء المحتملين بنجاح" : "حدث خطأ أثناء الحفظ"),
           backgroundColor: success ? TfcColors.success : Colors.red,
         ),
       );
