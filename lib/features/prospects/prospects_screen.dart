@@ -808,29 +808,17 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                 rawNotesBuffer.writeln('────────────────────────');
               }
               if (raw.isNotEmpty) {
-                rawNotesBuffer.writeln('📋 [بيانات مستوردة من شيت جوجل]:');
+                rawNotesBuffer.writeln('📋 بيانات واردة من شيت جوجل:');
+                rawNotesBuffer.writeln('');
                 raw.forEach((k, v) {
                   if (v != null && v.toString().trim().isNotEmpty) {
-                    rawNotesBuffer.writeln('• $k: $v');
+                    rawNotesBuffer.writeln('$k: $v');
                   }
                 });
               }
+              final sheetNotesContent = rawNotesBuffer.isNotEmpty ? rawNotesBuffer.toString().trim() : null;
 
-              final notesContent = rawNotesBuffer.isNotEmpty ? rawNotesBuffer.toString().trim() : null;
-              final initialHistory = <InteractionLogModel>[];
-              if (notesContent != null) {
-                initialHistory.add(
-                  InteractionLogModel(
-                    id: DateTime.now().millisecondsSinceEpoch.toString(),
-                    actionType: 'تحويل من عميل محتمل',
-                    notes: notesContent,
-                    createdBy: prospect.assignedToName ?? 'النظام',
-                    createdAt: DateTime.now(),
-                  ),
-                );
-              }
-
-              // 2. Build official ClientModel
+              // 2. Build official ClientModel (no history embedded - saved directly to Supabase via customNotes)
               final newClient = ClientModel(
                 id: DateTime.now().millisecondsSinceEpoch.toString(),
                 fullName: prospect.fullName,
@@ -850,15 +838,14 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                 representativeName: prospect.assignedToName,
                 status: 'pending',
                 createdAt: DateTime.now(),
-                history: initialHistory,
                 hasCompoundUnit: hasCompound,
                 hasModernCar: hasCar,
                 compoundUnitsData: compoundUnits,
                 modernCarsData: modernCars,
               );
 
-              // 3. Add to Clients List
-              await ref.read(clientProvider.notifier).addClient(newClient, [], []);
+              // 3. Add to Clients List — pass sheetNotesContent as customNotes to save to interaction_history
+              await ref.read(clientProvider.notifier).addClient(newClient, [], [], customNotes: sheetNotesContent);
 
               // 4. Navigate directly to Client Details
               if (widget.onNavigateToClientDetails != null) {

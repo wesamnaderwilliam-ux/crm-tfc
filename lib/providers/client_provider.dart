@@ -427,13 +427,14 @@ class ClientNotifier extends StateNotifier<ClientState> {
         await SupabaseConfig.client.from('documents').insert(docsData);
       }
 
-      // Add custom salary details log to interaction_history
+      // Add custom notes / sheet data log to interaction_history
       if (customNotes != null) {
         await SupabaseConfig.client.from('interaction_history').insert({
           'client_id': newClientId,
-          'action_type': 'إنشاء الملف - تفاصيل الراتب',
+          'action_type': 'تحويل من عميل محتمل',
           'notes': customNotes,
           'created_by_name': client.representativeName ?? 'النظام',
+          'log_type': 'file_interaction',
         });
       }
 
