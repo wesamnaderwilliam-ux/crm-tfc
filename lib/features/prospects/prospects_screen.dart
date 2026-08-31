@@ -179,10 +179,11 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                 ),
                                 items: const [
                                   DropdownMenuItem(value: 'all', child: Text('جميع الحالات')),
-                                  DropdownMenuItem(value: 'pending', child: Text('قيد الانتظار')),
-                                  DropdownMenuItem(value: 'contacted', child: Text('تم التواصل')),
-                                  DropdownMenuItem(value: 'converted', child: Text('تم التحويل لعميل')),
-                                  DropdownMenuItem(value: 'rejected', child: Text('مرفوض / غير مهتم')),
+                                  DropdownMenuItem(value: 'pending', child: Text('— فارغ (قيد الانتظار) —')),
+                                  DropdownMenuItem(value: 'yes', child: Text('YES (أصفر)')),
+                                  DropdownMenuItem(value: 'no', child: Text('NO (أحمر)')),
+                                  DropdownMenuItem(value: 'finish', child: Text('Finish (بني)')),
+                                  DropdownMenuItem(value: 'converted', child: Text('تم التحويل لعميل (أخضر)')),
                                 ],
                                 onChanged: (val) {
                                   if (val != null) setState(() => _selectedStatusFilter = val);
@@ -343,278 +344,366 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                       );
                     }
 
+                    // Scrollbar Controller for bottom horizontal scrolling
+                    final horizontalScrollController = ScrollController();
+
                     return GlassCard(
                       padding: const EdgeInsets.all(0),
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
+                      child: Scrollbar(
+                        controller: horizontalScrollController,
+                        thumbVisibility: true,
+                        trackVisibility: true,
+                        thickness: 8,
+                        radius: const Radius.circular(8),
                         child: SingleChildScrollView(
+                          controller: horizontalScrollController,
                           scrollDirection: Axis.horizontal,
-                          child: DataTable(
-                          columnSpacing: 20,
-                          headingRowHeight: 48,
-                          dataRowMinHeight: 56,
-                          dataRowMaxHeight: 64,
-                          headingRowColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.05)),
-                          columns: [
-                            DataColumn(
-                              label: Checkbox(
-                                value: _selectedProspectIds.length == filtered.length && filtered.isNotEmpty,
-                                activeColor: TfcColors.primary,
-                                onChanged: (val) {
-                                  setState(() {
-                                    if (val == true) {
-                                      _selectedProspectIds.addAll(filtered.map((e) => e.id));
-                                    } else {
-                                      _selectedProspectIds.clear();
-                                    }
-                                  });
-                                },
-                              ),
-                            ),
-                            const DataColumn(label: Text('اسم العميل المحتمل', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
-                            const DataColumn(label: Text('رقم الهاتف', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
-                            const DataColumn(label: Text('الشركة / الوظيفة', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
-                            const DataColumn(label: Text('المحافظة', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
-                            const DataColumn(label: Text('الموظف المسند إليه', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
-                            const DataColumn(label: Text('الحالة', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
-                            const DataColumn(label: Text('الإجراءات', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
-                          ],
-                          rows: filtered.map((prospect) {
-                            final isSelected = _selectedProspectIds.contains(prospect.id);
-                            final isConverted = prospect.isConverted || prospect.status == 'converted';
-                            return DataRow(
-                              selected: isSelected,
-                              color: WidgetStateProperty.resolveWith<Color?>((states) {
-                                if (isConverted) {
-                                  return const Color(0xFF0F3824).withValues(alpha: 0.85); // أخضر كامل واضح ومريح
-                                }
-                                if (states.contains(WidgetState.hovered)) {
-                                  return Colors.white.withValues(alpha: 0.06);
-                                }
-                                if (states.contains(WidgetState.selected)) {
-                                  return TfcColors.primary.withValues(alpha: 0.15);
-                                }
-                                return null;
-                              }),
-                              onSelectChanged: (val) {
-                                setState(() {
-                                  if (val == true) {
-                                    _selectedProspectIds.add(prospect.id);
-                                  } else {
-                                    _selectedProspectIds.remove(prospect.id);
-                                  }
-                                });
-                              },
-                              cells: [
-                                DataCell(
-                                  Checkbox(
-                                    value: isSelected,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.vertical,
+                            child: DataTable(
+                              columnSpacing: 18,
+                              headingRowHeight: 48,
+                              dataRowMinHeight: 56,
+                              dataRowMaxHeight: 64,
+                              headingRowColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.05)),
+                              columns: [
+                                DataColumn(
+                                  label: Checkbox(
+                                    value: _selectedProspectIds.length == filtered.length && filtered.isNotEmpty,
                                     activeColor: TfcColors.primary,
                                     onChanged: (val) {
                                       setState(() {
                                         if (val == true) {
-                                          _selectedProspectIds.add(prospect.id);
+                                          _selectedProspectIds.addAll(filtered.map((e) => e.id));
                                         } else {
-                                          _selectedProspectIds.remove(prospect.id);
+                                          _selectedProspectIds.clear();
                                         }
                                       });
                                     },
                                   ),
                                 ),
-                                DataCell(
-                                  InkWell(
-                                    onTap: () => _showProspectDetailsDialog(context, prospect),
-                                    borderRadius: BorderRadius.circular(6),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                const DataColumn(label: Text('اسم العميل المحتمل', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
+                                const DataColumn(label: Text('رقم الهاتف', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
+                                const DataColumn(label: Text('الشركة / الوظيفة', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
+                                const DataColumn(label: Text('المحافظة', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
+                                const DataColumn(label: Text('الموظف المسند إليه', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
+                                const DataColumn(label: Text('الحالة', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
+                                const DataColumn(label: Text('التحويل', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
+                                const DataColumn(label: Text('الإجراءات', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
+                              ],
+                              rows: filtered.map((prospect) {
+                                final isSelected = _selectedProspectIds.contains(prospect.id);
+                                final isConverted = prospect.isConverted || prospect.status == 'converted';
+                                final statusVal = prospect.status.toLowerCase().trim();
+
+                                return DataRow(
+                                  selected: isSelected,
+                                  color: WidgetStateProperty.resolveWith<Color?>((states) {
+                                    // 1. إذا تم التحويل لعميل: أخضر كامل
+                                    if (isConverted) {
+                                      return const Color(0xFF1B5E20).withValues(alpha: 0.90);
+                                    }
+                                    // 2. إذا كانت الحالة YES: أصفر واضح ومريح مع تباين
+                                    if (statusVal == 'yes') {
+                                      return const Color(0xFFFBC02D).withValues(alpha: 0.85);
+                                    }
+                                    // 3. إذا كانت الحالة NO: أحمر واضح ومريح
+                                    if (statusVal == 'no' || statusVal == 'rejected') {
+                                      return const Color(0xFFC62828).withValues(alpha: 0.85);
+                                    }
+                                    // 4. إذا كانت الحالة Finish: بني أنيق وواضح
+                                    if (statusVal == 'finish') {
+                                      return const Color(0xFF6D4C41).withValues(alpha: 0.90);
+                                    }
+                                    // 5. إذا كانت فارغة أو pending: لون الصف العادي
+                                    if (states.contains(WidgetState.hovered)) {
+                                      return Colors.white.withValues(alpha: 0.06);
+                                    }
+                                    if (states.contains(WidgetState.selected)) {
+                                      return TfcColors.primary.withValues(alpha: 0.15);
+                                    }
+                                    return null;
+                                  }),
+                                  onSelectChanged: (val) {
+                                    setState(() {
+                                      if (val == true) {
+                                        _selectedProspectIds.add(prospect.id);
+                                      } else {
+                                        _selectedProspectIds.remove(prospect.id);
+                                      }
+                                    });
+                                  },
+                                  cells: [
+                                    DataCell(
+                                      Checkbox(
+                                        value: isSelected,
+                                        activeColor: isConverted ? Colors.white : TfcColors.primary,
+                                        onChanged: (val) {
+                                          setState(() {
+                                            if (val == true) {
+                                              _selectedProspectIds.add(prospect.id);
+                                            } else {
+                                              _selectedProspectIds.remove(prospect.id);
+                                            }
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    DataCell(
+                                      InkWell(
+                                        onTap: () => _showProspectDetailsDialog(context, prospect),
+                                        borderRadius: BorderRadius.circular(6),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 6),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
                                             children: [
                                               Text(
                                                 prospect.fullName,
                                                 style: TextStyle(
-                                                  color: isConverted ? Colors.greenAccent : TfcColors.primary,
+                                                  color: isConverted
+                                                      ? Colors.white
+                                                      : (statusVal == 'yes' ? Colors.black87 : Colors.white),
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 14,
                                                   decoration: TextDecoration.underline,
                                                 ),
                                               ),
-                                              if (isConverted)
-                                                const Row(
-                                                  children: [
-                                                    Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 12),
-                                                    SizedBox(width: 4),
-                                                    Text('تم التحويل لعميل رسمياً 🌟', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 11)),
-                                                  ],
+                                              const SizedBox(width: 6),
+                                              Icon(
+                                                Icons.open_in_new,
+                                                size: 14,
+                                                color: isConverted
+                                                    ? Colors.white
+                                                    : (statusVal == 'yes' ? Colors.black87 : TfcColors.primary),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    DataCell(
+                                      prospect.phoneNumber != null && prospect.phoneNumber!.isNotEmpty
+                                          ? PhoneActionWidget(
+                                              label: '',
+                                              phoneNumber: prospect.phoneNumber!,
+                                            )
+                                          : Text(
+                                              'غير محدد',
+                                              style: TextStyle(
+                                                color: statusVal == 'yes' && !isConverted ? Colors.black87 : Colors.white70,
+                                              ),
+                                            ),
+                                    ),
+                                    DataCell(Text(
+                                      '${prospect.companyName ?? ''} ${prospect.jobTitle != null ? '(${prospect.jobTitle})' : ''}'.trim().isEmpty
+                                          ? 'غير محدد'
+                                          : '${prospect.companyName ?? ''} ${prospect.jobTitle != null ? '(${prospect.jobTitle})' : ''}'.trim(),
+                                      style: TextStyle(
+                                        color: statusVal == 'yes' && !isConverted ? Colors.black87 : Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    )),
+                                    DataCell(Text(
+                                      prospect.governorate ?? 'غير محدد',
+                                      style: TextStyle(
+                                        color: statusVal == 'yes' && !isConverted ? Colors.black87 : Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    )),
+                                    DataCell(
+                                      isAdmin
+                                          ? DropdownButtonHideUnderline(
+                                              child: DropdownButton<String>(
+                                                value: (prospect.assignedToId != null && prospect.assignedToId!.isNotEmpty)
+                                                    ? prospect.assignedToId
+                                                    : 'unassigned',
+                                                dropdownColor: const Color(0xFF1E2430),
+                                                style: TextStyle(
+                                                  color: statusVal == 'yes' && !isConverted ? Colors.black87 : Colors.white,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
-                                            ],
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Icon(Icons.open_in_new, size: 14, color: isConverted ? Colors.greenAccent : TfcColors.primary),
-                                        ],
-                                      ),
+                                                items: [
+                                                  const DropdownMenuItem(value: 'unassigned', child: Text('غير مسند')),
+                                                  ...employeesState.employees
+                                                      .where((emp) => emp.role != 'bank_employee')
+                                                      .map((emp) => DropdownMenuItem(
+                                                            value: emp.id,
+                                                            child: Text(emp.fullName),
+                                                          )),
+                                                ],
+                                                onChanged: (newEmpId) async {
+                                                  if (newEmpId == 'unassigned') {
+                                                    final updated = prospect.copyWith(assignedToId: '', assignedToName: '');
+                                                    await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                                  } else if (newEmpId != null) {
+                                                    final emp = employeesState.employees.firstWhere((e) => e.id == newEmpId);
+                                                    final updated = prospect.copyWith(assignedToId: emp.id, assignedToName: emp.fullName);
+                                                    await ref.read(prospectsProvider.notifier).updateProspect(updated);
+                                                  }
+                                                },
+                                              ),
+                                            )
+                                          : Text(
+                                              prospect.assignedToName ?? 'غير مسند',
+                                              style: TextStyle(
+                                                color: statusVal == 'yes' && !isConverted ? Colors.black87 : Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 12,
+                                              ),
+                                            ),
                                     ),
-                                  ),
-                                ),
-                                DataCell(
-                                  prospect.phoneNumber != null && prospect.phoneNumber!.isNotEmpty
-                                    ? PhoneActionWidget(label: '', phoneNumber: prospect.phoneNumber!)
-                                    : const Text('غير محدد', style: TextStyle(color: Colors.white70)),
-                                ),
-                                DataCell(Text(
-                                  '${prospect.companyName ?? ''} ${prospect.jobTitle != null ? '(${prospect.jobTitle})' : ''}'.trim().isEmpty
-                                      ? 'غير محدد'
-                                      : '${prospect.companyName ?? ''} ${prospect.jobTitle != null ? '(${prospect.jobTitle})' : ''}'.trim(),
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-                                )),
-                                DataCell(Text(prospect.governorate ?? 'غير محدد', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500))),
-                                DataCell(
-                                  isAdmin
-                                      ? DropdownButtonHideUnderline(
-                                          child: DropdownButton<String>(
-                                            value: (prospect.assignedToId != null && prospect.assignedToId!.isNotEmpty)
-                                                ? prospect.assignedToId
-                                                : 'unassigned',
-                                            dropdownColor: const Color(0xFF1E2430),
-                                            style: const TextStyle(color: Colors.white, fontSize: 12),
-                                            items: [
-                                              const DropdownMenuItem(value: 'unassigned', child: Text('غير مسند')),
-                                              ...employeesState.employees
-                                                  .where((emp) => emp.role != 'bank_employee')
-                                                  .map((emp) => DropdownMenuItem(
-                                                        value: emp.id,
-                                                        child: Text(emp.fullName),
-                                                      )),
-                                            ],
-                                            onChanged: (newEmpId) async {
-                                              if (newEmpId == 'unassigned') {
-                                                final updated = prospect.copyWith(assignedToId: '', assignedToName: '');
-                                                await ref.read(prospectsProvider.notifier).updateProspect(updated);
-                                              } else if (newEmpId != null) {
-                                                final emp = employeesState.employees.firstWhere((e) => e.id == newEmpId);
-                                                final updated = prospect.copyWith(assignedToId: emp.id, assignedToName: emp.fullName);
-                                                await ref.read(prospectsProvider.notifier).updateProspect(updated);
-                                              }
-                                            },
+                                    // 2. خانة الحالة: قائمة منسدلة (فارغ، YES، NO، Finish)
+                                    DataCell(
+                                      DropdownButtonHideUnderline(
+                                        child: DropdownButton<String>(
+                                          value: ['yes', 'no', 'finish', 'pending'].contains(statusVal)
+                                              ? (statusVal == 'pending' ? 'pending' : statusVal)
+                                              : (statusVal == 'rejected' ? 'no' : 'pending'),
+                                          dropdownColor: const Color(0xFF1E2430),
+                                          style: TextStyle(
+                                            color: statusVal == 'yes' && !isConverted ? Colors.black87 : Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
                                           ),
-                                        )
-                                      : Text(
-                                          prospect.assignedToName ?? 'غير مسند',
-                                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                                        ),
-                                ),
-                                DataCell(
-                                  DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      value: prospect.status,
-                                      dropdownColor: const Color(0xFF1E2430),
-                                      style: const TextStyle(color: Colors.white, fontSize: 12),
-                                      items: const [
-                                        DropdownMenuItem(value: 'pending', child: Text('قيد الانتظار')),
-                                        DropdownMenuItem(value: 'contacted', child: Text('تم التواصل')),
-                                        DropdownMenuItem(value: 'converted', child: Text('تم التحويل')),
-                                        DropdownMenuItem(value: 'rejected', child: Text('مرفوض')),
-                                      ],
-                                      onChanged: (newStatus) async {
-                                        if (newStatus != null) {
-                                          final isNowConverted = newStatus == 'converted';
-                                          final updated = prospect.copyWith(
-                                            status: newStatus,
-                                            isConverted: isNowConverted,
-                                          );
-                                          await ref.read(prospectsProvider.notifier).updateProspect(updated);
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                ),
-                                DataCell(
-                                  Row(
-                                    children: [
-                                      // View Details Popup
-                                      IconButton(
-                                        icon: const Icon(Icons.visibility_outlined, color: TfcColors.primary, size: 20),
-                                        tooltip: 'عرض تفاصيل العميل',
-                                        onPressed: () => _showProspectDetailsDialog(context, prospect),
-                                      ),
-                                      // Edit Action - Admin Only
-                                      if (isAdmin)
-                                        IconButton(
-                                          icon: const Icon(Icons.edit_outlined, color: Colors.white70, size: 20),
-                                          tooltip: 'تعديل البيانات',
-                                          onPressed: () => _showAddOrEditProspectDialog(context, prospect: prospect),
-                                        ),
-                                      // Delete Action - Admin Only
-                                      if (isAdmin)
-                                        IconButton(
-                                          icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
-                                          tooltip: 'حذف العميل',
-                                          onPressed: () async {
-                                            final confirm = await showDialog<bool>(
-                                              context: context,
-                                              builder: (ctx) => AlertDialog(
-                                                backgroundColor: const Color(0xFF1E2430),
-                                                title: const Text('حذف عميل محتمل', style: TextStyle(color: Colors.white)),
-                                                content: const Text('هل أنت متأكد من حذف هذا العميل المحتمل نهائياً؟', style: TextStyle(color: Colors.white70)),
-                                                actions: [
-                                                  TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
-                                                  ElevatedButton(
-                                                    onPressed: () => Navigator.pop(ctx, true),
-                                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                                                    child: const Text('تأكيد الحذف', style: TextStyle(color: Colors.white)),
-                                                  ),
+                                          items: const [
+                                            DropdownMenuItem(value: 'pending', child: Text('— فارغ (بدون) —', style: TextStyle(color: Colors.white70))),
+                                            DropdownMenuItem(
+                                              value: 'yes',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.check_circle, color: Color(0xFFFBC02D), size: 14),
+                                                  SizedBox(width: 4),
+                                                  Text('YES (أصفر)', style: TextStyle(color: Color(0xFFFBC02D), fontWeight: FontWeight.bold)),
                                                 ],
                                               ),
-                                            );
-                                            if (confirm == true) {
-                                              await ref.read(prospectsProvider.notifier).deleteProspect(prospect.id);
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'no',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.cancel, color: Color(0xFFE53935), size: 14),
+                                                  SizedBox(width: 4),
+                                                  Text('NO (أحمر)', style: TextStyle(color: Color(0xFFE53935), fontWeight: FontWeight.bold)),
+                                                ],
+                                              ),
+                                            ),
+                                            DropdownMenuItem(
+                                              value: 'finish',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.flag, color: Color(0xFF8D6E63), size: 14),
+                                                  SizedBox(width: 4),
+                                                  Text('Finish (بني)', style: TextStyle(color: Color(0xFFBCAAA4), fontWeight: FontWeight.bold)),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                          onChanged: (newStatus) async {
+                                            if (newStatus != null) {
+                                              final updated = prospect.copyWith(
+                                                status: newStatus,
+                                              );
+                                              await ref.read(prospectsProvider.notifier).updateProspect(updated);
                                             }
                                           },
                                         ),
-
-                                      // Convert to Client Button
-                                      if (!isConverted)
-                                        ElevatedButton.icon(
-                                          onPressed: () => _handleConvertToClient(context, prospect),
-                                          icon: const Icon(Icons.arrow_forward, size: 14),
-                                          label: const Text('تحويل لعميل', style: TextStyle(fontSize: 12)),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.green,
-                                            foregroundColor: Colors.white,
-                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                    ),
+                                    // 3. خانة التحويل
+                                    DataCell(
+                                      isConverted
+                                          ? Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                              decoration: BoxDecoration(
+                                                color: Colors.black.withValues(alpha: 0.25),
+                                                borderRadius: BorderRadius.circular(8),
+                                                border: Border.all(color: Colors.white.withValues(alpha: 0.6)),
+                                              ),
+                                              child: const Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(Icons.check_circle, color: Colors.white, size: 14),
+                                                  SizedBox(width: 4),
+                                                  Text('تم التحويل ✅', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
+                                                ],
+                                              ),
+                                            )
+                                          : ElevatedButton.icon(
+                                              onPressed: () => _handleConvertToClient(context, prospect),
+                                              icon: const Icon(Icons.transform, size: 13),
+                                              label: const Text('تحويل لعميل', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: const Color(0xFF2E7D32),
+                                                foregroundColor: Colors.white,
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                                              ),
+                                            ),
+                                    ),
+                                    // 4. الإجراءات (عرض، تعديل، حذف)
+                                    DataCell(
+                                      Row(
+                                        children: [
+                                          // View Details Popup
+                                          IconButton(
+                                            icon: Icon(
+                                              Icons.visibility_outlined,
+                                              color: statusVal == 'yes' && !isConverted ? Colors.black87 : TfcColors.primary,
+                                              size: 20,
+                                            ),
+                                            tooltip: 'عرض تفاصيل العميل',
+                                            onPressed: () => _showProspectDetailsDialog(context, prospect),
                                           ),
-                                        )
-                                      else
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: Colors.greenAccent.withValues(alpha: 0.2),
-                                            borderRadius: BorderRadius.circular(6),
-                                            border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.4)),
-                                          ),
-                                          child: const Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(Icons.check, color: Colors.greenAccent, size: 14),
-                                              SizedBox(width: 4),
-                                              Text('عميل معتمد', style: TextStyle(color: Colors.greenAccent, fontSize: 11, fontWeight: FontWeight.bold)),
-                                            ],
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            );
-                          }).toList(),
+                                          // Edit Action - Admin Only
+                                          if (isAdmin)
+                                            IconButton(
+                                              icon: Icon(
+                                                Icons.edit_outlined,
+                                                color: statusVal == 'yes' && !isConverted ? Colors.black87 : Colors.white70,
+                                                size: 20,
+                                              ),
+                                              tooltip: 'تعديل البيانات',
+                                              onPressed: () => _showAddOrEditProspectDialog(context, prospect: prospect),
+                                            ),
+                                          // Delete Action - Admin Only
+                                          if (isAdmin)
+                                            IconButton(
+                                              icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                                              tooltip: 'حذف العميل',
+                                              onPressed: () async {
+                                                final confirm = await showDialog<bool>(
+                                                  context: context,
+                                                  builder: (ctx) => AlertDialog(
+                                                    backgroundColor: const Color(0xFF1E2430),
+                                                    title: const Text('حذف عميل محتمل', style: TextStyle(color: Colors.white)),
+                                                    content: const Text('هل أنت متأكد من حذف هذا العميل المحتمل نهائياً؟', style: TextStyle(color: Colors.white70)),
+                                                    actions: [
+                                                      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('إلغاء')),
+                                                      ElevatedButton(
+                                                        onPressed: () => Navigator.pop(ctx, true),
+                                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                                                        child: const Text('تأكيد الحذف', style: TextStyle(color: Colors.white)),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+                                                if (confirm == true) {
+                                                  await ref.read(prospectsProvider.notifier).deleteProspect(prospect.id);
+                                                }
+                                              },
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              }).toList(),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
                     );
                   },
                   loading: () => const Center(child: CircularProgressIndicator(color: TfcColors.primary)),
