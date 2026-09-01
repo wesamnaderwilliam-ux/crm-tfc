@@ -15,7 +15,7 @@ class BanksRepository {
             core_programs ( program_name )
           ),
           bank_employees (
-            id, bank_id, employee_name, phone_1, phone_2, job_title, email, notes
+            id, bank_id, employee_name, phone_1, phone_2, job_title, email, notes, profile_id
           )
         ''')
         .order('bank_name');
@@ -33,7 +33,7 @@ class BanksRepository {
   Future<List<Map<String, dynamic>>> getEmployeesByBank(String bankId) async {
     return await _supabase
         .from('bank_employees')
-        .select('id, employee_name, phone_1, phone_2, job_title, email, notes')
+        .select('id, bank_id, employee_name, phone_1, phone_2, job_title, email, notes, profile_id')
         .eq('bank_id', bankId)
         .order('employee_name');
   }

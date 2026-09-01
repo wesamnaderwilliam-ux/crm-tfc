@@ -1637,6 +1637,9 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
                       try {
                         final repo = ref.read(banksRepositoryProvider);
                         String? employeeRecordId;
+                        final oldBankId = widget.bankData['id']?.toString();
+                        final isBankChanged = selectedBankId != oldBankId;
+
                         if (employee == null) {
                           final res = await repo.addEmployee(
                             bankId: selectedBankId,
@@ -1678,12 +1681,28 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
                           );
                         }
 
+                        // Invalidate providers so all screens update immediately
                         ref.invalidate(allBanksProvider);
+                        ref.invalidate(bankEmployeesProvider(selectedBankId));
+                        if (oldBankId != null && oldBankId != selectedBankId) {
+                          ref.invalidate(bankEmployeesProvider(oldBankId));
+                        }
+
+                        // If the employee's bank changed, switch active view to the new bank
+                        if (isBankChanged) {
+                          ref.read(selectedBankIdProvider.notifier).state = selectedBankId;
+                        }
+
                         if (context.mounted) {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(employee == null ? "تم إضافة الموظف بنجاح" : "تم تعديل بيانات الموظف بنجاح", style: const TextStyle(fontWeight: FontWeight.bold)),
+                              content: Text(
+                                employee == null
+                                    ? "تم إضافة الموظف بنجاح"
+                                    : (isBankChanged ? "تم نقل الموظف إلى البنك الجديد بنجاح" : "تم تعديل بيانات الموظف بنجاح"),
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
                               backgroundColor: TfcColors.primary,
                             ),
                           );
