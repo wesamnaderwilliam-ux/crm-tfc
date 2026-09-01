@@ -15,7 +15,7 @@ class BanksRepository {
             core_programs ( program_name )
           ),
           bank_employees (
-            id, bank_id, employee_name, phone_1, phone_2, job_title, email, notes, profile_id
+            id, bank_id, employee_name, phone_1, phone_2, job_title, email, notes
           )
         ''')
         .order('bank_name');
@@ -33,7 +33,7 @@ class BanksRepository {
   Future<List<Map<String, dynamic>>> getEmployeesByBank(String bankId) async {
     return await _supabase
         .from('bank_employees')
-        .select('id, bank_id, employee_name, phone_1, phone_2, job_title, email, notes, profile_id')
+        .select('id, bank_id, employee_name, phone_1, phone_2, job_title, email, notes')
         .eq('bank_id', bankId)
         .order('employee_name');
   }
@@ -138,7 +138,6 @@ class BanksRepository {
       'job_title': (jobTitle != null && jobTitle.trim().isNotEmpty) ? jobTitle : null,
       'email': (email != null && email.trim().isNotEmpty) ? email : null,
       'notes': (notes != null && notes.trim().isNotEmpty) ? notes : null,
-      'profile_id': (profileId != null && profileId.trim().isNotEmpty) ? profileId : null,
     }).select().single();
     return Map<String, dynamic>.from(res);
   }
@@ -162,7 +161,6 @@ class BanksRepository {
       'job_title': (jobTitle != null && jobTitle.trim().isNotEmpty) ? jobTitle : null,
       'email': (email != null && email.trim().isNotEmpty) ? email : null,
       'notes': (notes != null && notes.trim().isNotEmpty) ? notes : null,
-      'profile_id': (profileId != null && profileId.trim().isNotEmpty) ? profileId : null,
     }).eq('id', id);
   }
 
