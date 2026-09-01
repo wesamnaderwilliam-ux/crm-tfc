@@ -158284,134 +158284,136 @@ r=A.I(s).i("a8<1>")
 s=A.B(new A.a8(s,new A.atq(p),r),r.i("n.E"))
 return s},
 kg(a){return this.aVX(a)},
-aVX(d1){var s=0,r=A.z(t.H),q,p=2,o=[],n=this,m,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,b0,b1,b2,b3,b4,b5,b6,b7,b8,b9,c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,d0
-var $async$kg=A.u(function(d2,d3){if(d2===1){o.push(d3)
-s=p}for(;;)switch(s){case 0:c7=n.f
-if(c7.a.length===0)n.sbq(0,c7.aTm(!0))
+aVX(d2){var s=0,r=A.z(t.H),q,p=2,o=[],n=this,m,l,k,j,i,h,g,f,e,d,c,b,a,a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,b0,b1,b2,b3,b4,b5,b6,b7,b8,b9,c0,c1,c2,c3,c4,c5,c6,c7,c8,c9,d0,d1
+var $async$kg=A.u(function(d3,d4){if(d3===1){o.push(d4)
+s=p}for(;;)switch(s){case 0:c8=n.f
+if(c8.a.length===0)n.sbq(0,c8.aTm(!0))
 if(!$.aC){$.lH().nH("Supabase not initialized: loading simulator client records.")
 n.sbq(0,n.f.zm(n.a5D(),!1))
 s=1
 break}p=4
-c7=t.Ss
-m=A.a([],c7)
+c8=t.Ss
+m=A.a([],c8)
 l=n.r.a9(0,$.bO(),t.D)
 k=l.b==="bank_employee"
-j=d1==null?l.e:d1
+j=d2==null?l.e:d2
 s=k?7:9
 break
 case 7:i=B.l.N(l.c)
-b4=l.d
-B.l.N(b4==null?"":b4)
-b4=l.a
-b5=b4==null?null:b4.a
-h=b5==null?"":b5
+b5=l.d
+B.l.N(b5==null?"":b5)
+b5=l.a
+b6=b5==null?null:b5.a
+h=b6==null?"":b6
 g=A.bc(t.N)
 p=11
 if(!$.aC)A.Q(A.a3(u.N))
-b4=$.bn().b
-b4===$&&A.b()
+b5=$.bn().b
+b5===$&&A.b()
 s=14
-return A.m(b4.aN("distribution_entries").dS(0,"client_id, employee_id, bank_employees(employee_name)"),$async$kg)
-case 14:f=d3
-for(b4=J.ba(f),b6=t.nA;b4.u();){e=b4.gR(b4)
-b7=J.h(e,"employee_id")
-b7=b7==null?null:J.av(b7)
-d=B.l.N(b7==null?"":b7)
-c=b6.a(J.h(e,"bank_employees"))
-b7=c
-if(b7==null)b7=null
-else{b7=J.h(b7,"employee_name")
-b7=b7==null?null:J.av(b7)}b=B.l.N(b7==null?"":b7).toLowerCase()
-b7=J.h(e,"client_id")
-b8=b7==null?null:J.av(b7)
-a=b8==null?"":b8
-if(J.bg(a)===0)continue
-if(!(j!=null&&j.length!==0&&J.d(d,j)))b9=J.bg(h)!==0&&J.d(d,h)
-else b9=!0
-a0=b9
-c0=!1
-if(J.bg(i)!==0)if(J.bg(b)!==0){b7=b
-c1=i.toLowerCase()
-c2=J.a_(b7)
-c3=c2.gq(b7)
-if(0>c3)A.Q(A.dX(0,0,c2.gq(b7),null,null))
-if(!A.cI(b7,c1,0)){b7=i.toLowerCase()
-b7=A.cI(b7,b,0)}else b7=!0
-c0=b7}a1=c0
-if(a0||a1)J.dQ(g,a)}p=4
+return A.m(b5.aN("distribution_entries").dS(0,"client_id, employee_id, status, is_closed, bank_employees(employee_name)"),$async$kg)
+case 14:f=d4
+for(b5=J.ba(f),b7=t.nA;b5.u();){e=b5.gR(b5)
+d=J.d(J.h(e,"is_closed"),!0)||J.d(J.h(e,"status"),"closed")
+if(d)continue
+b8=J.h(e,"employee_id")
+b8=b8==null?null:J.av(b8)
+c=B.l.N(b8==null?"":b8)
+b=b7.a(J.h(e,"bank_employees"))
+b8=b
+if(b8==null)b8=null
+else{b8=J.h(b8,"employee_name")
+b8=b8==null?null:J.av(b8)}a=B.l.N(b8==null?"":b8).toLowerCase()
+b8=J.h(e,"client_id")
+b9=b8==null?null:J.av(b8)
+a0=b9==null?"":b9
+if(J.bg(a0)===0)continue
+if(!(j!=null&&j.length!==0&&J.d(c,j)))c0=J.bg(h)!==0&&J.d(c,h)
+else c0=!0
+a1=c0
+c1=!1
+if(J.bg(i)!==0)if(J.bg(a)!==0){b8=a
+c2=i.toLowerCase()
+c3=J.a_(b8)
+c4=c3.gq(b8)
+if(0>c4)A.Q(A.dX(0,0,c3.gq(b8),null,null))
+if(!A.cI(b8,c2,0)){b8=i.toLowerCase()
+b8=A.cI(b8,a,0)}else b8=!0
+c1=b8}a2=c1
+if(a1||a2)J.dQ(g,a0)}p=4
 s=13
 break
 case 11:p=10
-c8=o.pop()
-a2=A.aa(c8)
-$.lH().ob(0,"Error fetching distributions for bank employee: "+A.f(a2))
+c9=o.pop()
+a3=A.aa(c9)
+$.lH().ob(0,"Error fetching distributions for bank employee: "+A.f(a3))
 s=13
 break
 case 10:s=4
 break
 case 13:p=16
 if(!$.aC)A.Q(A.a3(u.N))
-b4=$.bn().b
-b4===$&&A.b()
+b5=$.bn().b
+b5===$&&A.b()
 s=19
-return A.m(b4.aN("operation_entries").dS(0,"client_id, employee_name"),$async$kg)
-case 19:a3=d3
-for(b4=J.ba(a3);b4.u();){a4=b4.gR(b4)
-b6=J.h(a4,"employee_name")
-b6=b6==null?null:J.av(b6)
-a5=B.l.N(b6==null?"":b6).toLowerCase()
-b6=J.h(a4,"client_id")
-c5=b6==null?null:J.av(b6)
-a6=c5==null?"":c5
-c6=!1
-if(J.bg(i)!==0)if(J.bg(a5)!==0){b6=a5
-b7=i.toLowerCase()
-c1=J.a_(b6)
-c2=c1.gq(b6)
-if(0>c2)A.Q(A.dX(0,0,c1.gq(b6),null,null))
-if(!A.cI(b6,b7,0)){b6=i.toLowerCase()
-b6=A.cI(b6,a5,0)}else b6=!0
-c6=b6}a7=c6
-if(J.bg(a6)!==0&&a7)J.dQ(g,a6)}p=4
+return A.m(b5.aN("operation_entries").dS(0,"client_id, employee_name"),$async$kg)
+case 19:a4=d4
+for(b5=J.ba(a4);b5.u();){a5=b5.gR(b5)
+b7=J.h(a5,"employee_name")
+b7=b7==null?null:J.av(b7)
+a6=B.l.N(b7==null?"":b7).toLowerCase()
+b7=J.h(a5,"client_id")
+c6=b7==null?null:J.av(b7)
+a7=c6==null?"":c6
+c7=!1
+if(J.bg(i)!==0)if(J.bg(a6)!==0){b7=a6
+b8=i.toLowerCase()
+c2=J.a_(b7)
+c3=c2.gq(b7)
+if(0>c3)A.Q(A.dX(0,0,c2.gq(b7),null,null))
+if(!A.cI(b7,b8,0)){b7=i.toLowerCase()
+b7=A.cI(b7,a6,0)}else b7=!0
+c7=b7}a8=c7
+if(J.bg(a7)!==0&&a8)J.dQ(g,a7)}p=4
 s=18
 break
 case 16:p=15
-c9=o.pop()
-a8=A.aa(c9)
-$.lH().ob(0,"Error fetching operations for bank employee: "+A.f(a8))
+d0=o.pop()
+a9=A.aa(d0)
+$.lH().ob(0,"Error fetching operations for bank employee: "+A.f(a9))
 s=18
 break
 case 15:s=4
 break
-case 18:if(g.a===0){n.sbq(0,n.f.zm(A.a([],c7),!1))
+case 18:if(g.a===0){n.sbq(0,n.f.zm(A.a([],c8),!1))
 s=1
 break}if(!$.aC)A.Q(A.a3(u.N))
-c7=$.bn().b
-c7===$&&A.b()
-c7=c7.aN("clients").dS(0,u.B)
-b4=g
-b4=A.B(b4,A.p(b4).c)
+c8=$.bn().b
+c8===$&&A.b()
+c8=c8.aN("clients").dS(0,u.B)
+b5=g
+b5=A.B(b5,A.p(b5).c)
 s=20
-return A.m(A.zf(c7.HZ(c7.L3("id","in.("+c7.awe(b4)+")")),c7.$ti.c).wP(0,"created_at",!1),$async$kg)
-case 20:a9=d3
-for(c7=J.ba(a9);c7.u();){b0=c7.gR(c7)
-J.dQ(m,A.bBP(b0))}s=8
+return A.m(A.zf(c8.HZ(c8.L3("id","in.("+c8.awe(b5)+")")),c8.$ti.c).wP(0,"created_at",!1),$async$kg)
+case 20:b0=d4
+for(c8=J.ba(b0);c8.u();){b1=c8.gR(c8)
+J.dQ(m,A.bBP(b1))}s=8
 break
 case 9:if(!$.aC)A.Q(A.a3(u.N))
-c7=$.bn().b
-c7===$&&A.b()
+c8=$.bn().b
+c8===$&&A.b()
 s=21
-return A.m(c7.aN("clients").dS(0,u.B).wP(0,"created_at",!1).Nf(100),$async$kg)
-case 21:b1=d3
-for(c7=J.ba(b1);c7.u();){b2=c7.gR(c7)
-J.dQ(m,A.bBP(b2))}case 8:n.sbq(0,n.f.zm(m,!1))
+return A.m(c8.aN("clients").dS(0,u.B).wP(0,"created_at",!1).Nf(100),$async$kg)
+case 21:b2=d4
+for(c8=J.ba(b2);c8.u();){b3=c8.gR(c8)
+J.dQ(m,A.bBP(b3))}case 8:n.sbq(0,n.f.zm(m,!1))
 p=2
 s=6
 break
 case 4:p=3
-d0=o.pop()
-b3=A.aa(d0)
-$.lH().ob(0,"Warning: could not fetch clients from Supabase: "+A.f(b3))
+d1=o.pop()
+b4=A.aa(d1)
+$.lH().ob(0,"Warning: could not fetch clients from Supabase: "+A.f(b4))
 n.sbq(0,n.f.zm(n.a5D(),!1))
 s=6
 break
