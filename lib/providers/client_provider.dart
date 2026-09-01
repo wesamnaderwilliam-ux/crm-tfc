@@ -261,9 +261,13 @@ class ClientNotifier extends StateNotifier<ClientState> {
         try {
           final distResponse = await SupabaseConfig.client
               .from('distribution_entries')
-              .select('client_id, employee_id, bank_employees(employee_name)');
+              .select('client_id, employee_id, status, is_closed, bank_employees(employee_name)');
 
           for (var row in (distResponse as List<dynamic>)) {
+            // If distribution is closed, hide client completely from bank employee
+            final isClosed = row['is_closed'] == true || row['status'] == 'closed';
+            if (isClosed) continue;
+
             final rowEmpId = (row['employee_id']?.toString() ?? '').trim();
             final bankEmp = row['bank_employees'] as Map<String, dynamic>?;
             final empName = (bankEmp?['employee_name']?.toString() ?? '').trim().toLowerCase();
