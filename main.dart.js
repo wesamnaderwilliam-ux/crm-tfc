@@ -142794,7 +142794,7 @@ A.tM.prototype={
 pf(){var s=0,r=A.z(t.b5),q,p=this
 var $async$pf=A.u(function(a,b){if(a===1)return A.w(b,r)
 for(;;)switch(s){case 0:s=3
-return A.m(p.a.aN("banks").dS(0,"          id, \n          bank_name,\n          bank_programs_details (\n            id, description, interest_rate, max_loan_amount, program_id,\n            core_programs ( program_name )\n          ),\n          bank_employees (\n            id, bank_id, employee_name, phone_1, phone_2, job_title, email, notes, profile_id\n          )\n        ").Zc(0,"bank_name"),$async$pf)
+return A.m(p.a.aN("banks").dS(0,"          id, \n          bank_name,\n          bank_programs_details (\n            id, description, interest_rate, max_loan_amount, program_id,\n            core_programs ( program_name )\n          ),\n          bank_employees (\n            id, bank_id, employee_name, phone_1, phone_2, job_title, email, notes\n          )\n        ").Zc(0,"bank_name"),$async$pf)
 case 3:q=b
 s=1
 break
@@ -142804,7 +142804,7 @@ GD(a){return this.akK(a)},
 akK(a){var s=0,r=A.z(t.b5),q,p=this
 var $async$GD=A.u(function(b,c){if(b===1)return A.w(c,r)
 for(;;)switch(s){case 0:s=3
-return A.m(p.a.aN("bank_employees").dS(0,"id, bank_id, employee_name, phone_1, phone_2, job_title, email, notes, profile_id").cj("bank_id",a).Zc(0,"employee_name"),$async$GD)
+return A.m(p.a.aN("bank_employees").dS(0,"id, bank_id, employee_name, phone_1, phone_2, job_title, email, notes").cj("bank_id",a).Zc(0,"employee_name"),$async$GD)
 case 3:q=c
 s=1
 break
@@ -142884,23 +142884,22 @@ return A.m(q.a.aN("bank_programs_details").cm(0,A.X(["description",a,"interest_r
 case 2:return A.x(null,r)}})
 return A.y($async$OY,r)},
 KK(a,b,c,d,e,f,g,h){return this.aQW(a,b,c,d,e,f,g,h)},
-aQW(a,b,c,d,e,f,g,a0){var s=0,r=A.z(t.a),q,p=this,o,n,m,l,k,j,i,h
-var $async$KK=A.u(function(a1,a2){if(a1===1)return A.w(a2,r)
-for(;;)switch(s){case 0:j=p.a.aN("bank_employees")
-i=B.l.N(g)
-i=i.length!==0?g:null
+aQW(a,b,c,d,e,f,g,h){var s=0,r=A.z(t.a),q,p=this,o,n,m,l,k,j,i
+var $async$KK=A.u(function(a0,a1){if(a0===1)return A.w(a1,r)
+for(;;)switch(s){case 0:k=p.a.aN("bank_employees")
+j=B.l.N(g)
+j=j.length!==0?g:null
 o=B.l.N(c)
 o=o.length!==0?c:null
 n=B.l.N(b)
 n=n.length!==0?b:null
 m=B.l.N(e)
 m=m.length!==0?e:null
-l=a0!=null&&B.l.N(a0).length!==0?a0:null
-k=t.N
-h=A
+l=t.N
+i=A
 s=3
-return A.m(j.dD(0,A.X(["bank_id",a,"employee_name",d,"phone_1",f,"phone_2",i,"job_title",o,"email",n,"notes",m,"profile_id",l],k,t.v)).lk(0).t4(0),$async$KK)
-case 3:q=h.ea(a2,k,t.z)
+return A.m(k.dD(0,A.X(["bank_id",a,"employee_name",d,"phone_1",f,"phone_2",j,"job_title",o,"email",n,"notes",m],l,t.v)).lk(0).t4(0),$async$KK)
+case 3:q=i.ea(a1,l,t.z)
 s=1
 break
 case 1:return A.x(q,r)}})
@@ -142923,7 +142922,6 @@ p=B.l.N(b)
 n.l(0,"email",p.length!==0?b:null)
 p=B.l.N(f)
 n.l(0,"notes",p.length!==0?f:null)
-n.l(0,"profile_id",i!=null&&B.l.N(i).length!==0?i:null)
 s=2
 return A.m(o.cm(0,n).cj("id",c),$async$P0)
 case 2:return A.x(null,r)}})
