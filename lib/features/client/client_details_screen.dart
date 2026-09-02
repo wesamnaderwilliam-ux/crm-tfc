@@ -40,8 +40,7 @@ class ClientDetailsScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<ClientDetailsScreen> createState() =>
-      _ClientDetailsScreenState();
+  ConsumerState<ClientDetailsScreen> createState() => _ClientDetailsScreenState();
 }
 
 class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
@@ -49,12 +48,21 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   final _logFormKey = GlobalKey<FormState>();
   int _selectedHistoryTab = 0;
 
+  // 0: ملفات وطلبات العملاء, 1: قسم المتابعات الشاملة
+  int _selectedMainView = 0;
+
   final TextEditingController _clientSearchController = TextEditingController();
   String _clientSearchQuery = "";
   String _selectedStatusFilter = 'all';
   String _selectedRepFilter = 'all';
   bool _sidebarCollapsed = false;   // Toggle Desktop sidebar
   bool _filtersCollapsed = true;    // Toggle filter panel in sidebar (collapsed by default)
+
+  // فلاتر قسم المتابعات
+  String _followUpSearchQuery = "";
+  final TextEditingController _followUpSearchController = TextEditingController();
+  String _selectedFollowUpStatusFilter = 'all'; // 'all', 'pending', 'completed', 'due_today_or_overdue', 'due_tomorrow'
+  String _selectedFollowUpRepFilter = 'all';
 
   // Helper map for Arabic status names
   final Map<String, String> _statusNames = {
@@ -218,6 +226,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   void dispose() {
     _logController.dispose();
     _clientSearchController.dispose();
+    _followUpSearchController.dispose();
     super.dispose();
   }
 
@@ -431,11 +440,36 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 icon: const Icon(Icons.arrow_back, color: TfcColors.primary),
                 onPressed: widget.onBack,
               ),
-              title: Text(
-                client != null
-                    ? "ملف العميل: ${client.fullName}"
-                    : "دليل تفاصيل العملاء",
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                textDirection: TextDirection.rtl,
+                children: [
+                  Text(
+                    client != null
+                        ? "ملف العميل: ${client.fullName}"
+                        : "تفاصيل وإدارة العملاء",
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  ),
+                  if (client == null) ...[
+                    const SizedBox(width: 20),
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _buildMainTabChip(0, "دليل العملاء", Icons.people_alt_rounded),
+                          const SizedBox(width: 4),
+                          _buildMainTabChip(1, "قسم المتابعات العامة", Icons.schedule_rounded),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
               centerTitle: false,
               actions: [
@@ -474,357 +508,397 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             ),
             body: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-              child: Row(
-                textDirection: TextDirection.rtl,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // 1. Collapsible Sidebar on the right (Client List & Search)
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 280),
-                    curve: Curves.easeInOut,
-                    width: _sidebarCollapsed ? 42 : 320,
-                    child: _sidebarCollapsed
-                        // ── Collapsed strip ──────────────────────────────
-                        ? GlassCard(
-                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
-                            borderColor: Colors.white.withValues(alpha: 0.04),
-                            fillColor: TfcColors.surfaceDim.withValues(alpha: 0.4),
-                            child: Column(
-                              children: [
-                                Tooltip(
-                                  message: "إظهار قائمة العملاء",
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(8),
-                                    onTap: () => setState(() => _sidebarCollapsed = false),
-                                    child: const Padding(
-                                      padding: EdgeInsets.all(8),
-                                      child: Icon(Icons.chevron_left_rounded, color: TfcColors.primary, size: 22),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                RotatedBox(
-                                  quarterTurns: 3,
-                                  child: Text(
-                                    "دليل العملاء",
-                                    style: TextStyle(
-                                      color: TfcColors.primary.withValues(alpha: 0.7),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        // ── Full Sidebar ──────────────────────────────────
-                        : GlassCard(
-                            padding: const EdgeInsets.all(16),
-                            borderColor: Colors.white.withValues(alpha: 0.04),
-                            fillColor: TfcColors.surfaceDim.withValues(alpha: 0.4),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Row(
-                                  textDirection: TextDirection.rtl,
-                                  children: [
-                                    const Icon(Icons.people_alt, color: TfcColors.primary, size: 20),
-                                    const SizedBox(width: 8),
-                                    const Text(
-                                      "دليل العملاء",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: TfcColors.primary,
-                                      ),
-                                    ),
-                                    const Spacer(),
-                                    if (widget.onOpenNewClientForm != null)
-                                      InteractiveHoverCard(
-                                        onTap: widget.onOpenNewClientForm,
-                                        glowColor: Colors.greenAccent,
-                                        backgroundColor: Colors.green.withValues(alpha: 0.25),
-                                        borderRadius: BorderRadius.circular(8),
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                        child: const Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(Icons.add_circle_outline, color: Colors.greenAccent, size: 16),
-                                            SizedBox(width: 4),
-                                            Text(
-                                              "طلب تمويل جديد",
-                                              style: TextStyle(
-                                                color: Colors.greenAccent,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    const SizedBox(width: 6),
-                                    // ── Collapse sidebar button ──
-                                    Tooltip(
-                                      message: "إخفاء القائمة الجانبية",
-                                      child: InkWell(
-                                        borderRadius: BorderRadius.circular(6),
-                                        onTap: () => setState(() => _sidebarCollapsed = true),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(4),
-                                          child: Icon(
-                                            Icons.chevron_right_rounded,
-                                            color: Colors.white.withValues(alpha: 0.4),
-                                            size: 18,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
-
-                                // ── Search field (always visible) ──
-                                Directionality(
-                                  textDirection: TextDirection.rtl,
-                                  child: TextField(
-                                    controller: _clientSearchController,
-                                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                                    onChanged: (val) {
-                                      setState(() {
-                                        _clientSearchQuery = val;
-                                      });
-                                    },
-                                    decoration: InputDecoration(
-                                      hintText: "بحث بالاسم، الهاتف، الرقم القومي...",
-                                      hintStyle: const TextStyle(color: TfcColors.outline, fontSize: 11),
-                                      prefixIcon: const Icon(Icons.search, color: TfcColors.outline, size: 18),
-                                      suffixIcon: _clientSearchQuery.isNotEmpty
-                                          ? IconButton(
-                                              icon: const Icon(Icons.clear, color: TfcColors.outline, size: 16),
-                                              onPressed: () {
-                                                _clientSearchController.clear();
-                                                setState(() {
-                                                  _clientSearchQuery = "";
-                                                });
-                                              },
-                                            )
-                                          : null,
-                                      filled: true,
-                                      fillColor: Colors.white.withValues(alpha: 0.03),
-                                      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: BorderSide(color: TfcColors.primary.withValues(alpha: 0.4)),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-
-                                // ── Toggleable Filters ──
-                                InkWell(
-                                  borderRadius: BorderRadius.circular(8),
-                                  onTap: () => setState(() => _filtersCollapsed = !_filtersCollapsed),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
-                                    child: Row(
-                                      textDirection: TextDirection.rtl,
-                                      children: [
-                                        Icon(
-                                          Icons.filter_alt_rounded,
-                                          color: (_selectedStatusFilter != 'all' || _selectedRepFilter != 'all')
-                                              ? const Color(0xFF00CEC9)
-                                              : Colors.white38,
-                                          size: 16,
-                                        ),
-                                        const SizedBox(width: 6),
-                                        Text(
-                                          "خيارات التصفية",
-                                          style: TextStyle(
-                                            color: (_selectedStatusFilter != 'all' || _selectedRepFilter != 'all')
-                                                ? const Color(0xFF00CEC9)
-                                                : Colors.white54,
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                        if (_selectedStatusFilter != 'all' || _selectedRepFilter != 'all')
-                                          Container(
-                                            margin: const EdgeInsets.only(right: 6),
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF00CEC9),
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                            child: Text(
-                                              "${(_selectedStatusFilter != 'all' ? 1 : 0) + (_selectedRepFilter != 'all' ? 1 : 0)}",
-                                              style: const TextStyle(
-                                                color: Colors.black,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                              ),
-                                            ),
-                                          ),
-                                        const Spacer(),
-                                        AnimatedRotation(
-                                          turns: _filtersCollapsed ? 0 : 0.5,
-                                          duration: const Duration(milliseconds: 200),
-                                          child: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white38, size: 18),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-
-                                AnimatedCrossFade(
-                                  firstChild: const SizedBox(width: double.infinity),
-                                  secondChild: Column(
+              child: _selectedMainView == 1 && client == null
+                  ? _buildFollowUpsView(visibleClients, reps)
+                  : Row(
+                      textDirection: TextDirection.rtl,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // 1. Collapsible Sidebar on the right (Client List & Search)
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 280),
+                          curve: Curves.easeInOut,
+                          width: _sidebarCollapsed ? 42 : 320,
+                          child: _sidebarCollapsed
+                              // ── Collapsed strip ──────────────────────────────
+                              ? GlassCard(
+                                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+                                  borderColor: Colors.white.withValues(alpha: 0.04),
+                                  fillColor: TfcColors.surfaceDim.withValues(alpha: 0.4),
+                                  child: Column(
                                     children: [
-                                      const SizedBox(height: 6),
-                                      Directionality(
-                                        textDirection: TextDirection.rtl,
-                                        child: DropdownButtonFormField<String>(
-                                          value: _selectedStatusFilter,
-                                          dropdownColor: TfcColors.surfaceDim,
-                                          style: const TextStyle(color: Colors.white, fontSize: 13),
-                                          decoration: InputDecoration(
-                                            filled: true,
-                                            fillColor: Colors.white.withValues(alpha: 0.03),
-                                            contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(10),
-                                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-                                            ),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(10),
-                                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-                                            ),
+                                      Tooltip(
+                                        message: "إظهار قائمة العملاء",
+                                        child: InkWell(
+                                          borderRadius: BorderRadius.circular(8),
+                                          onTap: () => setState(() => _sidebarCollapsed = false),
+                                          child: const Padding(
+                                            padding: EdgeInsets.all(8),
+                                            child: Icon(Icons.chevron_left_rounded, color: TfcColors.primary, size: 22),
                                           ),
-                                          items: _statusNames.entries.map((e) {
-                                            return DropdownMenuItem(
-                                              value: e.key,
-                                              child: Text(e.value, textDirection: TextDirection.rtl),
-                                            );
-                                          }).toList(),
-                                          onChanged: (val) {
-                                            if (val != null) {
-                                              setState(() {
-                                                _selectedStatusFilter = val;
-                                              });
-                                            }
-                                          },
                                         ),
                                       ),
                                       const SizedBox(height: 8),
-                                      Directionality(
-                                        textDirection: TextDirection.rtl,
-                                        child: DropdownButtonFormField<String>(
-                                          value: reps.contains(_selectedRepFilter) ? _selectedRepFilter : 'all',
-                                          dropdownColor: TfcColors.surfaceDim,
-                                          style: const TextStyle(color: Colors.white, fontSize: 13),
-                                          decoration: InputDecoration(
-                                            filled: true,
-                                            fillColor: Colors.white.withValues(alpha: 0.03),
-                                            contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                                            border: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(10),
-                                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-                                            ),
-                                            enabledBorder: OutlineInputBorder(
-                                              borderRadius: BorderRadius.circular(10),
-                                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-                                            ),
+                                      RotatedBox(
+                                        quarterTurns: 3,
+                                        child: Text(
+                                          "دليل العملاء",
+                                          style: TextStyle(
+                                            color: TfcColors.primary.withValues(alpha: 0.7),
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.bold,
                                           ),
-                                          items: [
-                                            const DropdownMenuItem(
-                                              value: 'all',
-                                              child: Text('كل المناديب', textDirection: TextDirection.rtl),
-                                            ),
-                                            ...reps.map((name) {
-                                              return DropdownMenuItem(
-                                                value: name,
-                                                child: Text(name, textDirection: TextDirection.rtl),
-                                              );
-                                            }),
-                                          ],
-                                          onChanged: (val) {
-                                            if (val != null) {
-                                              setState(() {
-                                                _selectedRepFilter = val;
-                                              });
-                                            }
-                                          },
                                         ),
                                       ),
-                                      const SizedBox(height: 8),
                                     ],
                                   ),
-                                  crossFadeState: _filtersCollapsed ? CrossFadeState.showFirst : CrossFadeState.showSecond,
-                                  duration: const Duration(milliseconds: 250),
-                                ),
-
-                                const SizedBox(height: 8),
-                                const Divider(color: Colors.white10),
-                                const SizedBox(height: 8),
-                                Expanded(
-                                  child: filteredClients.isEmpty
-                                      ? const Center(
-                                          child: Text(
-                                            "لا توجد نتائج مطابقة لبحثك.",
-                                            style: TextStyle(color: TfcColors.outline, fontSize: 13),
-                                            textAlign: TextAlign.center,
+                                )
+                              // ── Full Sidebar ──────────────────────────────────
+                              : GlassCard(
+                                  padding: const EdgeInsets.all(16),
+                                  borderColor: Colors.white.withValues(alpha: 0.04),
+                                  fillColor: TfcColors.surfaceDim.withValues(alpha: 0.4),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      Row(
+                                        textDirection: TextDirection.rtl,
+                                        children: [
+                                          const Icon(Icons.people_alt, color: TfcColors.primary, size: 20),
+                                          const SizedBox(width: 8),
+                                          const Text(
+                                            "دليل العملاء",
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                              color: TfcColors.primary,
+                                            ),
                                           ),
-                                        )
-                                      : ListView.builder(
-                                          itemCount: filteredClients.length,
-                                          itemBuilder: (context, index) {
-                                            final item = filteredClients[index];
-                                            final isSelected = widget.clientId == item.id;
-                                            return _buildClientListTile(item, isSelected);
+                                          const Spacer(),
+                                          if (widget.onOpenNewClientForm != null)
+                                            InteractiveHoverCard(
+                                              onTap: widget.onOpenNewClientForm,
+                                              glowColor: Colors.greenAccent,
+                                              backgroundColor: Colors.green.withValues(alpha: 0.25),
+                                              borderRadius: BorderRadius.circular(8),
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                              child: const Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(Icons.add_circle_outline, color: Colors.greenAccent, size: 16),
+                                                  SizedBox(width: 4),
+                                                  Text(
+                                                    "طلب تمويل جديد",
+                                                    style: TextStyle(
+                                                      color: Colors.greenAccent,
+                                                      fontSize: 11,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          const SizedBox(width: 6),
+                                          // ── Collapse sidebar button ──
+                                          Tooltip(
+                                            message: "إخفاء القائمة الجانبية",
+                                            child: InkWell(
+                                              borderRadius: BorderRadius.circular(6),
+                                              onTap: () => setState(() => _sidebarCollapsed = true),
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(4),
+                                                child: Icon(
+                                                  Icons.chevron_right_rounded,
+                                                  color: Colors.white.withValues(alpha: 0.4),
+                                                  size: 18,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 12),
+
+                                      // ── Search field (always visible) ──
+                                      Directionality(
+                                        textDirection: TextDirection.rtl,
+                                        child: TextField(
+                                          controller: _clientSearchController,
+                                          style: const TextStyle(color: Colors.white, fontSize: 13),
+                                          onChanged: (val) {
+                                            setState(() {
+                                              _clientSearchQuery = val;
+                                            });
                                           },
+                                          decoration: InputDecoration(
+                                            hintText: "بحث بالاسم، الهاتف، الرقم القومي...",
+                                            hintStyle: const TextStyle(color: TfcColors.outline, fontSize: 11),
+                                            prefixIcon: const Icon(Icons.search, color: TfcColors.outline, size: 18),
+                                            suffixIcon: _clientSearchQuery.isNotEmpty
+                                                ? IconButton(
+                                                    icon: const Icon(Icons.clear, color: TfcColors.outline, size: 16),
+                                                    onPressed: () {
+                                                      _clientSearchController.clear();
+                                                      setState(() {
+                                                        _clientSearchQuery = "";
+                                                      });
+                                                    },
+                                                  )
+                                                : null,
+                                            filled: true,
+                                            fillColor: Colors.white.withValues(alpha: 0.03),
+                                            contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                                            border: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                              borderSide: BorderSide(color: TfcColors.primary.withValues(alpha: 0.4)),
+                                            ),
+                                          ),
                                         ),
+                                      ),
+                                      const SizedBox(height: 8),
+
+                                      // ── Toggleable Filters ──
+                                      InkWell(
+                                        borderRadius: BorderRadius.circular(8),
+                                        onTap: () => setState(() => _filtersCollapsed = !_filtersCollapsed),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+                                          child: Row(
+                                            textDirection: TextDirection.rtl,
+                                            children: [
+                                              const Icon(Icons.tune_rounded, color: TfcColors.primary, size: 16),
+                                              const SizedBox(width: 6),
+                                              const Text(
+                                                "خيارات الفلترة والتصفية",
+                                                style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                                              ),
+                                              const SizedBox(width: 6),
+                                              if (_selectedStatusFilter != 'all' || _selectedRepFilter != 'all')
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                                                  decoration: BoxDecoration(
+                                                    color: TfcColors.primary.withValues(alpha: 0.2),
+                                                    borderRadius: BorderRadius.circular(6),
+                                                  ),
+                                                  child: const Text(
+                                                    "نشط",
+                                                    style: TextStyle(
+                                                      color: TfcColors.primary,
+                                                      fontSize: 10,
+                                                      fontWeight: FontWeight.bold,
+                                                    ),
+                                                  ),
+                                                ),
+                                              const Spacer(),
+                                              AnimatedRotation(
+                                                turns: _filtersCollapsed ? 0 : 0.5,
+                                                duration: const Duration(milliseconds: 200),
+                                                child: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white38, size: 18),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+
+                                      AnimatedCrossFade(
+                                        firstChild: const SizedBox(width: double.infinity),
+                                        secondChild: Column(
+                                          children: [
+                                            const SizedBox(height: 6),
+                                            Directionality(
+                                              textDirection: TextDirection.rtl,
+                                              child: DropdownButtonFormField<String>(
+                                                value: _selectedStatusFilter,
+                                                dropdownColor: TfcColors.surfaceDim,
+                                                style: const TextStyle(color: Colors.white, fontSize: 13),
+                                                decoration: InputDecoration(
+                                                  filled: true,
+                                                  fillColor: Colors.white.withValues(alpha: 0.03),
+                                                  contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                                  border: OutlineInputBorder(
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                                                  ),
+                                                  enabledBorder: OutlineInputBorder(
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                                                  ),
+                                                ),
+                                                items: _statusNames.entries.map((e) {
+                                                  return DropdownMenuItem(
+                                                    value: e.key,
+                                                    child: Text(e.value, textDirection: TextDirection.rtl),
+                                                  );
+                                                }).toList(),
+                                                onChanged: (val) {
+                                                  if (val != null) {
+                                                    setState(() {
+                                                      _selectedStatusFilter = val;
+                                                    });
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Directionality(
+                                              textDirection: TextDirection.rtl,
+                                              child: DropdownButtonFormField<String>(
+                                                value: reps.contains(_selectedRepFilter) ? _selectedRepFilter : 'all',
+                                                dropdownColor: TfcColors.surfaceDim,
+                                                style: const TextStyle(color: Colors.white, fontSize: 13),
+                                                decoration: InputDecoration(
+                                                  filled: true,
+                                                  fillColor: Colors.white.withValues(alpha: 0.03),
+                                                  contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                                  border: OutlineInputBorder(
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                                                  ),
+                                                  enabledBorder: OutlineInputBorder(
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                                                  ),
+                                                ),
+                                                items: [
+                                                  const DropdownMenuItem(
+                                                    value: 'all',
+                                                    child: Text('كل المناديب', textDirection: TextDirection.rtl),
+                                                  ),
+                                                  ...reps.map((name) {
+                                                    return DropdownMenuItem(
+                                                      value: name,
+                                                      child: Text(name, textDirection: TextDirection.rtl),
+                                                    );
+                                                  }),
+                                                ],
+                                                onChanged: (val) {
+                                                  if (val != null) {
+                                                    setState(() {
+                                                      _selectedRepFilter = val;
+                                                    });
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            if (_selectedStatusFilter != 'all' || _selectedRepFilter != 'all')
+                                              Align(
+                                                alignment: Alignment.centerRight,
+                                                child: TextButton.icon(
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      _selectedStatusFilter = 'all';
+                                                      _selectedRepFilter = 'all';
+                                                    });
+                                                  },
+                                                  icon: const Icon(Icons.refresh, size: 14, color: TfcColors.outline),
+                                                  label: const Text(
+                                                    "إعادة ضبط الفلاتر",
+                                                    style: TextStyle(color: TfcColors.outline, fontSize: 11),
+                                                  ),
+                                                  style: TextButton.styleFrom(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                    minimumSize: Size.zero,
+                                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                        crossFadeState: _filtersCollapsed
+                                            ? CrossFadeState.showFirst
+                                            : CrossFadeState.showSecond,
+                                        duration: const Duration(milliseconds: 200),
+                                      ),
+
+                                      // ── Client count ──
+                                      Row(
+                                        textDirection: TextDirection.rtl,
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            "النتائج (${filteredClients.length})",
+                                            style: const TextStyle(
+                                              color: TfcColors.outline,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          if (_clientSearchQuery.isNotEmpty)
+                                            Text(
+                                              "من أصل ${visibleClients.length}",
+                                              style: const TextStyle(
+                                                color: Colors.white30,
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+
+                                      // ── Client List ──
+                                      Expanded(
+                                        child: filteredClients.isEmpty
+                                            ? const Center(
+                                                child: Text(
+                                                  "لا توجد نتائج مطابقة",
+                                                  style: TextStyle(
+                                                    color: TfcColors.outline,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                              )
+                                            : ListView.builder(
+                                                itemCount: filteredClients.length,
+                                                itemBuilder: (context, index) {
+                                                  final item = filteredClients[index];
+                                                  final isSelected = item.id == widget.clientId;
+                                                  return _buildClientListTile(item, isSelected);
+                                                },
+                                              ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ],
-                            ),
-                          ),
-                  ),
-                  const SizedBox(width: 20),
+                        ),
+                        const SizedBox(width: 20),
 
-
-
-                  // 2. Details view on the left
-                  Expanded(
-                    child: client != null
-                        ? SingleChildScrollView(
-                            child: _buildDetailsPanel(
-                              client,
-                              permissions,
-                              authState,
-                              effectivePerms,
-                              canEditClients,
-                              canDeleteClients,
-                              canAddNote,
-                              canApproveLoans,
-                              showPhone,
-                              showNationalId,
-                              showSalary,
-                              showCreditScore,
-                              showLoans,
-                              showCards,
-                              showDocuments,
-                            ),
-                          )
-                        : _buildClientsTable(filteredClients, showNationalId, showCreditScore),
-                  ),
-                ],
-              ),
+                        // 2. Details view on the left
+                        Expanded(
+                          child: client != null
+                              ? SingleChildScrollView(
+                                  child: _buildDetailsPanel(
+                                    client,
+                                    permissions,
+                                    authState,
+                                    effectivePerms,
+                                    canEditClients,
+                                    canDeleteClients,
+                                    canAddNote,
+                                    canApproveLoans,
+                                    showPhone,
+                                    showNationalId,
+                                    showSalary,
+                                    showCreditScore,
+                                    showLoans,
+                                    showCards,
+                                    showDocuments,
+                                  ),
+                                )
+                              : (_selectedMainView == 1
+                                  ? _buildFollowUpsView(visibleClients, reps)
+                                  : _buildClientsTable(filteredClients, showNationalId, showCreditScore)),
+                        ),
+                      ],
+                    ),
             ),
           );
         }
@@ -840,7 +914,28 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 icon: const Icon(Icons.arrow_back, color: TfcColors.primary),
                 onPressed: widget.onBack,
               ),
-              title: const Text("دليل تفاصيل العملاء", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              title: const Text("تفاصيل وإدارة العملاء", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              bottom: PreferredSize(
+                preferredSize: const Size.fromHeight(48),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(child: _buildMainTabChip(0, "دليل العملاء", Icons.people_alt_rounded)),
+                        const SizedBox(width: 6),
+                        Expanded(child: _buildMainTabChip(1, "قسم المتابعات", Icons.schedule_rounded)),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
               actions: [
                 if (widget.onOpenNewClientForm != null)
                   Padding(
@@ -857,7 +952,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           Icon(Icons.add_circle_outline, color: Colors.greenAccent, size: 16),
                           SizedBox(width: 4),
                           Text(
-                            "طلب تمويل جديد",
+                            "طلب تمويل",
                             style: TextStyle(
                               color: Colors.greenAccent,
                               fontSize: 11,
@@ -870,12 +965,17 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   ),
               ],
             ),
-            body: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Directionality(
+            body: _selectedMainView == 1
+                ? Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: _buildFollowUpsView(visibleClients, reps),
+                  )
+                : Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Directionality(
                     textDirection: TextDirection.rtl,
                     child: TextField(
                       controller: _clientSearchController,
@@ -6976,8 +7076,9 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                               icon: const Icon(Icons.arrow_forward_ios, color: TfcColors.primary, size: 14),
                               tooltip: "عرض التفاصيل",
                               onPressed: () {
-                                // No onClientSelected in VirtualIncomeBento; no action
-                                // placeholder for navigation if needed
+                                if (widget.onClientSelected != null) {
+                                  widget.onClientSelected!(client.id);
+                                }
                               },
                             ),
                           ),
@@ -6989,6 +7090,602 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               ),
             ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMainTabChip(int index, String title, IconData icon) {
+    final isSelected = _selectedMainView == index;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedMainView = index;
+        });
+      },
+      borderRadius: BorderRadius.circular(8),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? TfcColors.primary.withValues(alpha: 0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isSelected ? TfcColors.primary : Colors.transparent,
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          textDirection: TextDirection.rtl,
+          children: [
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected ? TfcColors.primary : Colors.white60,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.white60,
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── DEDICATED COMPREHENSIVE FOLLOW-UPS VIEW ─────────────────────────
+  Widget _buildFollowUpsView(List<ClientModel> visibleClients, List<String> reps) {
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+    final tomorrowStart = todayStart.add(const Duration(days: 1));
+    final dayAfterTomorrowStart = todayStart.add(const Duration(days: 2));
+
+    // 1. Group & Resolve all follow-ups from visible clients
+    final Map<String, Map<String, dynamic>> resolvedFollowUps = {};
+
+    for (var client in visibleClients) {
+      for (var log in client.history) {
+        if (log.logType == 'follow_up' && log.followUpDate != null) {
+          final dateKey = "${log.followUpDate!.year}-${log.followUpDate!.month}-${log.followUpDate!.day}";
+          final uniqueKey = "${client.id}_$dateKey";
+
+          final existing = resolvedFollowUps[uniqueKey];
+          if (existing == null) {
+            resolvedFollowUps[uniqueKey] = {
+              'client': client,
+              'log': log,
+            };
+          } else {
+            final existingLog = existing['log'] as InteractionLogModel;
+            if (log.createdAt.isAfter(existingLog.createdAt)) {
+              resolvedFollowUps[uniqueKey] = {
+                'client': client,
+                'log': log,
+              };
+            }
+          }
+        }
+      }
+    }
+
+    final List<Map<String, dynamic>> allList = resolvedFollowUps.values.toList();
+
+    // 2. Filter list based on criteria
+    final filteredFollowUps = allList.where((item) {
+      final client = item['client'] as ClientModel;
+      final log = item['log'] as InteractionLogModel;
+
+      // Status filter
+      final isPending = log.followUpStatus != 'completed';
+      final fDate = log.followUpDate;
+
+      if (_selectedFollowUpStatusFilter == 'pending' && !isPending) {
+        return false;
+      } else if (_selectedFollowUpStatusFilter == 'completed' && isPending) {
+        return false;
+      } else if (_selectedFollowUpStatusFilter == 'due_today_or_overdue') {
+        if (!isPending || fDate == null || !fDate.isBefore(tomorrowStart)) return false;
+      } else if (_selectedFollowUpStatusFilter == 'due_tomorrow') {
+        if (!isPending || fDate == null) return false;
+        final isTomorrow = fDate.isAfter(todayStart.subtract(const Duration(seconds: 1))) &&
+            fDate.isBefore(dayAfterTomorrowStart) &&
+            !fDate.isBefore(tomorrowStart);
+        if (!isTomorrow) return false;
+      }
+
+      // Representative filter
+      if (_selectedFollowUpRepFilter != 'all' && client.representativeName != _selectedFollowUpRepFilter) {
+        return false;
+      }
+
+      // Search Query filter (client name, phone, notes, createdBy)
+      if (_followUpSearchQuery.isNotEmpty) {
+        final q = _followUpSearchQuery.toLowerCase();
+        final matchClient = client.fullName.toLowerCase().contains(q) || client.phoneNumber.contains(q);
+        final matchNotes = log.notes.toLowerCase().contains(q);
+        final matchCreator = log.createdBy.toLowerCase().contains(q);
+        if (!matchClient && !matchNotes && !matchCreator) return false;
+      }
+
+      return true;
+    }).toList();
+
+    // 3. Sort by follow-up date (newest/most urgent first)
+    filteredFollowUps.sort((a, b) {
+      final logA = a['log'] as InteractionLogModel;
+      final logB = b['log'] as InteractionLogModel;
+      final dateA = logA.followUpDate ?? logA.createdAt;
+      final dateB = logB.followUpDate ?? logB.createdAt;
+      return dateB.compareTo(dateA);
+    });
+
+    // Counts for stats summary badges
+    final totalCount = allList.length;
+    final pendingCount = allList.where((f) => (f['log'] as InteractionLogModel).followUpStatus != 'completed').length;
+    final completedCount = totalCount - pendingCount;
+    final urgentCount = allList.where((f) {
+      final log = f['log'] as InteractionLogModel;
+      return log.followUpStatus != 'completed' && log.followUpDate != null && log.followUpDate!.isBefore(dayAfterTomorrowStart);
+    }).length;
+
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
+      borderRadius: 16,
+      borderColor: Colors.white.withValues(alpha: 0.05),
+      fillColor: TfcColors.surfaceDim.withValues(alpha: 0.3),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // ── Header & Quick Stats ──
+          Row(
+            textDirection: TextDirection.rtl,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6C5CE7).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.schedule_rounded, color: Color(0xFFA29BFE), size: 24),
+              ),
+              const SizedBox(width: 12),
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "سجل وإدارة المتابعات الشاملة",
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  SizedBox(height: 2),
+                  Text(
+                    "استعراض كافة المتابعات وتصفيتها حسب المندوب، الحالة، والتاريخ",
+                    style: TextStyle(fontSize: 12, color: TfcColors.outline),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              // Quick action count badges
+              Wrap(
+                spacing: 8,
+                textDirection: TextDirection.rtl,
+                children: [
+                  _buildFollowUpBadge("الكل ($totalCount)", Colors.white24, Colors.white70),
+                  _buildFollowUpBadge("قيد المتابعة ($pendingCount)", Colors.orange.withValues(alpha: 0.2), Colors.orangeAccent),
+                  _buildFollowUpBadge("عاجلة/اليوم ($urgentCount)", Colors.red.withValues(alpha: 0.2), Colors.redAccent),
+                  _buildFollowUpBadge("مكتملة ($completedCount)", Colors.green.withValues(alpha: 0.2), Colors.greenAccent),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(color: Colors.white10, height: 1),
+          const SizedBox(height: 16),
+
+          // ── Search & Filter Controls ──
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            textDirection: TextDirection.rtl,
+            children: [
+              // Search input
+              SizedBox(
+                width: 280,
+                child: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: TextField(
+                    controller: _followUpSearchController,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    onChanged: (val) {
+                      setState(() {
+                        _followUpSearchQuery = val;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      hintText: "بحث باسم العميل، الملاحظة، أو الموظف...",
+                      hintStyle: const TextStyle(color: TfcColors.outline, fontSize: 11),
+                      prefixIcon: const Icon(Icons.search, color: TfcColors.outline, size: 18),
+                      suffixIcon: _followUpSearchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, color: TfcColors.outline, size: 16),
+                              onPressed: () {
+                                _followUpSearchController.clear();
+                                setState(() {
+                                  _followUpSearchQuery = "";
+                                });
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.03),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: TfcColors.primary),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Status Filter Dropdown
+              SizedBox(
+                width: 220,
+                child: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedFollowUpStatusFilter,
+                    dropdownColor: TfcColors.surfaceDim,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: InputDecoration(
+                      labelText: "حالة المتابعة",
+                      labelStyle: const TextStyle(color: TfcColors.outline, fontSize: 12),
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.03),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                      ),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'all', child: Text("كل الحالات", textDirection: TextDirection.rtl)),
+                      DropdownMenuItem(value: 'pending', child: Text("قيد المتابعة فقط ⏳", textDirection: TextDirection.rtl)),
+                      DropdownMenuItem(value: 'due_today_or_overdue', child: Text("متأخرة / مستحقة اليوم 🚨", textDirection: TextDirection.rtl)),
+                      DropdownMenuItem(value: 'due_tomorrow', child: Text("مستحقة غداً 📅", textDirection: TextDirection.rtl)),
+                      DropdownMenuItem(value: 'completed', child: Text("تمت المتابعة ✅", textDirection: TextDirection.rtl)),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() {
+                          _selectedFollowUpStatusFilter = val;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ),
+
+              // Representative Filter Dropdown
+              SizedBox(
+                width: 200,
+                child: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: DropdownButtonFormField<String>(
+                    value: reps.contains(_selectedFollowUpRepFilter) ? _selectedFollowUpRepFilter : 'all',
+                    dropdownColor: TfcColors.surfaceDim,
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    decoration: InputDecoration(
+                      labelText: "المندوب المسؤول",
+                      labelStyle: const TextStyle(color: TfcColors.outline, fontSize: 12),
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.03),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                      ),
+                    ),
+                    items: [
+                      const DropdownMenuItem(value: 'all', child: Text("كل المناديب", textDirection: TextDirection.rtl)),
+                      ...reps.map((name) => DropdownMenuItem(value: name, child: Text(name, textDirection: TextDirection.rtl))),
+                    ],
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() {
+                          _selectedFollowUpRepFilter = val;
+                        });
+                      }
+                    },
+                  ),
+                ),
+              ),
+
+              // Reset filters button
+              if (_selectedFollowUpStatusFilter != 'all' || _selectedFollowUpRepFilter != 'all' || _followUpSearchQuery.isNotEmpty)
+                TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _selectedFollowUpStatusFilter = 'all';
+                      _selectedFollowUpRepFilter = 'all';
+                      _followUpSearchQuery = '';
+                      _followUpSearchController.clear();
+                    });
+                  },
+                  icon: const Icon(Icons.refresh, size: 16, color: TfcColors.outline),
+                  label: const Text("إعادة ضبط الفلاتر", style: TextStyle(color: TfcColors.outline, fontSize: 12)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          // ── Follow-ups Data Table ──
+          Expanded(
+            child: filteredFollowUps.isEmpty
+                ? const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(40),
+                      child: Text(
+                        "لا توجد متابعات مطابقة لمعايير البحث والتصفية المحددة.",
+                        style: TextStyle(color: TfcColors.outline, fontSize: 14),
+                      ),
+                    ),
+                  )
+                : SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        headingRowColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.02)),
+                        dataRowMinHeight: 64,
+                        dataRowMaxHeight: 80,
+                        dividerThickness: 0.5,
+                        columns: const [
+                          DataColumn(
+                            label: Text("اسم العميل", style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold)),
+                          ),
+                          DataColumn(
+                            label: Text("تاريخ المتابعة", style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold)),
+                          ),
+                          DataColumn(
+                            label: Text("الحالة", style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold)),
+                          ),
+                          DataColumn(
+                            label: Text("الملاحظات وتفاصيل النشاط", style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold)),
+                          ),
+                          DataColumn(
+                            label: Text("المندوب", style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold)),
+                          ),
+                          DataColumn(
+                            label: Text("مسجل المتابعة", style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold)),
+                          ),
+                          DataColumn(
+                            label: Text("الإجراءات", style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                        rows: filteredFollowUps.map((item) {
+                          final client = item['client'] as ClientModel;
+                          final log = item['log'] as InteractionLogModel;
+                          final isPending = log.followUpStatus != 'completed';
+                          final isOverdue = isPending && log.followUpDate != null && log.followUpDate!.isBefore(todayStart);
+                          final isToday = isPending &&
+                              log.followUpDate != null &&
+                              log.followUpDate!.isAfter(todayStart.subtract(const Duration(seconds: 1))) &&
+                              log.followUpDate!.isBefore(tomorrowStart);
+                          final isTomorrow = isPending &&
+                              log.followUpDate != null &&
+                              log.followUpDate!.isAfter(tomorrowStart.subtract(const Duration(seconds: 1))) &&
+                              log.followUpDate!.isBefore(dayAfterTomorrowStart);
+
+                          String followUpDateStr = '-';
+                          if (log.followUpDate != null) {
+                            followUpDateStr = "${log.followUpDate!.day}/${log.followUpDate!.month}/${log.followUpDate!.year}";
+                          }
+
+                          Color rowBg = Colors.transparent;
+                          if (isOverdue) {
+                            rowBg = Colors.redAccent.withValues(alpha: 0.05);
+                          } else if (isToday) {
+                            rowBg = Colors.orangeAccent.withValues(alpha: 0.04);
+                          }
+
+                          return DataRow(
+                            color: WidgetStateProperty.all(rowBg),
+                            cells: [
+                              // Client Name
+                              DataCell(
+                                InkWell(
+                                  onTap: () {
+                                    if (widget.onClientSelected != null) {
+                                      widget.onClientSelected!(client.id);
+                                    }
+                                  },
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        client.fullName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        client.phoneNumber,
+                                        style: const TextStyle(color: TfcColors.outline, fontSize: 11),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+                              // Date & Urgent Tag
+                              DataCell(
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (isOverdue)
+                                      const Padding(
+                                        padding: EdgeInsets.only(left: 4),
+                                        child: Icon(Icons.warning_amber_rounded, size: 14, color: Colors.redAccent),
+                                      ),
+                                    if (isToday)
+                                      const Padding(
+                                        padding: EdgeInsets.only(left: 4),
+                                        child: Icon(Icons.today_rounded, size: 14, color: Colors.orangeAccent),
+                                      ),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          followUpDateStr,
+                                          style: TextStyle(
+                                            color: isOverdue ? Colors.redAccent : (isToday ? Colors.orangeAccent : Colors.white),
+                                            fontWeight: (isOverdue || isToday) ? FontWeight.bold : FontWeight.normal,
+                                          ),
+                                        ),
+                                        if (isOverdue)
+                                          const Text("متأخرة", style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold))
+                                        else if (isToday)
+                                          const Text("اليوم", style: TextStyle(color: Colors.orangeAccent, fontSize: 10, fontWeight: FontWeight.bold))
+                                        else if (isTomorrow)
+                                          const Text("غداً", style: TextStyle(color: Colors.cyanAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // Status Selector
+                              DataCell(
+                                PopupMenuButton<String>(
+                                  tooltip: "تغيير حالة المتابعة",
+                                  onSelected: (newStatus) {
+                                    ref.read(clientProvider.notifier).updateFollowUpStatus(
+                                          client.id,
+                                          log.id,
+                                          newStatus,
+                                          ref.read(authProvider).fullName,
+                                        );
+                                  },
+                                  itemBuilder: (ctx) => [
+                                    const PopupMenuItem(
+                                      value: 'pending',
+                                      child: Text("قيد المتابعة ⏳", textDirection: TextDirection.rtl),
+                                    ),
+                                    const PopupMenuItem(
+                                      value: 'completed',
+                                      child: Text("تمت المتابعة ✅", textDirection: TextDirection.rtl),
+                                    ),
+                                  ],
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: isPending ? Colors.orangeAccent.withValues(alpha: 0.1) : TfcColors.success.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                        color: isPending ? Colors.orangeAccent.withValues(alpha: 0.3) : TfcColors.success.withValues(alpha: 0.3),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          isPending ? "قيد المتابعة" : "تمت المتابعة",
+                                          style: TextStyle(
+                                            color: isPending ? Colors.orangeAccent : TfcColors.success,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        const Icon(Icons.arrow_drop_down, size: 14, color: Colors.white60),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+
+                              // Notes
+                              DataCell(
+                                SizedBox(
+                                  width: 250,
+                                  child: Text(
+                                    log.notes.isNotEmpty ? log.notes : "-",
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 12, color: Colors.white70),
+                                    textDirection: TextDirection.rtl,
+                                  ),
+                                ),
+                              ),
+
+                              // Representative
+                              DataCell(Text(client.representativeName ?? "-", style: const TextStyle(fontSize: 12))),
+
+                              // Creator
+                              DataCell(Text(log.createdBy.isNotEmpty ? log.createdBy : "-", style: const TextStyle(fontSize: 12, color: Colors.white60))),
+
+                              // Action: View Client Profile
+                              DataCell(
+                                IconButton(
+                                  icon: const Icon(Icons.arrow_forward_ios, color: TfcColors.primary, size: 14),
+                                  tooltip: "عرض ملف العميل",
+                                  onPressed: () {
+                                    if (widget.onClientSelected != null) {
+                                      widget.onClientSelected!(client.id);
+                                    }
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFollowUpBadge(String label, Color bgColor, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: textColor, fontSize: 11, fontWeight: FontWeight.bold),
       ),
     );
   }

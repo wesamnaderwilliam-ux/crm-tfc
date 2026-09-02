@@ -256,10 +256,21 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   return dateB.compareTo(dateA);
                 });
 
-                // Filter: pending only
+                // Filter for Dashboard: Only follow-ups that are due today/overdue (pending) OR due tomorrow
+                // All other distant follow-ups and completed ones will remain in the dedicated Follow-ups section
+                final now = DateTime.now();
+                final todayStart = DateTime(now.year, now.month, now.day);
+                // End of tomorrow (inclusive): today + 2 days start
+                final dayAfterTomorrowStart = todayStart.add(const Duration(days: 2));
+
                 final pendingFollowUps = allFollowUps.where((f) {
                   final log = f['log'] as InteractionLogModel;
-                  return log.followUpStatus != 'completed';
+                  if (log.followUpStatus == 'completed') return false;
+                  if (log.followUpDate == null) return false;
+                  
+                  // Must be due today or in the past (تاريخها جه ولم تتغير حالتها) OR due tomorrow (فاضل عليه يوم)
+                  final fDate = log.followUpDate!;
+                  return fDate.isBefore(dayAfterTomorrowStart);
                 }).toList();
 
                 final sortedFollowUps = pendingFollowUps;
@@ -273,7 +284,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         const Icon(Icons.schedule, color: TfcColors.primary, size: 22),
                         const SizedBox(width: 8),
                         Text(
-                          "جدول المتابعات (${pendingFollowUps.length} قيد المتابعة)",
+                          "جدول المتابعات العاجلة (${pendingFollowUps.length} تتطلب إجراء اليوم / غداً)",
                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           textDirection: TextDirection.rtl,
                         ),
