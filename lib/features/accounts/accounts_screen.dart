@@ -641,12 +641,11 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> with SingleTick
                                 ),
                               ),
                             ),
+                          ],
                         ),
                       ],
                     ),
-                ],
-              ),
-              const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
               // TabBar Selector
               TabBar(
