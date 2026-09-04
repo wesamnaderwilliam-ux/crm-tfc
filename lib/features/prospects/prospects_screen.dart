@@ -42,77 +42,149 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
 
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Container(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Title & Action Buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = constraints.maxWidth < 600;
+
+          return Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 12 : 24,
+                vertical: isMobile ? 14 : 24,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'العملاء المحتملين',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        isAdmin
-                            ? 'إدارة العملاء الجدد المكتسبين وتوزيعهم على الموظفين ومتابعة تحويلهم'
-                            : 'قائمة العملاء المحتملين المسندين إليك للمتابعة والتحويل',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white.withValues(alpha: 0.6),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (isAdmin)
-                    Row(
+                  // Header Title & Action Buttons
+                  if (isMobile)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Sync button from Google Sheets
-                        ElevatedButton.icon(
-                          onPressed: () => _handleSyncFromGoogleSheets(context),
-                          icon: const Icon(Icons.sync_rounded, size: 18),
-                          label: const Text('مزامنة من جوجل شيت'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: TfcColors.primary.withValues(alpha: 0.2),
-                            foregroundColor: TfcColors.primary,
-                            side: const BorderSide(color: TfcColors.primary),
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                        Text(
+                          'العملاء المحتملين',
+                          style: TextStyle(
+                            fontSize: isMobile ? 20 : 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
-                        const SizedBox(width: 12),
-                        // Add Manual Prospect
-                        ElevatedButton.icon(
-                          onPressed: () => _showAddOrEditProspectDialog(context),
-                          icon: const Icon(Icons.person_add_alt_1, size: 18),
-                          label: const Text('إضافة عميل محتمل'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: TfcColors.primary,
-                            foregroundColor: Colors.black,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                        const SizedBox(height: 4),
+                        Text(
+                          isAdmin
+                              ? 'إدارة العملاء الجدد المكتسبين وتوزيعهم ومتابعتهم'
+                              : 'قائمة العملاء المحتملين المسندين إليك',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white.withValues(alpha: 0.6),
                           ),
                         ),
+                        if (isAdmin) ...[
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () => _handleSyncFromGoogleSheets(context),
+                                  icon: const Icon(Icons.sync_rounded, size: 16),
+                                  label: const Text('مزامنة شيت', style: TextStyle(fontSize: 12)),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: TfcColors.primary,
+                                    side: const BorderSide(color: TfcColors.primary),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _showAddOrEditProspectDialog(context),
+                                  icon: const Icon(Icons.person_add_alt_1, size: 16),
+                                  label: const Text('إضافة عميل', style: TextStyle(fontSize: 12)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: TfcColors.primary,
+                                    foregroundColor: Colors.black,
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    )
+                  else
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'العملاء المحتملين',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                isAdmin
+                                    ? 'إدارة العملاء الجدد المكتسبين وتوزيعهم على الموظفين ومتابعة تحويلهم'
+                                    : 'قائمة العملاء المحتملين المسندين إليك للمتابعة والتحويل',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.white.withValues(alpha: 0.6),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (isAdmin)
+                          Row(
+                            children: [
+                              // Sync button from Google Sheets
+                              ElevatedButton.icon(
+                                onPressed: () => _handleSyncFromGoogleSheets(context),
+                                icon: const Icon(Icons.sync_rounded, size: 18),
+                                label: const Text('مزامنة من جوجل شيت'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: TfcColors.primary.withValues(alpha: 0.2),
+                                  foregroundColor: TfcColors.primary,
+                                  side: const BorderSide(color: TfcColors.primary),
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              // Add Manual Prospect
+                              ElevatedButton.icon(
+                                onPressed: () => _showAddOrEditProspectDialog(context),
+                                icon: const Icon(Icons.person_add_alt_1, size: 18),
+                                label: const Text('إضافة عميل محتمل'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: TfcColors.primary,
+                                  foregroundColor: Colors.black,
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                       ],
                     ),
-                ],
-              ),
               const SizedBox(height: 20),
 
               // Filter Bar & Bulk Actions
@@ -713,8 +785,10 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
+    },
+  ),
+);
   }
 
   Widget _buildStatusBadge(String status) {

@@ -528,65 +528,122 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> with SingleTick
 
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = constraints.maxWidth < 600;
+
+          return Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 12.0 : 24.0,
+                vertical: isMobile ? 14.0 : 24.0,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "نظام الحسابات والماليات",
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: TfcColors.primary),
-                      ),
-                      SizedBox(height: 4),
-                      Text("تتبع إيرادات المكتب وعمولات الموظفين والمصروفات الشهرية", style: TextStyle(color: TfcColors.outline)),
-                    ],
-                  ),
-                  // Month Picker
-                  Row(
-                    children: [
-                      const Text("عرض لشهر: ", style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.04),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.white10),
+                  // Header
+                  if (isMobile)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "نظام الحسابات والماليات",
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: TfcColors.primary),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.04),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.white10),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: _selectedMonth,
+                                  dropdownColor: TfcColors.surfaceDim,
+                                  style: const TextStyle(fontSize: 12, color: Colors.white),
+                                  items: List.generate(12, (index) {
+                                    final date = DateTime(DateTime.now().year, index + 1);
+                                    final val = "${date.year}-${date.month.toString().padLeft(2, '0')}";
+                                    return DropdownMenuItem(
+                                      value: val,
+                                      child: Text(val),
+                                    );
+                                  }).toList(),
+                                  onChanged: (val) {
+                                    if (val != null) {
+                                      setState(() {
+                                        _selectedMonth = val;
+                                      });
+                                      _loadData();
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: _selectedMonth,
-                            dropdownColor: TfcColors.surfaceDim,
-                            items: List.generate(12, (index) {
-                              final date = DateTime(DateTime.now().year, index + 1);
-                              final val = "${date.year}-${date.month.toString().padLeft(2, '0')}";
-                              return DropdownMenuItem(
-                                value: val,
-                                child: Text(val),
-                              );
-                            }).toList(),
-                            onChanged: (val) {
-                              if (val != null) {
-                                setState(() {
-                                  _selectedMonth = val;
-                                });
-                                _loadData();
-                              }
-                            },
-                          ),
+                        const SizedBox(height: 4),
+                        const Text("تتبع إيرادات المكتب وعمولات الموظفين والمصروفات", style: TextStyle(color: TfcColors.outline, fontSize: 11)),
+                      ],
+                    )
+                  else
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "نظام الحسابات والماليات",
+                              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: TfcColors.primary),
+                            ),
+                            SizedBox(height: 4),
+                            Text("تتبع إيرادات المكتب وعمولات الموظفين والمصروفات الشهرية", style: TextStyle(color: TfcColors.outline)),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
+                        // Month Picker
+                        Row(
+                          children: [
+                            const Text("عرض لشهر: ", style: TextStyle(fontWeight: FontWeight.bold)),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.04),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.white10),
+                              ),
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: _selectedMonth,
+                                  dropdownColor: TfcColors.surfaceDim,
+                                  items: List.generate(12, (index) {
+                                    final date = DateTime(DateTime.now().year, index + 1);
+                                    final val = "${date.year}-${date.month.toString().padLeft(2, '0')}";
+                                    return DropdownMenuItem(
+                                      value: val,
+                                      child: Text(val),
+                                    );
+                                  }).toList(),
+                                  onChanged: (val) {
+                                    if (val != null) {
+                                      setState(() {
+                                        _selectedMonth = val;
+                                      });
+                                      _loadData();
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                        ),
+                      ],
+                    ),
                 ],
               ),
               const SizedBox(height: 20),
@@ -636,8 +693,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> with SingleTick
             ],
           ),
         ),
-      ),
-    );
+      );
+    },
+  ),
+);
   }
 
   Widget _buildRevenuesTab(

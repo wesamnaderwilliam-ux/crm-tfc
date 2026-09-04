@@ -234,7 +234,7 @@ class BanksScreen extends ConsumerWidget {
               return Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(top: 24, left: 24, right: 24),
+                    padding: const EdgeInsets.only(top: 14, left: 14, right: 14),
                     child: Row(
                       textDirection: TextDirection.rtl,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -242,7 +242,7 @@ class BanksScreen extends ConsumerWidget {
                         const Text(
                           "دليل البنوك والبرامج",
                           style: TextStyle(
-                            fontSize: 24,
+                            fontSize: 20,
                             fontWeight: FontWeight.bold,
                             color: TfcColors.primary,
                           ),
@@ -251,10 +251,10 @@ class BanksScreen extends ConsumerWidget {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     child: _buildSearchField(ref),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Expanded(
                     child: filteredBanks.isEmpty
                         ? const Center(
@@ -265,7 +265,7 @@ class BanksScreen extends ConsumerWidget {
                           )
                         : ListView.builder(
                             itemCount: filteredBanks.length,
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
                             itemBuilder: (context, index) {
                               final bank = filteredBanks[index];
                               return Container(

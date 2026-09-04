@@ -421,31 +421,38 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
     final int activeCount = _distributions.where((d) => d['is_closed'] != true && (authState.role == 'admin' || visibleClientIds.contains(d['client_id']))).length;
     final int closedCount = _distributions.where((d) => d['is_closed'] == true && (authState.role == 'admin' || visibleClientIds.contains(d['client_id']))).length;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          "توزيعات البنوك العامة",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: TfcColors.primary),
-            onPressed: _loadAllDistributions,
-            tooltip: "تحديث البيانات",
-          )
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Tabs Bar for Admin / Manager (Active vs Closed Distributions)
-            if (isAdmin) ...[
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Text(
+              "توزيعات البنوك العامة",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: isMobile ? 18 : 20),
+            ),
+            centerTitle: false,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh, color: TfcColors.primary),
+                onPressed: _loadAllDistributions,
+                tooltip: "تحديث البيانات",
+              )
+            ],
+          ),
+          body: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 12.0 : 24.0,
+              vertical: isMobile ? 12.0 : 24.0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Tabs Bar for Admin / Manager (Active vs Closed Distributions)
+                if (isAdmin) ...[
               Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(4),
@@ -692,6 +699,8 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
         ),
       ),
     );
+  },
+);
   }
 
   Widget _buildFilterDropdown({

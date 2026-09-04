@@ -260,29 +260,36 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
       return true;
     }).toList();
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          "العمليات العامة",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-        ),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: TfcColors.primary),
-            onPressed: _loadAllOperations,
-            tooltip: "تحديث البيانات",
-          )
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Text(
+              "العمليات العامة",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: isMobile ? 18 : 20),
+            ),
+            centerTitle: false,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.refresh, color: TfcColors.primary),
+                onPressed: _loadAllOperations,
+                tooltip: "تحديث البيانات",
+              )
+            ],
+          ),
+          body: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 12.0 : 24.0,
+              vertical: isMobile ? 12.0 : 24.0,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
             // Filters Card
             ToggleableFilterPanel(
               title: "تصفية وتصفح العمليات 🔍",
@@ -404,6 +411,8 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
         ),
       ),
     );
+  },
+);
   }
 
   Widget _buildFilterDropdown({

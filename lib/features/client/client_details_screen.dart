@@ -971,7 +971,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     child: _buildFollowUpsView(visibleClients, reps),
                   )
                 : Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [

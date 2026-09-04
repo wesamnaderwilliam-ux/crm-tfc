@@ -221,30 +221,38 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
 
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header & Period Selector Bar
-            _buildTopBar(),
-            const SizedBox(height: 16),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = constraints.maxWidth < 600;
 
-            // Tab Bar
-            TabBar(
-              controller: _tabController,
-              indicatorColor: TfcColors.primary,
-              indicatorSize: TabBarIndicatorSize.tab,
-              labelColor: TfcColors.primary,
-              unselectedLabelColor: TfcColors.outline,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              tabs: const [
-                Tab(icon: Icon(Icons.account_balance_wallet_outlined, size: 20), text: "التقارير المحاسبية والمالية"),
-                Tab(icon: Icon(Icons.badge_outlined, size: 20), text: "تقارير الموظفين والتارجت"),
-                Tab(icon: Icon(Icons.account_balance_outlined, size: 20), text: "تقارير أداء البنوك"),
-                Tab(icon: Icon(Icons.category_outlined, size: 20), text: "تقارير البرامج التمويلية"),
-              ],
+          return Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 12.0 : 24.0,
+              vertical: isMobile ? 14.0 : 24.0,
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header & Period Selector Bar
+                _buildTopBar(),
+                const SizedBox(height: 16),
+
+                // Tab Bar
+                TabBar(
+                  controller: _tabController,
+                  isScrollable: isMobile,
+                  indicatorColor: TfcColors.primary,
+                  indicatorSize: TabBarIndicatorSize.tab,
+                  labelColor: TfcColors.primary,
+                  unselectedLabelColor: TfcColors.outline,
+                  labelStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: isMobile ? 12 : 14),
+                  tabs: const [
+                    Tab(icon: Icon(Icons.account_balance_wallet_outlined, size: 20), text: "التقارير المحاسبية والمالية"),
+                    Tab(icon: Icon(Icons.badge_outlined, size: 20), text: "تقارير الموظفين والتارجت"),
+                    Tab(icon: Icon(Icons.account_balance_outlined, size: 20), text: "تقارير أداء البنوك"),
+                    Tab(icon: Icon(Icons.category_outlined, size: 20), text: "تقارير البرامج التمويلية"),
+                  ],
+                ),
             const SizedBox(height: 16),
 
             // Content
@@ -285,8 +293,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
             ),
           ],
         ),
-      ),
-    );
+      );
+    },
+  ),
+);
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

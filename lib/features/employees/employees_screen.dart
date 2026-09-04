@@ -38,66 +38,136 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
     final canViewEmployeePhone = effectivePerms[EmployeePermissionKeys.viewEmployeePhone] ?? false;
     final canViewEmployeeNationalId = effectivePerms[EmployeePermissionKeys.viewEmployeeNationalId] ?? false;
 
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header Row
-            Row(
-              textDirection: TextDirection.rtl,
-              children: [
-                const Icon(Icons.groups_rounded, color: TfcColors.primary, size: 28),
-                const SizedBox(width: 12),
-                Text(
-                  _activeTab == 0 ? 'موظفي الشركة' : 'متابعة أهداف المبيعات (التارجت)',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const Spacer(),
-                if (_activeTab == 0) ...[
-                  // Filter chips
-                  _FilterChip(
-                    label: 'الكل',
-                    isSelected: empState.filterStatus == 'all',
-                    onTap: () => ref.read(employeesProvider.notifier).setFilter('all'),
-                    count: empState.employees.length,
-                  ),
-                  const SizedBox(width: 8),
-                  _FilterChip(
-                    label: 'مؤكد',
-                    isSelected: empState.filterStatus == 'confirmed',
-                    onTap: () => ref.read(employeesProvider.notifier).setFilter('confirmed'),
-                    count: empState.employees.where((e) => e.isConfirmed).length,
-                    color: TfcColors.primary,
-                  ),
-                  const SizedBox(width: 8),
-                  _FilterChip(
-                    label: 'غير مؤكد',
-                    isSelected: empState.filterStatus == 'unconfirmed',
-                    onTap: () => ref.read(employeesProvider.notifier).setFilter('unconfirmed'),
-                    count: empState.employees.where((e) => !e.isConfirmed).length,
-                    color: Colors.orangeAccent,
-                  ),
-                  const SizedBox(width: 16),
-                ],
-                // Refresh button
-                IconButton(
-                  onPressed: () => ref.read(employeesProvider.notifier).fetchEmployees(),
-                  icon: const Icon(Icons.refresh_rounded, color: TfcColors.primary),
-                  tooltip: 'تحديث القائمة',
-                ),
-              ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+
+        return Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 12 : 24,
+              vertical: isMobile ? 14 : 24,
             ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Header Row
+                if (isMobile)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        textDirection: TextDirection.rtl,
+                        children: [
+                          const Icon(Icons.groups_rounded, color: TfcColors.primary, size: 24),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _activeTab == 0 ? 'موظفي الشركة' : 'متابعة التارجت',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: () => ref.read(employeesProvider.notifier).fetchEmployees(),
+                            icon: const Icon(Icons.refresh_rounded, color: TfcColors.primary, size: 20),
+                            tooltip: 'تحديث القائمة',
+                          ),
+                        ],
+                      ),
+                      if (_activeTab == 0) ...[
+                        const SizedBox(height: 10),
+                        SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          reverse: true,
+                          child: Row(
+                            textDirection: TextDirection.rtl,
+                            children: [
+                              _FilterChip(
+                                label: 'الكل',
+                                isSelected: empState.filterStatus == 'all',
+                                onTap: () => ref.read(employeesProvider.notifier).setFilter('all'),
+                                count: empState.employees.length,
+                              ),
+                              const SizedBox(width: 8),
+                              _FilterChip(
+                                label: 'مؤكد',
+                                isSelected: empState.filterStatus == 'confirmed',
+                                onTap: () => ref.read(employeesProvider.notifier).setFilter('confirmed'),
+                                count: empState.employees.where((e) => e.isConfirmed).length,
+                                color: TfcColors.primary,
+                              ),
+                              const SizedBox(width: 8),
+                              _FilterChip(
+                                label: 'غير مؤكد',
+                                isSelected: empState.filterStatus == 'unconfirmed',
+                                onTap: () => ref.read(employeesProvider.notifier).setFilter('unconfirmed'),
+                                count: empState.employees.where((e) => !e.isConfirmed).length,
+                                color: Colors.orangeAccent,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ],
+                  )
+                else
+                  Row(
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      const Icon(Icons.groups_rounded, color: TfcColors.primary, size: 28),
+                      const SizedBox(width: 12),
+                      Text(
+                        _activeTab == 0 ? 'موظفي الشركة' : 'متابعة أهداف المبيعات (التارجت)',
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (_activeTab == 0) ...[
+                        // Filter chips
+                        _FilterChip(
+                          label: 'الكل',
+                          isSelected: empState.filterStatus == 'all',
+                          onTap: () => ref.read(employeesProvider.notifier).setFilter('all'),
+                          count: empState.employees.length,
+                        ),
+                        const SizedBox(width: 8),
+                        _FilterChip(
+                          label: 'مؤكد',
+                          isSelected: empState.filterStatus == 'confirmed',
+                          onTap: () => ref.read(employeesProvider.notifier).setFilter('confirmed'),
+                          count: empState.employees.where((e) => e.isConfirmed).length,
+                          color: TfcColors.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        _FilterChip(
+                          label: 'غير مؤكد',
+                          isSelected: empState.filterStatus == 'unconfirmed',
+                          onTap: () => ref.read(employeesProvider.notifier).setFilter('unconfirmed'),
+                          count: empState.employees.where((e) => !e.isConfirmed).length,
+                          color: Colors.orangeAccent,
+                        ),
+                        const SizedBox(width: 16),
+                      ],
+                      // Refresh button
+                      IconButton(
+                        onPressed: () => ref.read(employeesProvider.notifier).fetchEmployees(),
+                        icon: const Icon(Icons.refresh_rounded, color: TfcColors.primary),
+                        tooltip: 'تحديث القائمة',
+                      ),
+                    ],
+                  ),
 
-            const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-            // Tab Switcher
-            Row(
-              textDirection: TextDirection.rtl,
+                // Tab Switcher
+                Row(
+                  textDirection: TextDirection.rtl,
               children: [
                 ElevatedButton.icon(
                   onPressed: () => setState(() => _activeTab = 0),
@@ -231,6 +301,8 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
         ),
       ),
     );
+  },
+);
   }
 
   Widget _buildEmployeeProfileCard(

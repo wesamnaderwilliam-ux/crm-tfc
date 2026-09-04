@@ -224,37 +224,50 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
 
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isMobile = constraints.maxWidth < 600;
+
+          return Scaffold(
+            backgroundColor: Colors.transparent,
+            body: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 12 : 24,
+                vertical: isMobile ? 14 : 24,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  // Header
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        "فواتير وأتعاب الخدمات",
-                        style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold, color: TfcColors.primary),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "فواتير وأتعاب الخدمات",
+                              style: TextStyle(
+                                fontSize: isMobile ? 20 : 26,
+                                fontWeight: FontWeight.bold,
+                                color: TfcColors.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              isMobile ? "متابعة الفواتير المحصلة وغير المحصلة" : "عرض ومتابعة الفواتير المحصلة وغير المحصلة لجميع العملاء المقبولين",
+                              style: TextStyle(color: TfcColors.outline, fontSize: isMobile ? 11 : 13),
+                            ),
+                          ],
+                        ),
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        "عرض ومتابعة الفواتير المحصلة وغير المحصلة لجميع العملاء المقبولين",
-                        style: TextStyle(color: TfcColors.outline),
+                      IconButton(
+                        icon: const Icon(Icons.refresh, color: TfcColors.primary),
+                        onPressed: _loadAllInvoices,
                       ),
                     ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.refresh, color: TfcColors.primary),
-                    onPressed: _loadAllInvoices,
-                  ),
-                ],
-              ),
               const SizedBox(height: 24),
 
               // Search Bar
@@ -406,7 +419,9 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
             ],
           ),
         ),
-      ),
-    );
+      );
+    },
+  ),
+);
   }
 }
