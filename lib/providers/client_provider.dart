@@ -34,8 +34,12 @@ class ClientNotifier extends StateNotifier<ClientState> {
   final Ref _ref;
   ClientNotifier(this._ref) : super(ClientState()) {
     _ref.listen(authProvider, (previous, next) {
-      final bankEmpId = next.bankEmployeeId;
-      fetchClients(bankEmployeeId: bankEmpId);
+      if (previous?.user?.id != next.user?.id ||
+          previous?.bankEmployeeId != next.bankEmployeeId ||
+          previous?.role != next.role) {
+        final bankEmpId = next.bankEmployeeId;
+        fetchClients(bankEmployeeId: bankEmpId);
+      }
     });
     // Initial fetch - will get bank_employee_id from current auth state
     final initialAuth = _ref.read(authProvider);
@@ -319,8 +323,7 @@ class ClientNotifier extends StateNotifier<ClientState> {
               *,
               existing_loans(*),
               credit_cards_requests(*),
-              interaction_history(*),
-              documents(*)
+              interaction_history(*)
             ''')
             .inFilter('id', targetClientIds.toList())
             .order('created_at', ascending: false);
@@ -330,14 +333,14 @@ class ClientNotifier extends StateNotifier<ClientState> {
         }
       } else {
         // All other roles: fetch all clients (visibility filtered client-side by ClientVisibilityHelper)
+        // Optimization: exclude documents(*) from bulk listing to dramatically reduce Egress data transfer
         final response = await SupabaseConfig.client
             .from('clients')
             .select('''
               *,
               existing_loans(*),
               credit_cards_requests(*),
-              interaction_history(*),
-              documents(*)
+              interaction_history(*)
             ''')
             .order('created_at', ascending: false)
             .limit(100);
@@ -351,6 +354,32 @@ class ClientNotifier extends StateNotifier<ClientState> {
     } catch (e) {
       _logger.w("Warning: could not fetch clients from Supabase: $e");
       state = state.copyWith(clients: _getFilteredMockClients(), isLoading: false);
+    }
+  }
+
+  /// On-Demand Fetch: load documents only for a specific selected client
+  Future<void> fetchDocumentsForClient(String clientId) async {
+    if (clientId.isEmpty || !SupabaseConfig.isInitialized) return;
+    try {
+      final docsResponse = await SupabaseConfig.client
+          .from('documents')
+          .select('id, client_id, document_name, document_url, status, created_at')
+          .eq('client_id', clientId);
+
+      final docsList = (docsResponse as List<dynamic>)
+          .map((d) => ClientDocumentModel.fromJson(Map<String, dynamic>.from(d as Map)))
+          .toList();
+
+      state = state.copyWith(
+        clients: state.clients.map((c) {
+          if (c.id == clientId) {
+            return c.copyWith(documents: docsList);
+          }
+          return c;
+        }).toList(),
+      );
+    } catch (e) {
+      _logger.w("Could not fetch documents for client $clientId: $e");
     }
   }
 

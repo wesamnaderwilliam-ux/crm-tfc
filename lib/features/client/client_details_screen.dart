@@ -85,6 +85,25 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     super.initState();
     _checkPhoneRequestStatus();
     _loadAdminPhoneRequests();
+    if (widget.clientId != null && widget.clientId!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(clientProvider.notifier).fetchDocumentsForClient(widget.clientId!);
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant ClientDetailsScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.clientId != oldWidget.clientId &&
+        widget.clientId != null &&
+        widget.clientId!.isNotEmpty) {
+      _checkPhoneRequestStatus();
+      _loadAdminPhoneRequests();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(clientProvider.notifier).fetchDocumentsForClient(widget.clientId!);
+      });
+    }
   }
 
   Future<void> _checkPhoneRequestStatus() async {
