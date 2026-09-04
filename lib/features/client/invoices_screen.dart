@@ -139,7 +139,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
         content: Directionality(
           textDirection: TextDirection.rtl,
           child: SizedBox(
-            width: 600,
+            width: MediaQuery.of(context).size.width > 700 ? 600 : MediaQuery.of(context).size.width * 0.92,
             child: ListView.separated(
               shrinkWrap: true,
               itemCount: summary.operations.length,

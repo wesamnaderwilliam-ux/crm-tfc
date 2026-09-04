@@ -145,7 +145,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> with SingleTick
               style: TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary),
             ),
             content: SizedBox(
-              width: 400,
+              width: MediaQuery.of(context).size.width > 500 ? 400 : MediaQuery.of(context).size.width * 0.9,
               child: Directionality(
                 textDirection: TextDirection.rtl,
                 child: Column(
@@ -287,7 +287,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> with SingleTick
               style: TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary),
             ),
             content: SizedBox(
-              width: 400,
+              width: MediaQuery.of(context).size.width > 500 ? 400 : MediaQuery.of(context).size.width * 0.9,
               child: Directionality(
                 textDirection: TextDirection.rtl,
                 child: Column(

@@ -4644,7 +4644,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
               content: SizedBox(
-                width: 600,
+                width: MediaQuery.of(context).size.width > 700 ? 600 : MediaQuery.of(context).size.width * 0.92,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -4902,7 +4902,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary)),
               content: SizedBox(
-                width: 600,
+                width: MediaQuery.of(context).size.width > 700 ? 600 : MediaQuery.of(context).size.width * 0.92,
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -5604,7 +5604,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 textAlign: TextAlign.right,
               ),
               content: SizedBox(
-                width: 600,
+                width: MediaQuery.of(context).size.width > 700 ? 600 : MediaQuery.of(context).size.width * 0.92,
                 child: Form(
                   key: formKey,
                   child: SingleChildScrollView(
@@ -6400,7 +6400,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             textAlign: TextAlign.right,
           ),
           content: SizedBox(
-            width: 400,
+            width: MediaQuery.of(context).size.width > 500 ? 400 : MediaQuery.of(context).size.width * 0.9,
             child: Form(
               key: formKey,
               child: Column(
@@ -6563,7 +6563,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 textAlign: TextAlign.right,
               ),
               content: SizedBox(
-                width: 600,
+                width: MediaQuery.of(context).size.width > 700 ? 600 : MediaQuery.of(context).size.width * 0.92,
                 child: Form(
                   key: formKey,
                   child: SingleChildScrollView(

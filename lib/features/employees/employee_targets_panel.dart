@@ -219,7 +219,7 @@ class _EmployeeTargetsPanelState extends ConsumerState<EmployeeTargetsPanel> {
               style: const TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary),
             ),
             content: SizedBox(
-              width: 400,
+              width: MediaQuery.of(context).size.width > 500 ? 400 : MediaQuery.of(context).size.width * 0.92,
               child: Directionality(
                 textDirection: TextDirection.rtl,
                 child: Column(

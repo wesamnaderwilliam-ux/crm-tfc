@@ -958,14 +958,16 @@ class _DashboardTargetPerformanceWidgetState extends ConsumerState<_DashboardTar
             const SizedBox(height: 16),
             
             // Stats Row
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              spacing: 16,
+              runSpacing: 12,
+              alignment: WrapAlignment.spaceBetween,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text("الهدف البيعي", style: TextStyle(color: TfcColors.outline, fontSize: 11)),
-                    Text("${_fmt(_targetAmount)} ج.م", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text("${_fmt(_targetAmount)} ج.م", style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                   ],
                 ),
                 Column(
@@ -974,7 +976,7 @@ class _DashboardTargetPerformanceWidgetState extends ConsumerState<_DashboardTar
                     const Text("المحقق الفعلي", style: TextStyle(color: TfcColors.outline, fontSize: 11)),
                     Text(
                       "${_fmt(_achievedAmount)} ج.م", 
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: TfcColors.success)
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: TfcColors.success)
                     ),
                   ],
                 ),
@@ -986,7 +988,7 @@ class _DashboardTargetPerformanceWidgetState extends ConsumerState<_DashboardTar
                       "${_fmt(remainingAmount)} ج.م", 
                       style: TextStyle(
                         fontWeight: FontWeight.bold, 
-                        fontSize: 16, 
+                        fontSize: 14, 
                         color: remainingAmount > 0 ? TfcColors.error : TfcColors.success
                       )
                     ),
@@ -996,7 +998,7 @@ class _DashboardTargetPerformanceWidgetState extends ConsumerState<_DashboardTar
                   "${percent.toStringAsFixed(1)}%",
                   style: TextStyle(
                     fontWeight: FontWeight.bold, 
-                    fontSize: 22, 
+                    fontSize: 20, 
                     color: percent >= 100 
                         ? TfcColors.success 
                         : percent >= 50 
@@ -1025,10 +1027,12 @@ class _DashboardTargetPerformanceWidgetState extends ConsumerState<_DashboardTar
             const SizedBox(height: 12),
 
             // Daily average Required
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              alignment: WrapAlignment.spaceBetween,
               children: [
-                const Text("المتوسط اليومي المطلوب للأيام المتبقية في الشهر:", style: TextStyle(color: TfcColors.outline, fontSize: 11)),
+                const Text("المتوسط اليومي المطلوب للأيام المتبقية:", style: TextStyle(color: TfcColors.outline, fontSize: 11)),
                 Text(
                   remainingAmount > 0
                       ? "${_fmt(dailyAvgRequired)} ج.م / يومياً"
@@ -1367,7 +1371,7 @@ class _DashboardWalletWidgetState extends ConsumerState<_DashboardWalletWidget> 
             ),
           ),
           content: SizedBox(
-            width: 500,
+            width: MediaQuery.of(context).size.width > 600 ? 500 : MediaQuery.of(context).size.width * 0.9,
             child: Directionality(
               textDirection: TextDirection.rtl,
               child: ops.isEmpty
@@ -2008,8 +2012,8 @@ class __DashboardStatusBreakdownWidgetState
       builder: (ctx) => Dialog(
         backgroundColor: Colors.transparent,
         child: Container(
-          width: 500,
-          constraints: const BoxConstraints(maxHeight: 600),
+          width: MediaQuery.of(context).size.width > 600 ? 500 : MediaQuery.of(context).size.width * 0.92,
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
           child: GlassCard(
             padding: const EdgeInsets.all(20),
             borderRadius: 16,

@@ -1038,7 +1038,7 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                 ],
               ),
               content: SizedBox(
-                width: 700,
+                width: MediaQuery.of(context).size.width > 750 ? 700 : MediaQuery.of(context).size.width * 0.94,
                 child: SingleChildScrollView(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
