@@ -1052,8 +1052,10 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
           ],
         ),
       ),
-    ),
-  );
+    );
+  },
+),
+);
 }
 }
 
