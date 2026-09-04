@@ -96,41 +96,57 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Header Page Title
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              textDirection: TextDirection.rtl,
+      body: LayoutBuilder(
+        builder: (context, screenConstraints) {
+          final isMobile = screenConstraints.maxWidth < 600;
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 12 : 24,
+              vertical: isMobile ? 14 : 24,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                // Header Page Title
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  textDirection: TextDirection.rtl,
                   children: [
-                    const Text(
-                      "لوحة التحكم المالية",
-                      style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: TfcColors.primary),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            "لوحة التحكم المالية",
+                            style: TextStyle(
+                              fontSize: isMobile ? 20 : 26,
+                              fontWeight: FontWeight.bold,
+                              color: TfcColors.primary,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "مرحباً بك، ${authState.fullName} - تابع طلبات التمويل والقروض",
+                            style: TextStyle(
+                              color: TfcColors.outline,
+                              fontSize: isMobile ? 11 : 13,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "مرحباً بك، ${authState.fullName} - تابع طلبات التمويل والقروض",
-                      style: const TextStyle(color: TfcColors.outline),
+                    IconButton(
+                      icon: const Icon(Icons.refresh, color: TfcColors.primary),
+                      tooltip: "تحديث",
+                      onPressed: () =>
+                          ref.read(clientProvider.notifier).fetchClients(bankEmployeeId: ref.read(authProvider).bankEmployeeId),
                     ),
                   ],
                 ),
-                IconButton(
-                  icon: const Icon(Icons.refresh, color: TfcColors.primary),
-                  onPressed: () =>
-                      ref.read(clientProvider.notifier).fetchClients(bankEmployeeId: ref.read(authProvider).bankEmployeeId),
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
+                SizedBox(height: isMobile ? 16 : 32),
 
             // 1. KPI Financial cards (visible conditionally if user can view analytics)
             if (permissions.canViewAnalytics) ...[
@@ -141,12 +157,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       constraints.maxWidth < 1100;
 
                   return GridView.count(
-                    crossAxisCount: isMobile ? 1 : (isTablet ? 2 : 4),
+                    crossAxisCount: isMobile ? 2 : (isTablet ? 2 : 4),
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 2.2,
+                    crossAxisSpacing: isMobile ? 10 : 16,
+                    mainAxisSpacing: isMobile ? 10 : 16,
+                    childAspectRatio: isMobile ? 1.6 : 2.2,
                     children: [
                       _buildKpiCard(
                         title: "إجمالي التمويل المطلوب",
@@ -479,14 +495,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             ),
                     ),
                   ],
+                    ),
+                  ],
                 );
               },
             ),
           ],
         ),
-      ),
-    );
-  }
+      );
+    },
+  ),
+);
+}
 
   Widget _buildStatusDropdown() {
     return Container(
@@ -562,63 +582,81 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       required IconData icon,
       required Color color,
       String? subText}) {
-    return GlassCard(
-      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-      borderRadius: 14,
-      // ignore: deprecated_member_use
-      borderColor: color.withOpacity(0.15),
-      child: Row(
-        textDirection: TextDirection.rtl,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        color: TfcColors.onSurfaceVariant, fontSize: 12)),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 220;
+
+        return GlassCard(
+          padding: EdgeInsets.symmetric(
+            vertical: isCompact ? 10 : 16,
+            horizontal: isCompact ? 10 : 16,
+          ),
+          borderRadius: 14,
+          borderColor: color.withValues(alpha: 0.15),
+          child: Row(
+            textDirection: TextDirection.rtl,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    if (subText != null) ...[
-                      Text(subText,
-                          style: const TextStyle(
-                              fontSize: 11, color: TfcColors.outline)),
-                      const SizedBox(width: 4),
-                    ],
                     Text(
-                      value,
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: color,
-                        shadows: [
-                          // ignore: deprecated_member_use
-                          Shadow(color: color.withOpacity(0.3), blurRadius: 10),
+                        color: TfcColors.onSurfaceVariant,
+                        fontSize: isCompact ? 10 : 12,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        textDirection: TextDirection.rtl,
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            value,
+                            style: TextStyle(
+                              fontSize: isCompact ? 18 : 22,
+                              fontWeight: FontWeight.bold,
+                              color: color,
+                            ),
+                          ),
+                          if (subText != null) ...[
+                            const SizedBox(width: 4),
+                            Text(
+                              subText,
+                              style: TextStyle(
+                                fontSize: isCompact ? 9 : 11,
+                                color: TfcColors.outline,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: EdgeInsets.all(isCompact ? 8 : 10),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: isCompact ? 18 : 22),
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              // ignore: deprecated_member_use
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1840,16 +1878,16 @@ class __DashboardStatusBreakdownWidgetState
               final isMobile = constraints.maxWidth < 600;
               final isTablet =
                   constraints.maxWidth >= 600 && constraints.maxWidth < 1000;
-              final crossAxisCount = isMobile ? 1 : (isTablet ? 2 : 4);
+              final crossAxisCount = isMobile ? 2 : (isTablet ? 3 : 4);
 
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: crossAxisCount,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: isMobile ? 2.8 : 2.2,
+                  crossAxisSpacing: isMobile ? 8 : 12,
+                  mainAxisSpacing: isMobile ? 8 : 12,
+                  childAspectRatio: isMobile ? 1.6 : 2.2,
                 ),
                 itemCount: _statusMeta.keys.length,
                 itemBuilder: (context, index) {
