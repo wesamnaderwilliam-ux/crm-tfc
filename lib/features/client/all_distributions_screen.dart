@@ -370,6 +370,8 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final isAdmin = authState.role == 'admin';
+    final isManager = authState.role == 'manager';
+    final isAdminOrManager = isAdmin || isManager;
     final banksAsync = ref.watch(allBanksProvider);
     final programsAsync = ref.watch(coreProgramsProvider);
 
@@ -387,7 +389,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
     
     // Apply Filters locally
     final filtered = _distributions.where((d) {
-      if (authState.role != 'admin' && !visibleClientIds.contains(d['client_id'])) {
+      if (!isAdmin && !visibleClientIds.contains(d['client_id'])) {
         return false;
       }
 
@@ -420,8 +422,8 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
       return true;
     }).toList();
 
-    final int activeCount = _distributions.where((d) => d['is_closed'] != true && (authState.role == 'admin' || visibleClientIds.contains(d['client_id']))).length;
-    final int closedCount = _distributions.where((d) => d['is_closed'] == true && (authState.role == 'admin' || visibleClientIds.contains(d['client_id']))).length;
+    final int activeCount = _distributions.where((d) => d['is_closed'] != true && (isAdmin || visibleClientIds.contains(d['client_id']))).length;
+    final int closedCount = _distributions.where((d) => d['is_closed'] == true && (isAdmin || visibleClientIds.contains(d['client_id']))).length;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -454,7 +456,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Tabs Bar for Admin / Manager (Active vs Closed Distributions)
-                if (isAdmin) ...[
+                if (isAdminOrManager) ...[
               Container(
                 margin: const EdgeInsets.only(bottom: 16),
                 padding: const EdgeInsets.all(4),
@@ -691,9 +693,9 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                           builder: (context, constraints) {
                             final isDesktop = constraints.maxWidth >= 1024;
                             if (isDesktop) {
-                              return _buildDesktopTable(filtered, isAdmin);
+                              return _buildDesktopTable(filtered, isAdminOrManager);
                             }
-                            return _buildMobileCards(filtered, isAdmin);
+                            return _buildMobileCards(filtered, isAdminOrManager);
                           },
                         ),
             ),
@@ -891,6 +893,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                                             minimumSize: Size.zero,
                                           ),
                                         ),
+                                        if (authState.role == 'bank_employee') ...[
                                         const SizedBox(width: 6),
                                         OutlinedButton.icon(
                                           onPressed: () => _requestPhoneFromDistribution(d),
@@ -903,6 +906,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                                             minimumSize: Size.zero,
                                           ),
                                         ),
+                                        ],
                                       ],
                                     ],
                                   )
@@ -1077,6 +1081,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                       ),
                                     ),
+                                    if (authState.role == 'bank_employee')
                                     OutlinedButton.icon(
                                       onPressed: () => _requestPhoneFromDistribution(d),
                                       icon: const Icon(Icons.phone_android, size: 12),
