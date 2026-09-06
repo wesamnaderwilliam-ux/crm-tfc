@@ -734,176 +734,367 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
     );
   }
 
+  Map<String, List<Map<String, dynamic>>> _groupByClient(List<Map<String, dynamic>> data) {
+    final Map<String, List<Map<String, dynamic>>> grouped = {};
+    for (var d in data) {
+      final clientId = d['client_id']?.toString() ?? 'unknown';
+      grouped.putIfAbsent(clientId, () => []).add(d);
+    }
+    return grouped;
+  }
+
   Widget _buildDesktopTable(List<Map<String, dynamic>> data, bool isAdmin) {
     final authState = ref.read(authProvider);
-    return GlassCard(
-      padding: const EdgeInsets.all(16),
-      borderColor: Colors.white.withValues(alpha: 0.03),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.vertical,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            horizontalMargin: 12,
-            columnSpacing: 24,
-            headingRowColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.02)),
-            dataRowMaxHeight: 60,
-            columns: const [
-              DataColumn(label: Text("العميل", style: TextStyle(fontWeight: FontWeight.bold, color: TfcColors.primary))),
-              DataColumn(label: Text("البرنامج الائتماني", style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text("البنك الموزع عليه", style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text("الموظف المسؤول", style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text("الحالة", style: TextStyle(fontWeight: FontWeight.bold))),
-              DataColumn(label: Text("التحكم / الإجراء", style: TextStyle(fontWeight: FontWeight.bold))),
-            ],
-            rows: data.map((d) {
-              return DataRow(
-                cells: [
-                  DataCell(
-                    InkWell(
-                      onTap: () => widget.onViewClient(d['client_id']),
-                      child: Text(
-                        d['client_name'],
-                        style: const TextStyle(
-                          color: TfcColors.primary,
-                          fontWeight: FontWeight.bold,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
+    final grouped = _groupByClient(data);
+
+    return ListView.builder(
+      itemCount: grouped.length,
+      itemBuilder: (context, index) {
+        final clientId = grouped.keys.elementAt(index);
+        final clientDists = grouped[clientId]!;
+        final clientName = clientDists.first['client_name'] ?? 'عميل غير معروف';
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 20),
+          child: GlassCard(
+            padding: EdgeInsets.zero,
+            borderColor: Colors.white.withValues(alpha: 0.08),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ── Client Header ──
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.04),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08))),
                   ),
-                  DataCell(Text(d['program_name'])),
-                  DataCell(Text(d['bank_name'])),
-                  DataCell(Text(d['employee_name'])),
-                  DataCell(_buildStatusChip(d['status'], isClosed: d['is_closed'] == true)),
-                  DataCell(
-                    (isAdmin || authState.role == 'bank_employee')
-                        ? Row(
+                  child: Row(
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: TfcColors.primary.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.person, color: TfcColors.primary, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      InkWell(
+                        onTap: () => widget.onViewClient(clientId),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              _buildStatusActionsDropdown(d['id'], d['status'], d['is_closed'] == true),
-                              if (d['status'] == 'accepted') ...[
-                                const SizedBox(width: 8),
-                                ElevatedButton.icon(
-                                  onPressed: () => _convertToOperation(d),
-                                  icon: const Icon(Icons.settings_suggest, size: 12),
-                                  label: const Text("تحويل لعملية", style: TextStyle(fontSize: 11)),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blueAccent,
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                    minimumSize: Size.zero,
-                                  ),
+                              Text(
+                                clientName,
+                                style: const TextStyle(
+                                  color: TfcColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 17,
+                                  decoration: TextDecoration.underline,
                                 ),
-                                const SizedBox(width: 6),
-                                OutlinedButton.icon(
-                                  onPressed: () => _requestPhoneFromDistribution(d),
-                                  icon: const Icon(Icons.phone_android, size: 12),
-                                  label: const Text("طلب الرقم", style: TextStyle(fontSize: 11)),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.greenAccent,
-                                    side: const BorderSide(color: Colors.greenAccent, width: 0.8),
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                    minimumSize: Size.zero,
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(Icons.open_in_new, color: TfcColors.primary, size: 16),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: TfcColors.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: TfcColors.primary.withValues(alpha: 0.3)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.account_balance, size: 14, color: TfcColors.primary),
+                            const SizedBox(width: 6),
+                            Text(
+                              "موزع على ${clientDists.length} ${clientDists.length == 1 ? 'بنك' : 'بنوك'}",
+                              style: const TextStyle(color: TfcColors.primary, fontSize: 13, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Assigned Banks Table ──
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    horizontalMargin: 20,
+                    columnSpacing: 28,
+                    headingRowColor: WidgetStateProperty.all(Colors.white.withValues(alpha: 0.02)),
+                    dataRowMaxHeight: 65,
+                    columns: const [
+                      DataColumn(label: Text("البنك الموزع عليه", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
+                      DataColumn(label: Text("البرنامج الائتماني", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
+                      DataColumn(label: Text("الموظف المسؤول", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
+                      DataColumn(label: Text("الحالة", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
+                      DataColumn(label: Text("التحكم / الإجراء", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
+                    ],
+                    rows: clientDists.map((d) {
+                      final status = d['status'] as String? ?? 'pending';
+                      final statusColor = _getStatusColor(status);
+
+                      return DataRow(
+                        cells: [
+                          DataCell(
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.account_balance, size: 16, color: statusColor),
+                                const SizedBox(width: 8),
+                                Text(
+                                  d['bank_name'] ?? 'بنك غير معروف',
+                                  style: TextStyle(
+                                    color: statusColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 15,
                                   ),
                                 ),
                               ],
-                            ],
-                          )
-                        : const Text("—", style: TextStyle(color: TfcColors.outline)),
+                            ),
+                          ),
+                          DataCell(Text(d['program_name'] ?? '—', style: const TextStyle(fontSize: 13))),
+                          DataCell(Text(d['employee_name'] ?? '—', style: const TextStyle(fontSize: 13))),
+                          DataCell(_buildStatusChip(status, isClosed: d['is_closed'] == true)),
+                          DataCell(
+                            (isAdmin || authState.role == 'bank_employee')
+                                ? Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      _buildStatusActionsDropdown(d['id'], d['status'], d['is_closed'] == true),
+                                      if (d['status'] == 'accepted') ...[
+                                        const SizedBox(width: 8),
+                                        ElevatedButton.icon(
+                                          onPressed: () => _convertToOperation(d),
+                                          icon: const Icon(Icons.settings_suggest, size: 12),
+                                          label: const Text("تحويل لعملية", style: TextStyle(fontSize: 11)),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.blueAccent,
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                            minimumSize: Size.zero,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        OutlinedButton.icon(
+                                          onPressed: () => _requestPhoneFromDistribution(d),
+                                          icon: const Icon(Icons.phone_android, size: 12),
+                                          label: const Text("طلب الرقم", style: TextStyle(fontSize: 11)),
+                                          style: OutlinedButton.styleFrom(
+                                            foregroundColor: Colors.greenAccent,
+                                            side: const BorderSide(color: Colors.greenAccent, width: 0.8),
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                            minimumSize: Size.zero,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  )
+                                : const Text("—", style: TextStyle(color: TfcColors.outline)),
+                          ),
+                        ],
+                      );
+                    }).toList(),
                   ),
-                ],
-              );
-            }).toList(),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
   Widget _buildMobileCards(List<Map<String, dynamic>> data, bool isAdmin) {
     final authState = ref.read(authProvider);
+    final grouped = _groupByClient(data);
+
     return ListView.builder(
-      itemCount: data.length,
+      itemCount: grouped.length,
       itemBuilder: (context, index) {
-        final d = data[index];
+        final clientId = grouped.keys.elementAt(index);
+        final clientDists = grouped[clientId]!;
+        final clientName = clientDists.first['client_name'] ?? 'عميل غير معروف';
+
         return Container(
-          margin: const EdgeInsets.only(bottom: 12),
+          margin: const EdgeInsets.only(bottom: 16),
           child: GlassCard(
-            padding: const EdgeInsets.all(16),
-            borderColor: _getStatusColor(d['status']).withValues(alpha: 0.15),
+            padding: EdgeInsets.zero,
+            borderColor: Colors.white.withValues(alpha: 0.08),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(
-                  textDirection: TextDirection.rtl,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    InkWell(
-                      onTap: () => widget.onViewClient(d['client_id']),
-                      child: Text(
-                        d['client_name'],
-                        style: const TextStyle(
-                          color: TfcColors.primary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ),
-                    _buildStatusChip(d['status'], isClosed: d['is_closed'] == true),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                _buildInfoRow("البرنامج", d['program_name'], Icons.category),
-                _buildInfoRow("البنك", d['bank_name'], Icons.account_balance),
-                _buildInfoRow("الموظف", d['employee_name'], Icons.person),
-                if (isAdmin || authState.role == 'bank_employee') ...[
-                  const SizedBox(height: 12),
-                  const Divider(color: Colors.white10),
-                  const SizedBox(height: 8),
-                  Row(
+                // ── Client Header ──
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.04),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08))),
+                  ),
+                  child: Row(
                     textDirection: TextDirection.rtl,
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        "تغيير الحالة:",
-                        style: TextStyle(color: TfcColors.outline, fontSize: 13),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () => widget.onViewClient(clientId),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.person, color: TfcColors.primary, size: 18),
+                              const SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  clientName,
+                                  style: const TextStyle(
+                                    color: TfcColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              const Icon(Icons.open_in_new, color: TfcColors.primary, size: 14),
+                            ],
+                          ),
+                        ),
                       ),
-                      _buildStatusActionsDropdown(d['id'], d['status'], d['is_closed'] == true),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: TfcColors.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: TfcColors.primary.withValues(alpha: 0.3)),
+                        ),
+                        child: Text(
+                          "${clientDists.length} ${clientDists.length == 1 ? 'بنك' : 'بنوك'}",
+                          style: const TextStyle(color: TfcColors.primary, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ),
                     ],
                   ),
-                  if (d['status'] == 'accepted') ...[
-                    const SizedBox(height: 10),
-                    Row(
-                      textDirection: TextDirection.rtl,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        ElevatedButton.icon(
-                          onPressed: () => _convertToOperation(d),
-                          icon: const Icon(Icons.settings_suggest, size: 12),
-                          label: const Text("تحويل لعملية", style: TextStyle(fontSize: 11)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueAccent,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          ),
+                ),
+
+                // ── Sub-cards for Each Bank ──
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    children: clientDists.map((d) {
+                      final status = d['status'] as String? ?? 'pending';
+                      final statusColor = _getStatusColor(status);
+
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: statusColor.withValues(alpha: 0.2)),
                         ),
-                        const SizedBox(width: 8),
-                        OutlinedButton.icon(
-                          onPressed: () => _requestPhoneFromDistribution(d),
-                          icon: const Icon(Icons.phone_android, size: 12),
-                          label: const Text("طلب الرقم", style: TextStyle(fontSize: 11)),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.greenAccent,
-                            side: const BorderSide(color: Colors.greenAccent, width: 0.8),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Bank Name (Colored by status) & Status Chip
+                            Row(
+                              textDirection: TextDirection.rtl,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Row(
+                                    textDirection: TextDirection.rtl,
+                                    children: [
+                                      Icon(Icons.account_balance, color: statusColor, size: 18),
+                                      const SizedBox(width: 8),
+                                      Flexible(
+                                        child: Text(
+                                          d['bank_name'] ?? 'بنك غير معروف',
+                                          style: TextStyle(
+                                            color: statusColor,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                          ),
+                                          textDirection: TextDirection.rtl,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                _buildStatusChip(status, isClosed: d['is_closed'] == true),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            _buildInfoRow("البرنامج", d['program_name'] ?? '—', Icons.category),
+                            _buildInfoRow("الموظف", d['employee_name'] ?? '—', Icons.person),
+
+                            if (isAdmin || authState.role == 'bank_employee') ...[
+                              const SizedBox(height: 8),
+                              const Divider(color: Colors.white10),
+                              const SizedBox(height: 6),
+                              Row(
+                                textDirection: TextDirection.rtl,
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    "تغيير الحالة:",
+                                    style: TextStyle(color: TfcColors.outline, fontSize: 12),
+                                  ),
+                                  _buildStatusActionsDropdown(d['id'], d['status'], d['is_closed'] == true),
+                                ],
+                              ),
+                              if (d['status'] == 'accepted') ...[
+                                const SizedBox(height: 10),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 6,
+                                  alignment: WrapAlignment.end,
+                                  children: [
+                                    ElevatedButton.icon(
+                                      onPressed: () => _convertToOperation(d),
+                                      icon: const Icon(Icons.settings_suggest, size: 12),
+                                      label: const Text("تحويل لعملية", style: TextStyle(fontSize: 11)),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.blueAccent,
+                                        foregroundColor: Colors.white,
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      ),
+                                    ),
+                                    OutlinedButton.icon(
+                                      onPressed: () => _requestPhoneFromDistribution(d),
+                                      icon: const Icon(Icons.phone_android, size: 12),
+                                      label: const Text("طلب الرقم", style: TextStyle(fontSize: 11)),
+                                      style: OutlinedButton.styleFrom(
+                                        foregroundColor: Colors.greenAccent,
+                                        side: const BorderSide(color: Colors.greenAccent, width: 0.8),
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ],
                         ),
-                      ],
-                    ),
-                  ],
-                ],
+                      );
+                    }).toList(),
+                  ),
+                ),
               ],
             ),
           ),
@@ -994,7 +1185,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
         return TfcColors.error;
       case 'pending':
       default:
-        return TfcColors.warning;
+        return const Color(0xFF64B5F6); // بيبي بلو (Baby Blue)
     }
   }
 
