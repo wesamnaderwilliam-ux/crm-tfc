@@ -950,9 +950,10 @@ class _BankSelectionCard extends ConsumerWidget {
                     ? _buildBankDropdown(context)
                     : Text(
                         bankSelection.bankName ?? "—",
-                        style: const TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: statusColor,
                         ),
                         textDirection: TextDirection.rtl,
                       ),
@@ -1281,8 +1282,9 @@ class _BankSelectionCard extends ConsumerWidget {
         return TfcColors.error;
       case 'operations':
         return Colors.blueAccent;
+      case 'pending':
       default:
-        return const Color(0xFF7B61FF);
+        return const Color(0xFF64B5F6); // بيبي بلو (Baby Blue)
     }
   }
 
