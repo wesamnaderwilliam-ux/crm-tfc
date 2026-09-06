@@ -85,11 +85,6 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     super.initState();
     _checkPhoneRequestStatus();
     _loadAdminPhoneRequests();
-    if (widget.clientId != null && widget.clientId!.isNotEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(clientProvider.notifier).fetchDocumentsForClient(widget.clientId!);
-      });
-    }
   }
 
   @override
@@ -100,9 +95,6 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         widget.clientId!.isNotEmpty) {
       _checkPhoneRequestStatus();
       _loadAdminPhoneRequests();
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(clientProvider.notifier).fetchDocumentsForClient(widget.clientId!);
-      });
     }
   }
 
@@ -272,9 +264,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         children: [
           InteractiveHoverCard(
             onTap: () {
+              final nextExpanded = !isExpanded;
               setState(() {
-                _expandedSections[key] = !isExpanded;
+                _expandedSections[key] = nextExpanded;
               });
+              if (nextExpanded && key == 'documents' && widget.clientId != null && widget.clientId!.isNotEmpty) {
+                ref.read(clientProvider.notifier).fetchDocumentsForClient(widget.clientId!);
+              }
             },
             glowColor: isExpanded ? const Color(0xFF6C5CE7) : Colors.cyan,
             backgroundColor: const Color(0xFF1E1E38).withValues(alpha: 0.8),
@@ -2883,90 +2879,41 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
-
-                      // Image / File Content Display Area
-                      if (isImage && d.documentUrl.isNotEmpty) ...[
-                        GestureDetector(
-                          onTap: () => _showDocumentPreview(d),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              constraints: const BoxConstraints(maxHeight: 280),
-                              width: double.infinity,
-                              color: Colors.black26,
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Image.network(
-                                    d.documentUrl,
-                                    fit: BoxFit.contain,
-                                    loadingBuilder: (context, child, loadingProgress) {
-                                      if (loadingProgress == null) return child;
-                                      return const Padding(
-                                        padding: EdgeInsets.all(24.0),
-                                        child: CircularProgressIndicator(strokeWidth: 2),
-                                      );
-                                    },
-                                    errorBuilder: (context, error, stackTrace) {
-                                      return Container(
-                                        padding: const EdgeInsets.all(16),
-                                        color: Colors.white10,
-                                        child: const Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
-                                          children: [
-                                            Icon(Icons.broken_image, color: Colors.amber),
-                                            SizedBox(width: 8),
-                                            Text("تعذر تحميل المعاينة المباشرة للمستند", style: TextStyle(fontSize: 12, color: Colors.white70)),
-                                          ],
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  Positioned(
-                                    bottom: 8,
-                                    left: 8,
-                                    child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: Colors.black.withValues(alpha: 0.6),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: const Row(
-                                        children: [
-                                          Icon(Icons.fullscreen, color: Colors.white, size: 14),
-                                          SizedBox(width: 4),
-                                          Text("عرض بالكامل", style: TextStyle(color: Colors.white, fontSize: 10)),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                      const SizedBox(height: 8),
+                      // On-Demand Preview / Open Button (Saves tremendous network egress)
+                      InkWell(
+                        onTap: () => _showDocumentPreview(d),
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.04),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: TfcColors.primary.withValues(alpha: 0.2)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                isImage ? Icons.remove_red_eye_outlined : Icons.picture_as_pdf,
+                                color: isImage ? Colors.blueAccent : Colors.redAccent,
+                                size: 18,
                               ),
-                            ),
+                              const SizedBox(width: 8),
+                              Text(
+                                isImage ? "معاينة الصورة وعرض التفاصيل" : "فتح وقراءة ملف الـ PDF",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const Spacer(),
+                              const Icon(Icons.arrow_forward_ios, size: 12, color: Colors.white54),
+                            ],
                           ),
                         ),
-                      ] else ...[
-                        InkWell(
-                          onTap: () => _showDocumentPreview(d),
-                          borderRadius: BorderRadius.circular(8),
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Colors.white10,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(Icons.picture_as_pdf, color: Colors.redAccent, size: 22),
-                                SizedBox(width: 8),
-                                Text("اضغط هنا للفتح والتنزيل والمعاينة الحية", style: TextStyle(fontSize: 12, color: Colors.blueAccent, decoration: TextDecoration.underline)),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
+                      ),
                     ],
                   ),
                 );
@@ -3093,25 +3040,33 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     constraints: const BoxConstraints(maxHeight: 250),
                     width: double.infinity,
                     color: Colors.black26,
-                    child: Image.network(
-                      doc.documentUrl,
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(24.0),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.broken_image, color: Colors.white30, size: 36),
-                                SizedBox(height: 8),
-                                Text("تعذر تحميل معاينة الصورة", style: TextStyle(color: Colors.white38, fontSize: 12)),
-                              ],
+                    child: doc.documentUrl.startsWith('data:image/')
+                        ? Image.memory(
+                            base64Decode(doc.documentUrl.split(',').last),
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) => const Center(
+                              child: Icon(Icons.broken_image, color: Colors.white30, size: 36),
                             ),
+                          )
+                        : Image.network(
+                            doc.documentUrl,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) {
+                              return const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.all(24.0),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.broken_image, color: Colors.white30, size: 36),
+                                      SizedBox(height: 8),
+                                      Text("تعذر تحميل معاينة الصورة", style: TextStyle(color: Colors.white38, fontSize: 12)),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
                           ),
-                        );
-                      },
-                    ),
                   ),
                 ),
               ],

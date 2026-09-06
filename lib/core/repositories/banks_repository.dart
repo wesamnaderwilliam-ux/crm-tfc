@@ -3,9 +3,26 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class BanksRepository {
   final _supabase = Supabase.instance.client;
 
+  // In-memory cache to minimize Supabase Egress
+  List<Map<String, dynamic>>? _cachedBanks;
+  DateTime? _banksCacheTime;
+  static const _cacheDuration = Duration(minutes: 30);
+
+  void invalidateCache() {
+    _cachedBanks = null;
+    _banksCacheTime = null;
+  }
+
   // 1. Fetch all banks (with nested programs and employees)
-  Future<List<Map<String, dynamic>>> getAllBanks() async {
-    return await _supabase
+  Future<List<Map<String, dynamic>>> getAllBanks({bool forceRefresh = false}) async {
+    if (!forceRefresh &&
+        _cachedBanks != null &&
+        _banksCacheTime != null &&
+        DateTime.now().difference(_banksCacheTime!) < _cacheDuration) {
+      return _cachedBanks!;
+    }
+
+    final data = await _supabase
         .from('banks')
         .select('''
           id, 
@@ -19,6 +36,10 @@ class BanksRepository {
           )
         ''')
         .order('bank_name');
+
+    _cachedBanks = List<Map<String, dynamic>>.from(data);
+    _banksCacheTime = DateTime.now();
+    return _cachedBanks!;
   }
 
   // 2. Fetch programs for a specific bank (with core program name)
@@ -47,11 +68,13 @@ class BanksRepository {
         .insert({'bank_name': bankName})
         .select('id, bank_name')
         .single();
+    invalidateCache();
     return Map<String, dynamic>.from(res);
   }
 
   Future<void> updateBank(String id, String bankName) async {
     await _supabase.from('banks').update({'bank_name': bankName}).eq('id', id);
+    invalidateCache();
   }
 
   Future<void> deleteBank(String id) async {
@@ -59,6 +82,7 @@ class BanksRepository {
     await _supabase.from('bank_employees').delete().eq('bank_id', id);
     await _supabase.from('bank_programs_details').delete().eq('bank_id', id);
     await _supabase.from('banks').delete().eq('id', id);
+    invalidateCache();
   }
 
   // -------------------------------------------------------------------------
