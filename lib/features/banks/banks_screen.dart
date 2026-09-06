@@ -24,9 +24,10 @@ class BanksScreen extends ConsumerWidget {
     final effectivePerms = (role == 'admin' || role == 'manager')
         ? EmployeePermissionKeys.defaultsForRole('admin')
         : EmployeePermissionKeys.resolve(role, customPermsState[userId] ?? {});
-    final isUserAdminRole = (role == 'admin' || role == 'manager' || authState.user?.email?.toLowerCase() == 'wezonader@gmail.com');
-    final isAdmin = isUserAdminRole || (effectivePerms[EmployeePermissionKeys.manageBanks] ?? false);
-    final canViewBankPhones = isUserAdminRole || (effectivePerms[EmployeePermissionKeys.viewBankPhones] ?? false);
+    final isUserStrictAdmin = (role == 'admin' || authState.user?.email?.toLowerCase() == 'wezonader@gmail.com');
+    final isAdmin = isUserStrictAdmin || (effectivePerms[EmployeePermissionKeys.manageBanks] ?? false);
+    // Strict requirement: Only system Admin can view bank employee phones and contacts
+    final canViewBankPhones = isUserStrictAdmin;
     final isBankEmployee = role == 'bank_employee';
     final userBankName = authState.bankName;
 
@@ -86,13 +87,16 @@ class BanksScreen extends ConsumerWidget {
               final email = _normalizeArabic((emp['email'] ?? '').toString().toLowerCase());
               final notes = _normalizeArabic((emp['notes'] ?? '').toString().toLowerCase());
               
-              if (name.contains(query) ||
-                  phone1.contains(query) ||
-                  phone2.contains(query) ||
-                  title.contains(query) ||
-                  email.contains(query) ||
-                  notes.contains(query)) {
+              if (name.contains(query) || title.contains(query)) {
                 return true;
+              }
+              if (canViewBankPhones) {
+                if (phone1.contains(query) ||
+                    phone2.contains(query) ||
+                    email.contains(query) ||
+                    notes.contains(query)) {
+                  return true;
+                }
               }
             }
             
@@ -943,23 +947,7 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
                                 icon: Icons.phone_android,
                                 onAction: () => _copyToClipboard(context, emp['phone_2'], "الرقم الإضافي"),
                               ),
-                            if (!widget.canViewBankPhones && (emp['phone_1'] != null || emp['phone_2'] != null))
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 6.0),
-                                child: Row(
-                                  textDirection: TextDirection.rtl,
-                                  children: [
-                                    Icon(Icons.lock_outline, color: Colors.orangeAccent.withValues(alpha: 0.6), size: 14),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      "أرقام الهاتف مخفية — صلاحية غير متاحة",
-                                      style: TextStyle(color: Colors.orangeAccent.withValues(alpha: 0.6), fontSize: 11, fontStyle: FontStyle.italic),
-                                      textDirection: TextDirection.rtl,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            if (emp['email'] != null)
+                            if (emp['email'] != null && widget.canViewBankPhones)
                               _buildContactRow(
                                 label: "البريد الإلكتروني",
                                 value: emp['email'],
@@ -967,7 +955,7 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
                                 onAction: () => _copyToClipboard(context, emp['email'], "البريد الإلكتروني"),
                               ),
 
-                            if (emp['notes'] != null && emp['notes'].toString().isNotEmpty) ...[
+                            if (widget.canViewBankPhones && emp['notes'] != null && emp['notes'].toString().isNotEmpty) ...[
                               const SizedBox(height: 12),
                               Container(
                                 padding: const EdgeInsets.all(10),

@@ -39,7 +39,7 @@ class TursoClient {
       final response = await http.post(
         pipelineUrl,
         headers: {
-          'Authorization': 'Bearer ',
+          'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
         body: body,

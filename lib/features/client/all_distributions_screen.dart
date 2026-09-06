@@ -107,7 +107,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
             client_id,
             core_programs ( program_name ),
             banks ( bank_name ),
-            bank_employees ( employee_name, phone_1 ),
+            bank_employees ( employee_name, phone_1, job_title ),
             clients ( full_name )
           ''');
 
@@ -139,7 +139,9 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
           'employee_name': empData != null
               ? (isUserAdmin
                   ? '${empData['employee_name']} ${empData['phone_1'] ?? ""}'.trim()
-                  : '${empData['employee_name']}'.trim())
+                  : ((empData['job_title'] != null && empData['job_title'].toString().trim().isNotEmpty)
+                      ? '${empData['employee_name']} (${empData['job_title']})'.trim()
+                      : '${empData['employee_name']}'.trim()))
               : 'لم يحدد بعد',
           'status': rowStatus,
           'is_closed': isClosed,
