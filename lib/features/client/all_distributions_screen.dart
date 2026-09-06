@@ -385,7 +385,10 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
     
     // Apply Filters locally
     final filtered = _distributions.where((d) {
-      if (authState.role != 'admin' && !visibleClientIds.contains(d['client_id'])) {
+      // Admin and Manager see all distributions; other roles filtered by visibleClientIds
+      // If clientState is still loading, don't filter yet to avoid blank screen flash
+      final isAdminOrManager = authState.role == 'admin' || authState.role == 'manager';
+      if (!isAdminOrManager && !clientState.isLoading && !visibleClientIds.contains(d['client_id'])) {
         return false;
       }
 
@@ -418,8 +421,8 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
       return true;
     }).toList();
 
-    final int activeCount = _distributions.where((d) => d['is_closed'] != true && (authState.role == 'admin' || visibleClientIds.contains(d['client_id']))).length;
-    final int closedCount = _distributions.where((d) => d['is_closed'] == true && (authState.role == 'admin' || visibleClientIds.contains(d['client_id']))).length;
+    final int activeCount = _distributions.where((d) => d['is_closed'] != true && (isAdmin || visibleClientIds.contains(d['client_id']))).length;
+    final int closedCount = _distributions.where((d) => d['is_closed'] == true && (isAdmin || visibleClientIds.contains(d['client_id']))).length;
 
     return LayoutBuilder(
       builder: (context, constraints) {

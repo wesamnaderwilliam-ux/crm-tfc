@@ -1,9 +1,10 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/turso_client.dart';
 
 class BanksRepository {
   final _supabase = Supabase.instance.client;
 
-  // In-memory cache to minimize Supabase Egress
+  // In-memory cache to minimize Supabase/Turso calls
   List<Map<String, dynamic>>? _cachedBanks;
   DateTime? _banksCacheTime;
   static const _cacheDuration = Duration(minutes: 30);
@@ -13,7 +14,7 @@ class BanksRepository {
     _banksCacheTime = null;
   }
 
-  // 1. Fetch all banks (with nested programs and employees)
+  // 1. Fetch all banks (with nested programs and employees) from Turso (fast edge cache), with Supabase fallback
   Future<List<Map<String, dynamic>>> getAllBanks({bool forceRefresh = false}) async {
     if (!forceRefresh &&
         _cachedBanks != null &&
@@ -22,6 +23,58 @@ class BanksRepository {
       return _cachedBanks!;
     }
 
+    try {
+      // 1. Try fetching from Turso first (Edge SQLite - 0 Supabase Egress)
+      final tursoBanks = await TursoClient.query('SELECT id, bank_name FROM banks ORDER BY bank_name ASC');
+      if (tursoBanks.isNotEmpty) {
+        final tursoPrograms = await TursoClient.query('''
+          SELECT bpd.id, bpd.bank_id, bpd.program_id, bpd.description, bpd.interest_rate, bpd.max_loan_amount, cp.program_name
+          FROM bank_programs_details bpd
+          LEFT JOIN core_programs cp ON bpd.program_id = cp.id
+        ''');
+
+        final tursoEmployees = await TursoClient.query('''
+          SELECT id, bank_id, employee_name, phone_1, phone_2, job_title, email, notes
+          FROM bank_employees
+          ORDER BY employee_name ASC
+        ''');
+
+        final List<Map<String, dynamic>> structured = [];
+        for (final b in tursoBanks) {
+          final bankId = b['id']?.toString() ?? '';
+          final matchingPrograms = tursoPrograms
+              .where((p) => p['bank_id']?.toString() == bankId)
+              .map((p) => {
+                    'id': p['id'],
+                    'program_id': p['program_id'],
+                    'description': p['description'],
+                    'interest_rate': p['interest_rate'],
+                    'max_loan_amount': p['max_loan_amount'],
+                    'core_programs': {'program_name': p['program_name'] ?? ''},
+                  })
+              .toList();
+
+          final matchingEmployees = tursoEmployees
+              .where((e) => e['bank_id']?.toString() == bankId)
+              .toList();
+
+          structured.add({
+            'id': b['id'],
+            'bank_name': b['bank_name'],
+            'bank_programs_details': matchingPrograms,
+            'bank_employees': matchingEmployees,
+          });
+        }
+
+        _cachedBanks = structured;
+        _banksCacheTime = DateTime.now();
+        return _cachedBanks!;
+      }
+    } catch (_) {
+      // Fallback to Supabase
+    }
+
+    // Fallback: Supabase direct query
     final data = await _supabase
         .from('banks')
         .select('''
@@ -89,6 +142,13 @@ class BanksRepository {
   // CORE PROGRAMS CRUD
   // -------------------------------------------------------------------------
   Future<List<Map<String, dynamic>>> getAllCorePrograms() async {
+    try {
+      final tursoList = await TursoClient.query('SELECT id, program_name FROM core_programs ORDER BY program_name ASC');
+      if (tursoList.isNotEmpty) {
+        return tursoList;
+      }
+    } catch (_) {}
+
     return await _supabase
         .from('core_programs')
         .select('id, program_name')
