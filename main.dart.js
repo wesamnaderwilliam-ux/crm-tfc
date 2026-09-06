@@ -146531,19 +146531,19 @@ break
 case 5:return A.w(null,r)
 case 1:return A.v(p.at(-1),r)}})
 return A.x($async$D8,r)},
-P(a){var s,r,q,p,o,n=this,m=n.gaE(),l=m.ci($.bN(),t.D),k=l.b,j=k==="admin",i=k==="manager",h=j||i,g=t.Fu
-m.ci($.lH(),g)
-m.ci($.HZ(),g)
+P(a){var s,r,q,p,o,n=this,m=n.gaE(),l=m.ci($.bN(),t.D),k=l.b,j=t.Fu
+m.ci($.lH(),j)
+m.ci($.HZ(),j)
 s=m.ci($.cJ(),t.uc)
 r=A.au6(m.ci($.ee(),t.PH).a,l,s.a)
 q=new A.F(r,new A.aX4(),A.J(r).i("F<1,c>")).i3(0)
 m=n.x
-g=A.J(m).i("a7<1>")
-p=A.B(new A.a7(m,new A.aX5(n,j,q,k==="bank_employee"),g),g.i("n.E"))
+j=A.J(m).i("a7<1>")
+p=A.B(new A.a7(m,new A.aX5(n,l,q,k==="bank_employee"),j),j.i("n.E"))
 m=n.x
-o=new A.a7(m,new A.aX6(j,q),A.J(m).i("a7<1>")).gq(0)
+o=new A.a7(m,new A.aX6(l,q),A.J(m).i("a7<1>")).gq(0)
 m=n.x
-return A.ey(new A.aX7(n,h,o,new A.a7(m,new A.aX8(j,q),A.J(m).i("a7<1>")).gq(0),p))},
+return A.ey(new A.aX7(n,k==="admin",o,new A.a7(m,new A.aX8(l,q),A.J(m).i("a7<1>")).gq(0),p))},
 QO(a,b,c,d){var s=null,r=B.w.p(0.03)
 return A.d6(A.fl(A.ds(s,new A.ck(4,A.D(10),new A.au(B.w.p(0.05),1,B.C,-1)),s,B.d1,s,s,s,s,!0,new A.ck(4,A.D(10),new A.au(B.w.p(0.05),1,B.C,-1)),s,s,s,s,s,r,!0,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,s,!0,!0,!1,s,s,s,s,s,s,s,s,s,s,s,s,s,s),B.aR,s,s,s,!1,b,c,B.cO,s,d,t.N),B.t)},
 a6s(a){var s,r,q,p,o,n=A.A(t.N,t.h)
@@ -146680,7 +146680,7 @@ $1(a){return a.a},
 $S:202}
 A.aX5.prototype={
 $1(a){var s,r,q,p=this
-if(!p.b&&!p.c.n(0,J.e(a,"client_id")))return!1
+if(p.b.b!=="admin"&&!p.c.n(0,J.e(a,"client_id")))return!1
 s=J.a1(a)
 r=J.d(s.h(a,"is_closed"),!0)
 q=p.d
@@ -146695,13 +146695,13 @@ return!0},
 $S:11}
 A.aX6.prototype={
 $1(a){var s=J.a1(a)
-if(!J.d(s.h(a,"is_closed"),!0))s=this.a||this.b.n(0,s.h(a,"client_id"))
+if(!J.d(s.h(a,"is_closed"),!0))s=this.a.b==="admin"||this.b.n(0,s.h(a,"client_id"))
 else s=!1
 return s},
 $S:11}
 A.aX8.prototype={
 $1(a){var s=J.a1(a)
-if(J.d(s.h(a,"is_closed"),!0))s=this.a||this.b.n(0,s.h(a,"client_id"))
+if(J.d(s.h(a,"is_closed"),!0))s=this.a.b==="admin"||this.b.n(0,s.h(a,"client_id"))
 else s=!1
 return s},
 $S:11}
@@ -146905,25 +146905,24 @@ A.aWj.prototype={
 $0(){return this.a.a.o1(this.b)},
 $S:0}
 A.aWk.prototype={
-$1(a){var s,r,q,p,o,n,m,l,k=this,j="status",i=null,h="is_closed",g=J.a1(a),f=A.bZ(g.h(a,j))
-if(f==null)f="pending"
-s=k.a
-r=s.QP(f)
-q=A.bJ(B.d3,r,i,16)
-p=g.h(a,"bank_name")
+$1(a){var s,r,q,p,o,n,m,l,k="status",j=null,i="is_closed",h=J.a1(a),g=A.bZ(h.h(a,k))
+if(g==null)g="pending"
+s=this.a
+r=s.QP(g)
+q=A.bJ(B.d3,r,j,16)
+p=h.h(a,"bank_name")
 if(p==null)p="\u0628\u0646\u0643 \u063a\u064a\u0631 \u0645\u0639\u0631\u0648\u0641"
 o=t.p
-p=A.bp(A.G(A.a([q,B.a0,A.j(p,i,i,i,i,A.aD(i,i,r,i,i,i,i,i,i,i,i,15,i,i,B.L,i,i,!0,i,i,i,i,i,i,i,i),i,i,i)],o),B.v,B.r,B.af,0,i,i))
-q=g.h(a,"program_name")
-q=A.bp(A.j(q==null?"\u2014":q,i,i,i,i,B.hz,i,i,i))
-n=g.h(a,"employee_name")
-n=A.bp(A.j(n==null?"\u2014":n,i,i,i,i,B.hz,i,i,i))
-m=A.bp(s.a2K(f,J.d(g.h(a,h),!0)))
-if(k.b||k.c.b==="bank_employee"){l=A.a([s.a2J(g.h(a,"id"),g.h(a,j),J.d(g.h(a,h),!0))],o)
-if(J.d(g.h(a,j),"accepted")){g=A.a([B.a0,A.di(B.FO,B.a32,new A.aWh(s,a),A.bz(i,i,B.c6,i,i,i,i,i,i,B.w,i,B.b0,B.p5,i,i,i,i,i,i,i))],o)
-if(k.c.b==="bank_employee")B.f.D(g,A.a([B.b6,A.a6v(B.FP,B.a3a,new A.aWi(s,a),A.m9(i,i,i,i,i,i,i,i,i,B.bt,i,B.b0,B.p5,i,i,B.BV,i,i,i,i))],o))
-B.f.D(l,g)}g=A.G(l,B.v,B.r,B.af,0,i,i)}else g=B.a2Y
-return A.lO(A.a([p,q,n,m,A.bp(g)],t.sa),i,i,!1)},
+p=A.bp(A.G(A.a([q,B.a0,A.j(p,j,j,j,j,A.aD(j,j,r,j,j,j,j,j,j,j,j,15,j,j,B.L,j,j,!0,j,j,j,j,j,j,j,j),j,j,j)],o),B.v,B.r,B.af,0,j,j))
+q=h.h(a,"program_name")
+q=A.bp(A.j(q==null?"\u2014":q,j,j,j,j,B.hz,j,j,j))
+n=h.h(a,"employee_name")
+n=A.bp(A.j(n==null?"\u2014":n,j,j,j,j,B.hz,j,j,j))
+m=A.bp(s.a2K(g,J.d(h.h(a,i),!0)))
+if(this.b||this.c.b==="bank_employee"){l=A.a([s.a2J(h.h(a,"id"),h.h(a,k),J.d(h.h(a,i),!0))],o)
+if(J.d(h.h(a,k),"accepted"))B.f.D(l,A.a([B.a0,A.di(B.FO,B.a32,new A.aWh(s,a),A.bz(j,j,B.c6,j,j,j,j,j,j,B.w,j,B.b0,B.p5,j,j,j,j,j,j,j)),B.b6,A.a6v(B.FP,B.a3a,new A.aWi(s,a),A.m9(j,j,j,j,j,j,j,j,j,B.bt,j,B.b0,B.p5,j,j,B.BV,j,j,j,j))],o))
+h=A.G(l,B.v,B.r,B.af,0,j,j)}else h=B.a2Y
+return A.lO(A.a([p,q,n,m,A.bp(h)],t.sa),j,j,!1)},
 $S:57}
 A.aWh.prototype={
 $0(){return this.a.I3(this.b)},
@@ -146958,26 +146957,25 @@ A.aWo.prototype={
 $0(){return this.a.a.o1(this.b)},
 $S:0}
 A.aWp.prototype={
-$1(a){var s,r,q,p,o,n,m,l,k,j=this,i="status",h=null,g="is_closed",f=J.a1(a),e=A.bZ(f.h(a,i))
-if(e==null)e="pending"
-s=j.a
-r=s.QP(e)
+$1(a){var s,r,q,p,o,n,m,l,k,j="status",i=null,h="is_closed",g=J.a1(a),f=A.bZ(g.h(a,j))
+if(f==null)f="pending"
+s=this.a
+r=s.QP(f)
 q=r.p(0.04)
 p=A.D(12)
 o=A.aA(r.p(0.2),B.C,1)
-n=A.bJ(B.d3,r,h,18)
-m=f.h(a,"bank_name")
+n=A.bJ(B.d3,r,i,18)
+m=g.h(a,"bank_name")
 if(m==null)m="\u0628\u0646\u0643 \u063a\u064a\u0631 \u0645\u0639\u0631\u0648\u0641"
 l=t.p
-m=A.G(A.a([A.ab(A.G(A.a([n,B.a0,new A.h4(1,B.dc,A.j(m,h,B.b4,h,h,A.aD(h,h,r,h,h,h,h,h,h,h,h,15,h,h,B.L,h,h,!0,h,h,h,h,h,h,h,h),h,B.t,h),h)],l),B.v,B.r,B.p,0,h,B.t),1),s.a2K(e,J.d(f.h(a,g),!0))],l),B.v,B.a4,B.p,0,h,B.t)
-n=f.h(a,"program_name")
+m=A.G(A.a([A.ab(A.G(A.a([n,B.a0,new A.h4(1,B.dc,A.j(m,i,B.b4,i,i,A.aD(i,i,r,i,i,i,i,i,i,i,i,15,i,i,B.L,i,i,!0,i,i,i,i,i,i,i,i),i,B.t,i),i)],l),B.v,B.r,B.p,0,i,B.t),1),s.a2K(f,J.d(g.h(a,h),!0))],l),B.v,B.a4,B.p,0,i,B.t)
+n=g.h(a,"program_name")
 n=s.a2I("\u0627\u0644\u0628\u0631\u0646\u0627\u0645\u062c",n==null?"\u2014":n,B.EP)
-k=f.h(a,"employee_name")
+k=g.h(a,"employee_name")
 n=A.a([m,B.d5,n,s.a2I("\u0627\u0644\u0645\u0648\u0638\u0641",k==null?"\u2014":k,B.fS)],l)
-if(j.b||j.c.b==="bank_employee"){m=A.a([B.U,B.c4,B.ar,A.G(A.a([B.bSa,s.a2J(f.h(a,"id"),f.h(a,i),J.d(f.h(a,g),!0))],l),B.v,B.a4,B.p,0,h,B.t)],l)
-if(J.d(f.h(a,i),"accepted")){f=A.a([A.di(B.FO,B.a32,new A.aWm(s,a),A.bz(h,h,B.c6,h,h,h,h,h,h,B.w,h,h,B.eU,h,h,h,h,h,h,h))],l)
-if(j.c.b==="bank_employee")f.push(A.a6v(B.FP,B.a3a,new A.aWn(s,a),A.m9(h,h,h,h,h,h,h,h,h,B.bt,h,h,B.eU,h,h,B.BV,h,h,h,h)))
-B.f.D(m,A.a([B.d5,A.fK(B.Bf,f,B.cQ,6,8,h)],l))}B.f.D(n,m)}return A.a0(h,A.I(n,B.X,B.r,B.p,h),B.B,h,h,new A.Z(q,h,o,p,h,h,B.F),h,h,B.w5,B.bz,h,h,h)},
+if(this.b||this.c.b==="bank_employee"){m=A.a([B.U,B.c4,B.ar,A.G(A.a([B.bSa,s.a2J(g.h(a,"id"),g.h(a,j),J.d(g.h(a,h),!0))],l),B.v,B.a4,B.p,0,i,B.t)],l)
+if(J.d(g.h(a,j),"accepted"))B.f.D(m,A.a([B.d5,A.fK(B.Bf,A.a([A.di(B.FO,B.a32,new A.aWm(s,a),A.bz(i,i,B.c6,i,i,i,i,i,i,B.w,i,i,B.eU,i,i,i,i,i,i,i)),A.a6v(B.FP,B.a3a,new A.aWn(s,a),A.m9(i,i,i,i,i,i,i,i,i,B.bt,i,i,B.eU,i,i,B.BV,i,i,i,i))],l),B.cQ,6,8,i)],l))
+B.f.D(n,m)}return A.a0(i,A.I(n,B.X,B.r,B.p,i),B.B,i,i,new A.Z(q,i,o,p,i,i,B.F),i,i,B.w5,B.bz,i,i,i)},
 $S:818}
 A.aWm.prototype={
 $0(){return this.a.I3(this.b)},
