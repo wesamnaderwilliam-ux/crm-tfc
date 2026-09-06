@@ -122,12 +122,29 @@ class BanksRepository {
         .select('id, bank_name')
         .single();
     invalidateCache();
+
+    // Sync to Turso edge cache
+    try {
+      await TursoClient.execute(
+        'INSERT OR REPLACE INTO banks (id, bank_name, created_at) VALUES (?, ?, ?)',
+        [res['id'], bankName, DateTime.now().toIso8601String()],
+      );
+    } catch (_) {}
+
     return Map<String, dynamic>.from(res);
   }
 
   Future<void> updateBank(String id, String bankName) async {
     await _supabase.from('banks').update({'bank_name': bankName}).eq('id', id);
     invalidateCache();
+
+    // Sync to Turso edge cache
+    try {
+      await TursoClient.execute(
+        'UPDATE banks SET bank_name = ? WHERE id = ?',
+        [bankName, id],
+      );
+    } catch (_) {}
   }
 
   Future<void> deleteBank(String id) async {
@@ -136,6 +153,13 @@ class BanksRepository {
     await _supabase.from('bank_programs_details').delete().eq('bank_id', id);
     await _supabase.from('banks').delete().eq('id', id);
     invalidateCache();
+
+    // Sync to Turso edge cache
+    try {
+      await TursoClient.execute('DELETE FROM bank_employees WHERE bank_id = ?', [id]);
+      await TursoClient.execute('DELETE FROM bank_programs_details WHERE bank_id = ?', [id]);
+      await TursoClient.execute('DELETE FROM banks WHERE id = ?', [id]);
+    } catch (_) {}
   }
 
   // -------------------------------------------------------------------------
@@ -161,6 +185,15 @@ class BanksRepository {
         .insert({'program_name': programName})
         .select()
         .single();
+
+    // Sync to Turso edge cache
+    try {
+      await TursoClient.execute(
+        'INSERT OR REPLACE INTO core_programs (id, program_name, created_at) VALUES (?, ?, ?)',
+        [result['id'], programName, DateTime.now().toIso8601String()],
+      );
+    } catch (_) {}
+
     return Map<String, dynamic>.from(result);
   }
 
@@ -181,6 +214,16 @@ class BanksRepository {
       'interest_rate': interestRate,
       'max_loan_amount': maxLoanAmount,
     }).select().single();
+    invalidateCache();
+
+    // Sync to Turso edge cache
+    try {
+      await TursoClient.execute(
+        'INSERT OR REPLACE INTO bank_programs_details (id, bank_id, program_id, description, interest_rate, max_loan_amount) VALUES (?, ?, ?, ?, ?, ?)',
+        [res['id'], bankId, coreProgramId, description, interestRate, maxLoanAmount],
+      );
+    } catch (_) {}
+
     return Map<String, dynamic>.from(res);
   }
 
@@ -195,10 +238,25 @@ class BanksRepository {
       'interest_rate': interestRate,
       'max_loan_amount': maxLoanAmount,
     }).eq('id', id);
+    invalidateCache();
+
+    // Sync to Turso edge cache
+    try {
+      await TursoClient.execute(
+        'UPDATE bank_programs_details SET description = ?, interest_rate = ?, max_loan_amount = ? WHERE id = ?',
+        [description, interestRate, maxLoanAmount, id],
+      );
+    } catch (_) {}
   }
 
   Future<void> deleteBankProgram(String id) async {
     await _supabase.from('bank_programs_details').delete().eq('id', id);
+    invalidateCache();
+
+    // Sync to Turso edge cache
+    try {
+      await TursoClient.execute('DELETE FROM bank_programs_details WHERE id = ?', [id]);
+    } catch (_) {}
   }
 
   // -------------------------------------------------------------------------
@@ -223,6 +281,16 @@ class BanksRepository {
       'email': (email != null && email.trim().isNotEmpty) ? email : null,
       'notes': (notes != null && notes.trim().isNotEmpty) ? notes : null,
     }).select().single();
+    invalidateCache();
+
+    // Sync to Turso edge cache
+    try {
+      await TursoClient.execute(
+        'INSERT OR REPLACE INTO bank_employees (id, bank_id, employee_name, phone_1, phone_2, job_title, email, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [res['id'], bankId, name, phone1, phone2 ?? '', jobTitle ?? '', email ?? '', notes ?? ''],
+      );
+    } catch (_) {}
+
     return Map<String, dynamic>.from(res);
   }
 
@@ -246,10 +314,32 @@ class BanksRepository {
       'email': (email != null && email.trim().isNotEmpty) ? email : null,
       'notes': (notes != null && notes.trim().isNotEmpty) ? notes : null,
     }).eq('id', id);
+    invalidateCache();
+
+    // Sync to Turso edge cache
+    try {
+      if (bankId != null && bankId.trim().isNotEmpty) {
+        await TursoClient.execute(
+          'UPDATE bank_employees SET bank_id = ?, employee_name = ?, phone_1 = ?, phone_2 = ?, job_title = ?, email = ?, notes = ? WHERE id = ?',
+          [bankId, name, phone1, phone2 ?? '', jobTitle ?? '', email ?? '', notes ?? '', id],
+        );
+      } else {
+        await TursoClient.execute(
+          'UPDATE bank_employees SET employee_name = ?, phone_1 = ?, phone_2 = ?, job_title = ?, email = ?, notes = ? WHERE id = ?',
+          [name, phone1, phone2 ?? '', jobTitle ?? '', email ?? '', notes ?? '', id],
+        );
+      }
+    } catch (_) {}
   }
 
   Future<void> deleteEmployee(String id) async {
     await _supabase.from('bank_employees').delete().eq('id', id);
+    invalidateCache();
+
+    // Sync to Turso edge cache
+    try {
+      await TursoClient.execute('DELETE FROM bank_employees WHERE id = ?', [id]);
+    } catch (_) {}
   }
 
   // -------------------------------------------------------------------------

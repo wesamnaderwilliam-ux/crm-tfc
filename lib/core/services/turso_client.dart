@@ -92,4 +92,54 @@ class TursoClient {
       return [];
     }
   }
+
+  static Future<bool> execute(String sql, [List<dynamic>? args]) async {
+    final baseUrl = SupabaseConfig.tursoUrl;
+    final token = SupabaseConfig.tursoToken;
+
+    if (baseUrl.isEmpty || token.isEmpty) {
+      return false;
+    }
+
+    try {
+      final pipelineUrl = Uri.parse('$baseUrl/v2/pipeline');
+      final Map<String, dynamic> stmt = {'sql': sql};
+      if (args != null && args.isNotEmpty) {
+        stmt['args'] = args.map((a) {
+          if (a == null) return {'type': 'null'};
+          if (a is int) return {'type': 'integer', 'value': a.toString()};
+          if (a is double || a is num) return {'type': 'float', 'value': a.toDouble()};
+          return {'type': 'text', 'value': a.toString()};
+        }).toList();
+      }
+
+      final body = json.encode({
+        'requests': [
+          {
+            'type': 'execute',
+            'stmt': stmt,
+          },
+          {'type': 'close'}
+        ]
+      });
+
+      final response = await http.post(
+        pipelineUrl,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: body,
+      );
+
+      if (response.statusCode != 200) {
+        _logger.w('Turso execute status ${response.statusCode}: ${response.body}');
+        return false;
+      }
+      return true;
+    } catch (e) {
+      _logger.e('Error executing Turso statement: $e');
+      return false;
+    }
+  }
 }

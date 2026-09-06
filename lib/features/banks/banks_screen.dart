@@ -771,6 +771,12 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
                                         onPressed: () => _showProgramFormDialog(context, ref, program: program),
                                         tooltip: "تعديل تفاصيل البرنامج",
                                       ),
+                                      if (widget.isAdmin)
+                                        IconButton(
+                                          icon: const Icon(Icons.delete_outline, size: 16, color: Colors.redAccent),
+                                          onPressed: () => _confirmDeleteProgram(context, ref, program),
+                                          tooltip: "حذف البرنامج",
+                                        ),
                                       const SizedBox(width: 8),
                                     ],
                                     Container(
