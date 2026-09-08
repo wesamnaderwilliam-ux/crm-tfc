@@ -3834,6 +3834,193 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
       }
     }
 
+    // Commercial & Medical activities HTML
+    String businessHtml = '';
+    final isMedicalEmp = ['doctor_clinic', 'doctor_hospital', 'pharmacist_owner'].contains(client.employmentType);
+    final isBizOwner = client.employmentType == 'business_owner';
+    final List<Map<String, dynamic>> rawBiz = client.businessData.isNotEmpty
+        ? client.businessData
+        : (isBizOwner ? _parseBusinesses(client.companyName ?? "[]") : []);
+
+    if (rawBiz.isNotEmpty) {
+      String bizRows = '';
+      if (isMedicalEmp) {
+        for (int i = 0; i < rawBiz.length; i++) {
+          final b = rawBiz[i];
+          final spec = b['specialization']?.toString() ?? '-';
+          final pDate = b['practiceStartDate']?.toString() ?? '-';
+          final lDate = b['licenseDate']?.toString() ?? '-';
+          String docs = 'لا يوجد';
+          final d = b['documents'];
+          if (d is Map) {
+            docs = d.entries.where((e) => e.value == true).map((e) => e.key.toString()).join('، ');
+          } else if (d is List) {
+            docs = d.map((e) => e.toString()).join('، ');
+          }
+          if (docs.isEmpty) docs = 'لا يوجد';
+
+          bizRows += '''
+            <tr>
+              <td>${i + 1}</td>
+              <td>${['doctor_clinic', 'doctor_hospital'].contains(client.employmentType) ? spec : 'نشاط طبي/صيدلي'}</td>
+              <td>$pDate</td>
+              <td>$lDate</td>
+              <td>$docs</td>
+            </tr>
+          ''';
+        }
+        businessHtml = '''
+          <div class="section-title">تفاصيل النشاط الطبي والمهني</div>
+          <table>
+            <thead>
+              <tr>
+                <th>م</th>
+                <th>التخصص / طبيعة العمل</th>
+                <th>تاريخ مزاولة المهنة</th>
+                <th>تاريخ الترخيص</th>
+                <th>الأوراق والمستندات المتاحة</th>
+              </tr>
+            </thead>
+            <tbody>
+              $bizRows
+            </tbody>
+          </table>
+        ''';
+      } else {
+        for (int i = 0; i < rawBiz.length; i++) {
+          final b = rawBiz[i];
+          final act = b['activity']?.toString() ?? '-';
+          final sDate = b['startDate']?.toString() ?? '-';
+          final place = b['place']?.toString() ?? '-';
+          String docs = 'لا يوجد';
+          final d = b['documents'];
+          if (d is Map) {
+            docs = d.entries.where((e) => e.value == true).map((e) => e.key.toString()).join('، ');
+          } else if (d is List) {
+            docs = d.map((e) => e.toString()).join('، ');
+          }
+          if (docs.isEmpty) docs = 'لا يوجد';
+
+          bizRows += '''
+            <tr>
+              <td>${i + 1}</td>
+              <td>$act</td>
+              <td>$sDate</td>
+              <td>$place</td>
+              <td>$docs</td>
+            </tr>
+          ''';
+        }
+        businessHtml = '''
+          <div class="section-title">تفاصيل النشاط التجاري وأصحاب الأعمال</div>
+          <table>
+            <thead>
+              <tr>
+                <th>م</th>
+                <th>طبيعة النشاط</th>
+                <th>تاريخ البدء</th>
+                <th>مقر النشاط</th>
+                <th>الأوراق المتاحة (سجل / بطاقة ضريبية...)</th>
+              </tr>
+            </thead>
+            <tbody>
+              $bizRows
+            </tbody>
+          </table>
+        ''';
+      }
+    }
+
+    // Compound Units HTML
+    String compoundUnitsHtml = '';
+    if (client.hasCompoundUnit && client.compoundUnitsData.isNotEmpty) {
+      String unitRows = '';
+      for (int i = 0; i < client.compoundUnitsData.length; i++) {
+        final u = client.compoundUnitsData[i];
+        final cName = u['compoundName']?.toString() ?? '-';
+        final dName = u['developerName']?.toString() ?? '-';
+        final cDate = u['contractDate']?.toString() ?? '-';
+        final uVal = double.tryParse(u['unitValue']?.toString() ?? '0') ?? 0.0;
+        final dPay = double.tryParse(u['downPayment']?.toString() ?? '0') ?? 0.0;
+        final pct = uVal > 0 ? (dPay / uVal) * 100 : 0.0;
+        final instCount = int.tryParse(u['paidInstallmentsCount']?.toString() ?? '0') ?? 0;
+        final paidVal = double.tryParse(u['paidAmount']?.toString() ?? '0') ?? 0.0;
+
+        unitRows += '''
+          <tr>
+            <td>${i + 1}</td>
+            <td>$cName</td>
+            <td>$dName</td>
+            <td>$cDate</td>
+            <td>${_formatLargeNumber(uVal)} ج.م</td>
+            <td>${_formatLargeNumber(dPay)} ج.م (${pct.toStringAsFixed(1)}%)</td>
+            <td>$instCount</td>
+            <td>${_formatLargeNumber(paidVal)} ج.م</td>
+          </tr>
+        ''';
+      }
+      compoundUnitsHtml = '''
+        <div class="section-title">بيانات الأصول العقارية (وحدات بالكمبوند)</div>
+        <table>
+          <thead>
+            <tr>
+              <th>م</th>
+              <th>اسم الكمبوند</th>
+              <th>المطور العقاري</th>
+              <th>تاريخ التعاقد</th>
+              <th>قيمة الوحدة</th>
+              <th>المقدم ونسبته</th>
+              <th>الأقساط المسددة</th>
+              <th>إجمالي المسدد</th>
+            </tr>
+          </thead>
+          <tbody>
+            $unitRows
+          </tbody>
+        </table>
+      ''';
+    }
+
+    // Modern Cars HTML
+    String carsHtmlTable = '';
+    if (client.hasModernCar && client.modernCarsData.isNotEmpty) {
+      String carRows = '';
+      for (int i = 0; i < client.modernCarsData.length; i++) {
+        final car = client.modernCarsData[i];
+        final type = car['carType']?.toString() ?? '-';
+        final model = car['carModel']?.toString() ?? '-';
+        final value = double.tryParse(car['carTodayValue']?.toString() ?? '0') ?? 0.0;
+        final lic = car['licenseStatus']?.toString() ?? '-';
+
+        carRows += '''
+          <tr>
+            <td>${i + 1}</td>
+            <td>$type</td>
+            <td>$model</td>
+            <td>${_formatLargeNumber(value)} ج.م</td>
+            <td>$lic</td>
+          </tr>
+        ''';
+      }
+      carsHtmlTable = '''
+        <div class="section-title">بيانات الأصول المنقولة (سيارة حديثة)</div>
+        <table>
+          <thead>
+            <tr>
+              <th>م</th>
+              <th>نوع وماركة السيارة</th>
+              <th>الموديل / سنة الصنع</th>
+              <th>القيمة السوقية التقديرية الحالية</th>
+              <th>حالة الترخيص والملكية</th>
+            </tr>
+          </thead>
+          <tbody>
+            $carRows
+          </tbody>
+        </table>
+      ''';
+    }
+
     // 3. Draft full printable clean HTML with custom premium print stylesheet
     final String printHtml = '''
     <!DOCTYPE html>
@@ -4060,6 +4247,10 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           <div class="info-value">${_formatLargeNumber(client.requestedAmount)} ج.م</div>
         </div>
       </div>
+
+      $businessHtml
+      $compoundUnitsHtml
+      $carsHtmlTable
 
       $idImagesHtml
 

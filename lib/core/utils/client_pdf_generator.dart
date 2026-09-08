@@ -233,7 +233,163 @@ class ClientPdfGenerator {
             ),
             pw.SizedBox(height: 14),
 
-            // 3. SECTION: Financial Obligations Summary
+            // 3. SECTION: Business / Medical Activity Details
+            if (client.businessData.isNotEmpty) ...[
+              pw.Container(
+                padding: const pw.EdgeInsets.all(10),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.grey400),
+                  borderRadius: pw.BorderRadius.circular(6),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      ['doctor_clinic', 'doctor_hospital', 'pharmacist_owner'].contains(client.employmentType)
+                          ? 'تفاصيل النشاط الطبي والمهني'
+                          : 'تفاصيل النشاط التجاري وأصحاب الأعمال',
+                      style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800),
+                    ),
+                    pw.Divider(color: PdfColors.grey300),
+                    pw.SizedBox(height: 6),
+                    pw.TableHelper.fromTextArray(
+                      border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+                      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.white),
+                      headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey700),
+                      cellStyle: const pw.TextStyle(fontSize: 9),
+                      cellPadding: const pw.EdgeInsets.all(5),
+                      headers: ['doctor_clinic', 'doctor_hospital', 'pharmacist_owner'].contains(client.employmentType)
+                          ? ['م', 'التخصص / طبيعة العمل', 'تاريخ مزاولة المهنة', 'تاريخ الترخيص', 'الأوراق المتاحة']
+                          : ['م', 'طبيعة النشاط', 'تاريخ البدء', 'مقر النشاط', 'الأوراق المتاحة'],
+                      data: List.generate(client.businessData.length, (i) {
+                        final b = client.businessData[i];
+                        String docs = '-';
+                        final d = b['documents'];
+                        if (d is Map) {
+                          final available = d.entries.where((e) => e.value == true).map((e) => e.key.toString()).join('، ');
+                          if (available.isNotEmpty) docs = available;
+                        } else if (d is List) {
+                          final listStr = (d as List).map((e) => e.toString()).join('، ');
+                          if (listStr.isNotEmpty) docs = listStr;
+                        }
+                        if (['doctor_clinic', 'doctor_hospital', 'pharmacist_owner'].contains(client.employmentType)) {
+                          return [
+                            '${i + 1}',
+                            b['specialization']?.toString() ?? '-',
+                            b['practiceStartDate']?.toString() ?? '-',
+                            b['licenseDate']?.toString() ?? '-',
+                            docs,
+                          ];
+                        } else {
+                          return [
+                            '${i + 1}',
+                            b['activity']?.toString() ?? '-',
+                            b['startDate']?.toString() ?? '-',
+                            b['place']?.toString() ?? '-',
+                            docs,
+                          ];
+                        }
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 14),
+            ],
+
+            // 4. SECTION: Compound Real-Estate Units
+            if (client.hasCompoundUnit && client.compoundUnitsData.isNotEmpty) ...[
+              pw.Container(
+                padding: const pw.EdgeInsets.all(10),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.grey400),
+                  borderRadius: pw.BorderRadius.circular(6),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'بيانات الأصول العقارية (وحدات بالكمبوند)',
+                      style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800),
+                    ),
+                    pw.Divider(color: PdfColors.grey300),
+                    pw.SizedBox(height: 6),
+                    pw.TableHelper.fromTextArray(
+                      border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+                      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 8, color: PdfColors.white),
+                      headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey700),
+                      cellStyle: const pw.TextStyle(fontSize: 8),
+                      cellPadding: const pw.EdgeInsets.all(4),
+                      headers: ['م', 'اسم الكمبوند', 'المطور', 'تاريخ التعاقد', 'قيمة الوحدة', 'المقدم', 'نسبة المقدم', 'أقساط مسددة', 'إجمالي مسدد'],
+                      data: List.generate(client.compoundUnitsData.length, (i) {
+                        final u = client.compoundUnitsData[i];
+                        final uVal = double.tryParse(u['unitValue']?.toString() ?? '0') ?? 0.0;
+                        final dPay = double.tryParse(u['downPayment']?.toString() ?? '0') ?? 0.0;
+                        final pct = uVal > 0 ? (dPay / uVal) * 100 : 0.0;
+                        final instCount = int.tryParse(u['paidInstallmentsCount']?.toString() ?? '0') ?? 0;
+                        final paidVal = double.tryParse(u['paidAmount']?.toString() ?? '0') ?? 0.0;
+                        return [
+                          '${i + 1}',
+                          u['compoundName']?.toString() ?? '-',
+                          u['developerName']?.toString() ?? '-',
+                          u['contractDate']?.toString() ?? '-',
+                          '${uVal.toStringAsFixed(0)} ج.م',
+                          '${dPay.toStringAsFixed(0)} ج.م',
+                          '${pct.toStringAsFixed(1)}%',
+                          '$instCount قسط',
+                          '${paidVal.toStringAsFixed(0)} ج.م',
+                        ];
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 14),
+            ],
+
+            // 5. SECTION: Modern Cars
+            if (client.hasModernCar && client.modernCarsData.isNotEmpty) ...[
+              pw.Container(
+                padding: const pw.EdgeInsets.all(10),
+                decoration: pw.BoxDecoration(
+                  border: pw.Border.all(color: PdfColors.grey400),
+                  borderRadius: pw.BorderRadius.circular(6),
+                ),
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text(
+                      'بيانات الأصول المنقولة (سيارة حديثة)',
+                      style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800),
+                    ),
+                    pw.Divider(color: PdfColors.grey300),
+                    pw.SizedBox(height: 6),
+                    pw.TableHelper.fromTextArray(
+                      border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
+                      headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 9, color: PdfColors.white),
+                      headerDecoration: const pw.BoxDecoration(color: PdfColors.blueGrey700),
+                      cellStyle: const pw.TextStyle(fontSize: 9),
+                      cellPadding: const pw.EdgeInsets.all(5),
+                      headers: ['م', 'نوع وماركة السيارة', 'الموديل / سنة الصنع', 'القيمة السوقية التقديرية', 'حالة الترخيص'],
+                      data: List.generate(client.modernCarsData.length, (i) {
+                        final car = client.modernCarsData[i];
+                        final value = double.tryParse(car['carTodayValue']?.toString() ?? '0') ?? 0.0;
+                        return [
+                          '${i + 1}',
+                          car['carType']?.toString() ?? '-',
+                          car['carModel']?.toString() ?? '-',
+                          '${value.toStringAsFixed(0)} ج.م',
+                          car['licenseStatus']?.toString() ?? '-',
+                        ];
+                      }),
+                    ),
+                  ],
+                ),
+              ),
+              pw.SizedBox(height: 14),
+            ],
+
+            // 6. SECTION: Financial Obligations Summary
             pw.Container(
               padding: const pw.EdgeInsets.all(10),
               decoration: pw.BoxDecoration(
