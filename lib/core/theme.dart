@@ -145,14 +145,16 @@ class TfcGlassBackground extends StatelessWidget {
               ),
             ),
           ),
-          // Subtle Centered Watermark Logo (non-intrusive)
+          // Subtle Centered Watermark Logo (non-intrusive watermark background)
           Center(
             child: IgnorePointer(
               child: Opacity(
-                opacity: 0.04,
+                opacity: 0.065,
                 child: Image.asset(
                   'assets/images/logo.png',
-                  width: MediaQuery.sizeOf(context).width * 0.45,
+                  width: MediaQuery.sizeOf(context).width > 800
+                      ? MediaQuery.sizeOf(context).width * 0.42
+                      : MediaQuery.sizeOf(context).width * 0.75,
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
                 ),

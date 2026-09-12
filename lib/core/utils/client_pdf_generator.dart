@@ -17,6 +17,13 @@ class ClientPdfGenerator {
     _cairoFont ??= await PdfGoogleFonts.cairoMedium();
     final font = _cairoFont!;
 
+    // Load company logo
+    pw.MemoryImage? companyLogoImage;
+    try {
+      final logoByteData = await rootBundle.load('assets/images/logo.png');
+      companyLogoImage = pw.MemoryImage(logoByteData.buffer.asUint8List());
+    } catch (_) {}
+
     // Calculate totals
     double totalSalary = 0.0;
     if (client.salaryTransferMethod == 'bank_transfer') {
@@ -88,41 +95,63 @@ class ClientPdfGenerator {
             // Header with Company Logo
             pw.Container(
               alignment: pw.Alignment.center,
-              padding: const pw.EdgeInsets.all(14),
+              padding: const pw.EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: pw.BoxDecoration(
                 color: const PdfColor.fromInt(0xFF1A1A2E),
                 borderRadius: pw.BorderRadius.circular(10),
                 border: pw.Border.all(color: const PdfColor.fromInt(0xFFD4AF37), width: 1.5),
               ),
-              child: pw.Column(
+              child: pw.Row(
+                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: pw.CrossAxisAlignment.center,
                 children: [
-                  pw.Text(
-                    'THE FUTURE CLUB',
-                    style: pw.TextStyle(
-                      color: const PdfColor.fromInt(0xFFD4AF37),
-                      fontSize: 20,
-                      fontWeight: pw.FontWeight.bold,
+                  pw.Column(
+                    crossAxisAlignment: pw.CrossAxisAlignment.start,
+                    children: [
+                      pw.Text(
+                        'تقرير الملف الائتماني والمالي',
+                        style: pw.TextStyle(
+                          color: const PdfColor.fromInt(0xFFD4AF37),
+                          fontSize: 17,
+                          fontWeight: pw.FontWeight.bold,
+                        ),
+                      ),
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        'مستند رسمي استشاري - للاطلاع والتقييم الائتماني الداخلي',
+                        style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 9),
+                      ),
+                      pw.SizedBox(height: 2),
+                      pw.Text(
+                        'THE FUTURE CLUB (TFC) FINANCIAL CONSULTING',
+                        style: const pw.TextStyle(color: PdfColors.grey400, fontSize: 8),
+                      ),
+                    ],
+                  ),
+                  if (companyLogoImage != null)
+                    pw.Container(
+                      height: 52,
+                      width: 100,
+                      child: pw.Image(companyLogoImage, fit: pw.BoxFit.contain),
+                    )
+                  else
+                    pw.Column(
+                      crossAxisAlignment: pw.CrossAxisAlignment.end,
+                      children: [
+                        pw.Text(
+                          'THE FUTURE CLUB',
+                          style: pw.TextStyle(
+                            color: const PdfColor.fromInt(0xFFD4AF37),
+                            fontSize: 15,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                        pw.Text(
+                          'FINANCIAL CONSULTING',
+                          style: const pw.TextStyle(color: PdfColors.grey400, fontSize: 8),
+                        ),
+                      ],
                     ),
-                  ),
-                  pw.SizedBox(height: 2),
-                  pw.Text(
-                    'FINANCIAL CONSULTING',
-                    style: const pw.TextStyle(
-                      color: PdfColors.grey400,
-                      fontSize: 10,
-                    ),
-                  ),
-                  pw.Divider(color: const PdfColor.fromInt(0xFFD4AF37), thickness: 0.8),
-                  pw.SizedBox(height: 4),
-                  pw.Text(
-                    'تقرير الملف الائتماني والمالي',
-                    style: pw.TextStyle(color: PdfColors.white, fontSize: 16, fontWeight: pw.FontWeight.bold),
-                  ),
-                  pw.SizedBox(height: 2),
-                  pw.Text(
-                    'مستند للاطلاع فقط، ولا تتحمل الشركة أي مسؤولية',
-                    style: const pw.TextStyle(color: PdfColors.grey300, fontSize: 10),
-                  ),
                 ],
               ),
             ),

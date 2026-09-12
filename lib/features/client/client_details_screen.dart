@@ -19,6 +19,7 @@ import '../../core/widgets/interactive_hover_card.dart';
 import '../../core/widgets/toggleable_filter_panel.dart';
 import '../../core/widgets/phone_action_widget.dart';
 import '../../core/utils/client_visibility_helper.dart';
+import '../../core/tfc_assets.dart';
 
 
 class ClientDetailsScreen extends ConsumerStatefulWidget {
@@ -4038,20 +4039,41 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           line-height: 1.6;
         }
         .header {
-          text-align: center;
-          margin-bottom: 30px;
-          border-bottom: 2px solid #1a365d;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 25px;
+          border-bottom: 2px solid #b8860b;
           padding-bottom: 15px;
         }
-        .header h1 {
+        .header-logo {
+          max-height: 75px;
+          width: auto;
+          object-fit: contain;
+        }
+        .header-title-box {
+          text-align: right;
+        }
+        .header-title-box h1 {
           color: #1a365d;
           margin: 0;
-          font-size: 24px;
+          font-size: 22px;
+          font-weight: 800;
         }
-        .header p {
+        .header-title-box p {
           color: #718096;
-          margin: 5px 0 0 0;
+          margin: 4px 0 0 0;
           font-size: 13px;
+        }
+        .watermark-bg {
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          width: 60%;
+          opacity: 0.04;
+          z-index: -1;
+          pointer-events: none;
         }
         .section-title {
           font-size: 16px;
@@ -4190,9 +4212,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
       </style>
     </head>
     <body>
+      <img src="${TfcAssets.logoBase64Png}" class="watermark-bg" alt="watermark" />
       <div class="header">
-        <h1>تقرير الملف الائتماني للعميل</h1>
-        <p>التاريخ: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year} | الشركة: FUTURE CLUB</p>
+        <div class="header-title-box">
+          <h1>تقرير الملف الائتماني والمالي للعميل</h1>
+          <p>التاريخ: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year} | الشركة: THE FUTURE CLUB (TFC)</p>
+        </div>
+        <img src="${TfcAssets.logoBase64Png}" class="header-logo" alt="THE FUTURE CLUB" />
       </div>
 
       <div class="section-title">المعلومات الأساسية والوظيفية</div>
