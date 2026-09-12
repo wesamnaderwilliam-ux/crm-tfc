@@ -536,8 +536,8 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> with SingleTick
             backgroundColor: Colors.transparent,
             body: Padding(
               padding: EdgeInsets.symmetric(
-                horizontal: isMobile ? 12.0 : 24.0,
-                vertical: isMobile ? 14.0 : 24.0,
+                horizontal: isMobile ? 10.0 : 14.0,
+                vertical: isMobile ? 8.0 : 10.0,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -552,7 +552,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> with SingleTick
                           children: [
                             const Text(
                               "نظام الحسابات والماليات",
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: TfcColors.primary),
+                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: TfcColors.primary),
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -587,7 +587,7 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> with SingleTick
                             ),
                           ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         const Text("تتبع إيرادات المكتب وعمولات الموظفين والمصروفات", style: TextStyle(color: TfcColors.outline, fontSize: 11)),
                       ],
                     )
@@ -600,10 +600,10 @@ class _AccountsScreenState extends ConsumerState<AccountsScreen> with SingleTick
                           children: [
                             Text(
                               "نظام الحسابات والماليات",
-                              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: TfcColors.primary),
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: TfcColors.primary),
                             ),
-                            SizedBox(height: 4),
-                            Text("تتبع إيرادات المكتب وعمولات الموظفين والمصروفات الشهرية", style: TextStyle(color: TfcColors.outline)),
+                            SizedBox(height: 2),
+                            Text("تتبع إيرادات المكتب وعمولات الموظفين والمصروفات الشهرية", style: TextStyle(color: TfcColors.outline, fontSize: 12)),
                           ],
                         ),
                         // Month Picker

@@ -129,7 +129,7 @@ class BanksScreen extends ConsumerWidget {
 
               if (isDesktop) {
                 return Padding(
-                  padding: const EdgeInsets.all(24.0),
+                  padding: const EdgeInsets.all(12.0),
                   child: Row(
                     textDirection: TextDirection.rtl,
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -138,7 +138,7 @@ class BanksScreen extends ConsumerWidget {
                       SizedBox(
                         width: 320,
                         child: GlassCard(
-                          padding: const EdgeInsets.all(16),
+                          padding: const EdgeInsets.all(10),
                           borderColor: Colors.white.withValues(alpha: 0.04),
                           fillColor: TfcColors.surfaceDim.withValues(alpha: 0.4),
                           child: Column(
@@ -151,14 +151,14 @@ class BanksScreen extends ConsumerWidget {
                                   const Text(
                                     "البنوك المعتمدة",
                                     style: TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                       color: TfcColors.primary,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 12),
+                              const SizedBox(height: 8),
                               _buildSearchField(ref),
                               const SizedBox(height: 16),
                               const Divider(color: Colors.white10),
@@ -338,7 +338,7 @@ class BanksScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: TextButton(
         style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
           backgroundColor: isSelected
               ? TfcColors.primary.withValues(alpha: 0.1)
               : Colors.white.withValues(alpha: 0.02),
@@ -642,19 +642,19 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
               textDirection: TextDirection.rtl,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: TfcColors.primary.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: TfcColors.primary.withValues(alpha: 0.2)),
                   ),
                   child: const Icon(
                     Icons.account_balance,
                     color: TfcColors.primary,
-                    size: 32,
+                    size: 20,
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -662,16 +662,16 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
                       Text(
                         bankName,
                         style: const TextStyle(
-                          fontSize: 22,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                         textDirection: TextDirection.rtl,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       const Text(
                         "تفاصيل البرامج الائتمانية المعتمدة ومسؤولي التنسيق المباشرين",
-                        style: TextStyle(color: TfcColors.outline, fontSize: 12),
+                        style: TextStyle(color: TfcColors.outline, fontSize: 11),
                         textDirection: TextDirection.rtl,
                       ),
                     ],

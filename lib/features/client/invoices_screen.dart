@@ -232,8 +232,8 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
             backgroundColor: Colors.transparent,
             body: SingleChildScrollView(
               padding: EdgeInsets.symmetric(
-                horizontal: isMobile ? 12 : 24,
-                vertical: isMobile ? 14 : 24,
+                horizontal: isMobile ? 10 : 14,
+                vertical: isMobile ? 8 : 10,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -249,15 +249,15 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                             Text(
                               "فواتير وأتعاب الخدمات",
                               style: TextStyle(
-                                fontSize: isMobile ? 20 : 26,
+                                fontSize: isMobile ? 15 : 18,
                                 fontWeight: FontWeight.bold,
                                 color: TfcColors.primary,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 2),
                             Text(
                               isMobile ? "متابعة الفواتير المحصلة وغير المحصلة" : "عرض ومتابعة الفواتير المحصلة وغير المحصلة لجميع العملاء المقبولين",
-                              style: TextStyle(color: TfcColors.outline, fontSize: isMobile ? 11 : 13),
+                              style: TextStyle(color: TfcColors.outline, fontSize: isMobile ? 10 : 11),
                             ),
                           ],
                         ),
@@ -268,11 +268,11 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                       ),
                     ],
                   ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 10),
 
               // Search Bar
               GlassCard(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 child: TextField(
                   onChanged: (val) => setState(() => _searchQuery = val),
                   decoration: const InputDecoration(
@@ -284,7 +284,7 @@ class _InvoicesScreenState extends ConsumerState<InvoicesScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
               if (_isLoading)
                 const Center(

@@ -812,19 +812,19 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                         // ─── Full Header ─────────────────────────────────────
                         ? Padding(
                             padding: EdgeInsets.symmetric(
-                              horizontal: isMobile ? 12 : 16,
-                              vertical: isMobile ? 8 : 10,
+                              horizontal: isMobile ? 10 : 14,
+                              vertical: isMobile ? 6 : 7,
                             ),
                             child: Row(
                               textDirection: TextDirection.rtl,
                               children: [
                                 // Logo
                                 ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: BorderRadius.circular(6),
                                   child: Image.asset(
                                     'assets/images/logo.png',
-                                    width: isMobile ? 26 : 30,
-                                    height: isMobile ? 26 : 30,
+                                    width: isMobile ? 22 : 26,
+                                    height: isMobile ? 22 : 26,
                                     fit: BoxFit.cover,
                                     errorBuilder: (_, __, ___) => const SizedBox.shrink(),
                                   ),
@@ -841,7 +841,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                                     maxLines: 1,
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: isMobile ? 13 : 15,
+                                      fontSize: isMobile ? 12 : 14,
                                       fontWeight: FontWeight.bold,
                                     ),
                                     textDirection: TextDirection.rtl,
@@ -856,25 +856,25 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                                     onTap: () => _openMainMenuModal(context, navItems),
                                     glowColor: const Color(0xFF6C5CE7),
                                     backgroundColor: const Color(0xFF6C5CE7).withValues(alpha: 0.25),
-                                    borderRadius: BorderRadius.circular(12),
-                                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                    borderRadius: BorderRadius.circular(8),
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                     child: const Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.menu_rounded, color: Color(0xFFA29BFE), size: 22),
-                                        SizedBox(width: 8),
+                                        Icon(Icons.menu_rounded, color: Color(0xFFA29BFE), size: 18),
+                                        SizedBox(width: 6),
                                         Text(
                                           "القائمة الرئيسية",
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
-                                            fontSize: 14,
+                                            fontSize: 12,
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: 6),
 
                                   // Back button
                                   InteractiveHoverCard(

@@ -102,8 +102,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
           return SingleChildScrollView(
             padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 12 : 24,
-              vertical: isMobile ? 14 : 24,
+              horizontal: isMobile ? 10 : 14,
+              vertical: isMobile ? 8 : 10,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -120,7 +120,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                           Text(
                             "لوحة التحكم المالية",
                             style: TextStyle(
-                              fontSize: isMobile ? 20 : 26,
+                              fontSize: isMobile ? 16 : 20,
                               fontWeight: FontWeight.bold,
                               color: TfcColors.primary,
                             ),
@@ -130,7 +130,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             "مرحباً بك، ${authState.fullName} - تابع طلبات التمويل والقروض",
                             style: TextStyle(
                               color: TfcColors.outline,
-                              fontSize: isMobile ? 11 : 13,
+                              fontSize: isMobile ? 10 : 12,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -146,7 +146,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ),
                   ],
                 ),
-                SizedBox(height: isMobile ? 16 : 32),
+                SizedBox(height: isMobile ? 10 : 14),
 
             // 1. KPI Financial cards (visible conditionally if user can view analytics)
             if (permissions.canViewAnalytics) ...[

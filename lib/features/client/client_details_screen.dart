@@ -451,8 +451,9 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             appBar: AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0,
+              toolbarHeight: 44,
               leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: TfcColors.primary),
+                icon: const Icon(Icons.arrow_back, color: TfcColors.primary, size: 20),
                 onPressed: widget.onBack,
               ),
               title: Row(
@@ -463,15 +464,15 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     client != null
                         ? "ملف العميل: ${client.fullName}"
                         : "تفاصيل وإدارة العملاء",
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                   if (client == null) ...[
-                    const SizedBox(width: 20),
+                    const SizedBox(width: 12),
                     Container(
-                      padding: const EdgeInsets.all(4),
+                      padding: const EdgeInsets.all(2),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.04),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                       ),
                       child: Row(
@@ -522,7 +523,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               ],
             ),
             body: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
               child: _selectedMainView == 1 && client == null
                   ? _buildFollowUpsView(visibleClients, reps)
                   : Row(
@@ -570,7 +571,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                 )
                               // ── Full Sidebar ──────────────────────────────────
                               : GlassCard(
-                                  padding: const EdgeInsets.all(16),
+                                  padding: const EdgeInsets.all(10),
                                   borderColor: Colors.white.withValues(alpha: 0.04),
                                   fillColor: TfcColors.surfaceDim.withValues(alpha: 0.4),
                                   child: Column(
@@ -931,9 +932,9 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               ),
               title: const Text("تفاصيل وإدارة العملاء", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
               bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(48),
+                preferredSize: const Size.fromHeight(36),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                   child: Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
@@ -986,7 +987,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     child: _buildFollowUpsView(visibleClients, reps),
                   )
                 : Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -1017,7 +1018,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                             : null,
                         filled: true,
                         fillColor: Colors.white.withValues(alpha: 0.03),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 7, horizontal: 12),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                           borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),

@@ -434,14 +434,15 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
+            toolbarHeight: 44,
             title: Text(
               "توزيعات البنوك العامة",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: isMobile ? 18 : 20),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: isMobile ? 16 : 18),
             ),
             centerTitle: false,
             actions: [
               IconButton(
-                icon: const Icon(Icons.refresh, color: TfcColors.primary),
+                icon: const Icon(Icons.refresh, color: TfcColors.primary, size: 20),
                 onPressed: _loadAllDistributions,
                 tooltip: "تحديث البيانات",
               )
@@ -449,8 +450,8 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
           ),
           body: Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 12.0 : 24.0,
-              vertical: isMobile ? 12.0 : 24.0,
+              horizontal: isMobile ? 10.0 : 16.0,
+              vertical: isMobile ? 8.0 : 10.0,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -458,11 +459,11 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                 // Tabs Bar for Admin / Manager (Active vs Closed Distributions)
                 if (isAdminOrManager) ...[
               Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.all(4),
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(3),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.04),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.white10),
                 ),
                 child: Row(
@@ -474,13 +475,13 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                           _selectedTab = 0;
                           _selectedStatusFilter = 'all';
                         }),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 7),
                           decoration: BoxDecoration(
                             color: _selectedTab == 0 ? TfcColors.primary : Colors.transparent,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           alignment: Alignment.center,
                           child: Row(
@@ -488,16 +489,16 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                             children: [
                               Icon(
                                 Icons.all_inclusive,
-                                size: 18,
+                                size: 15,
                                 color: _selectedTab == 0 ? Colors.black : Colors.white70,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
                               Text(
                                 "التوزيعات النشطة ($activeCount)",
                                 style: TextStyle(
                                   color: _selectedTab == 0 ? Colors.black : Colors.white70,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                                  fontSize: 12,
                                 ),
                               ),
                             ],
@@ -505,20 +506,20 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     Expanded(
                       child: InkWell(
                         onTap: () => setState(() {
                           _selectedTab = 1;
                           _selectedStatusFilter = 'all';
                         }),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(8),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 7),
                           decoration: BoxDecoration(
                             color: _selectedTab == 1 ? Colors.blueGrey : Colors.transparent,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                           alignment: Alignment.center,
                           child: Row(
@@ -526,16 +527,16 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                             children: [
                               Icon(
                                 Icons.lock_outline,
-                                size: 18,
+                                size: 15,
                                 color: _selectedTab == 1 ? Colors.white : Colors.white70,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 6),
                               Text(
                                 "توزيعات مغلقة ($closedCount)",
                                 style: TextStyle(
                                   color: _selectedTab == 1 ? Colors.white : Colors.white70,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                                  fontSize: 12,
                                 ),
                               ),
                             ],

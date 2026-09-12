@@ -46,8 +46,8 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
           backgroundColor: Colors.transparent,
           body: Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 12 : 24,
-              vertical: isMobile ? 14 : 24,
+              horizontal: isMobile ? 10 : 14,
+              vertical: isMobile ? 8 : 10,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -119,12 +119,14 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
                   Row(
                     textDirection: TextDirection.rtl,
                     children: [
-                      const Icon(Icons.groups_rounded, color: TfcColors.primary, size: 28),
-                      const SizedBox(width: 12),
+                      const Icon(Icons.groups_rounded, color: TfcColors.primary, size: 20),
+                      const SizedBox(width: 8),
                       Text(
                         _activeTab == 0 ? 'موظفي الشركة' : 'متابعة أهداف المبيعات (التارجت)',
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.white,
                         ),
                       ),
                       const Spacer(),
@@ -163,7 +165,7 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
                     ],
                   ),
 
-                const SizedBox(height: 16),
+                const SizedBox(height: 8),
 
                 // Tab Switcher
                 Row(
@@ -171,27 +173,29 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
               children: [
                 ElevatedButton.icon(
                   onPressed: () => setState(() => _activeTab = 0),
-                  icon: const Icon(Icons.list_alt, size: 16),
-                  label: const Text("قائمة الموظفين"),
+                  icon: const Icon(Icons.list_alt, size: 14),
+                  label: const Text("قائمة الموظفين", style: TextStyle(fontSize: 12)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _activeTab == 0 ? TfcColors.primary.withValues(alpha: 0.2) : Colors.transparent,
                     foregroundColor: _activeTab == 0 ? TfcColors.primary : TfcColors.outline,
                     elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     side: BorderSide(
                       color: _activeTab == 0 ? TfcColors.primary.withValues(alpha: 0.4) : Colors.white10,
                       width: 1,
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: () => setState(() => _activeTab = 1),
-                  icon: const Icon(Icons.track_changes, size: 16),
-                  label: const Text("أهداف المبيعات (التارجت)"),
+                  icon: const Icon(Icons.track_changes, size: 14),
+                  label: const Text("أهداف المبيعات (التارجت)", style: TextStyle(fontSize: 12)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _activeTab == 1 ? TfcColors.primary.withValues(alpha: 0.2) : Colors.transparent,
                     foregroundColor: _activeTab == 1 ? TfcColors.primary : TfcColors.outline,
                     elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     side: BorderSide(
                       color: _activeTab == 1 ? TfcColors.primary.withValues(alpha: 0.4) : Colors.white10,
                       width: 1,
@@ -201,7 +205,7 @@ class _EmployeesScreenState extends ConsumerState<EmployeesScreen> {
               ],
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
 
             // Error banner
             if (empState.errorMessage != null)

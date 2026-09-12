@@ -50,8 +50,8 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
             backgroundColor: Colors.transparent,
             body: Container(
               padding: EdgeInsets.symmetric(
-                horizontal: isMobile ? 12 : 24,
-                vertical: isMobile ? 14 : 24,
+                horizontal: isMobile ? 10 : 16,
+                vertical: isMobile ? 8 : 10,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,62 +61,56 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(
-                          'العملاء المحتملين',
-                          style: TextStyle(
-                            fontSize: isMobile ? 20 : 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'العملاء المحتملين',
+                              style: TextStyle(
+                                fontSize: isMobile ? 18 : 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            if (isAdmin)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    onPressed: () => _handleSyncFromGoogleSheets(context),
+                                    icon: const Icon(Icons.sync_rounded, size: 18, color: TfcColors.primary),
+                                    tooltip: 'مزامنة شيت',
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  ElevatedButton.icon(
+                                    onPressed: () => _showAddOrEditProspectDialog(context),
+                                    icon: const Icon(Icons.person_add_alt_1, size: 14),
+                                    label: const Text('إضافة', style: TextStyle(fontSize: 11)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: TfcColors.primary,
+                                      foregroundColor: Colors.black,
+                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                      visualDensity: VisualDensity.compact,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                          ],
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           isAdmin
                               ? 'إدارة العملاء الجدد المكتسبين وتوزيعهم ومتابعتهم'
                               : 'قائمة العملاء المحتملين المسندين إليك',
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: 11,
                             color: Colors.white.withValues(alpha: 0.6),
                           ),
                         ),
-                        if (isAdmin) ...[
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () => _handleSyncFromGoogleSheets(context),
-                                  icon: const Icon(Icons.sync_rounded, size: 16),
-                                  label: const Text('مزامنة شيت', style: TextStyle(fontSize: 12)),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: TfcColors.primary,
-                                    side: const BorderSide(color: TfcColors.primary),
-                                    padding: const EdgeInsets.symmetric(vertical: 10),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: ElevatedButton.icon(
-                                  onPressed: () => _showAddOrEditProspectDialog(context),
-                                  icon: const Icon(Icons.person_add_alt_1, size: 16),
-                                  label: const Text('إضافة عميل', style: TextStyle(fontSize: 12)),
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: TfcColors.primary,
-                                    foregroundColor: Colors.black,
-                                    padding: const EdgeInsets.symmetric(vertical: 10),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
                       ],
                     )
                   else
@@ -130,18 +124,18 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                               const Text(
                                 'العملاء المحتملين',
                                 style: TextStyle(
-                                  fontSize: 24,
+                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 2),
                               Text(
                                 isAdmin
-                                    ? 'إدارة العملاء الجدد المكتسبين وتوزيعهم على الموظفين ومتابعة تحويلهم'
+                                    ? 'إدارة العملاء الجدد المكتسبين وتوزيعهم ومتابعة تحويلهم'
                                     : 'قائمة العملاء المحتملين المسندين إليك للمتابعة والتحويل',
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 12,
                                   color: Colors.white.withValues(alpha: 0.6),
                                 ),
                               ),
@@ -152,32 +146,31 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                           Row(
                             children: [
                               // Sync button from Google Sheets
-                              ElevatedButton.icon(
+                              OutlinedButton.icon(
                                 onPressed: () => _handleSyncFromGoogleSheets(context),
-                                icon: const Icon(Icons.sync_rounded, size: 18),
-                                label: const Text('مزامنة من جوجل شيت'),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: TfcColors.primary.withValues(alpha: 0.2),
+                                icon: const Icon(Icons.sync_rounded, size: 16),
+                                label: const Text('مزامنة شيت', style: TextStyle(fontSize: 12)),
+                                style: OutlinedButton.styleFrom(
                                   foregroundColor: TfcColors.primary,
                                   side: const BorderSide(color: TfcColors.primary),
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const SizedBox(width: 8),
                               // Add Manual Prospect
                               ElevatedButton.icon(
                                 onPressed: () => _showAddOrEditProspectDialog(context),
-                                icon: const Icon(Icons.person_add_alt_1, size: 18),
-                                label: const Text('إضافة عميل محتمل'),
+                                icon: const Icon(Icons.person_add_alt_1, size: 16),
+                                label: const Text('إضافة عميل محتمل', style: TextStyle(fontSize: 12)),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: TfcColors.primary,
                                   foregroundColor: Colors.black,
-                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(8),
                                   ),
                                 ),
                               ),
@@ -185,14 +178,10 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                           ),
                       ],
                     ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
               // Filter Bar & Bulk Actions
-              GlassCard(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    ToggleableFilterPanel(
+              ToggleableFilterPanel(
                       title: "تصفية وتصفح العملاء المحتملين 🔍",
                       activeFilterCount: (_searchQuery.isNotEmpty ? 1 : 0) +
                           (_selectedStatusFilter != 'all' ? 1 : 0) +
@@ -310,12 +299,12 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
 
                     // Bulk Actions Bar if selection is active
                     if (_selectedProspectIds.isNotEmpty) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                         decoration: BoxDecoration(
                           color: TfcColors.primary.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: TfcColors.primary.withValues(alpha: 0.4)),
                         ),
                         child: Row(
@@ -326,24 +315,25 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                               style: const TextStyle(
                                 color: TfcColors.primary,
                                 fontWeight: FontWeight.bold,
+                                fontSize: 13,
                               ),
                             ),
                             Row(
                               children: [
                                 ElevatedButton.icon(
                                   onPressed: () => _showBulkAssignDialog(context),
-                                  icon: const Icon(Icons.assignment_ind, size: 16),
-                                  label: const Text('توزيع على موظف'),
+                                  icon: const Icon(Icons.assignment_ind, size: 14),
+                                  label: const Text('توزيع على موظف', style: TextStyle(fontSize: 12)),
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: TfcColors.primary,
                                     foregroundColor: Colors.black,
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                   ),
                                 ),
                                 const SizedBox(width: 8),
                                 TextButton(
                                   onPressed: () => setState(() => _selectedProspectIds.clear()),
-                                  child: const Text('إلغاء التحديد', style: TextStyle(color: Colors.white70)),
+                                  child: const Text('إلغاء التحديد', style: TextStyle(color: Colors.white70, fontSize: 12)),
                                 ),
                               ],
                             ),
@@ -351,10 +341,7 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                         ),
                       ),
                     ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
 
               // Prospects Table List
               Expanded(

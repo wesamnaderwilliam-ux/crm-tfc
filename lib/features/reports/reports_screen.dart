@@ -304,38 +304,38 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildTopBar() {
     return GlassCard(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       borderColor: TfcColors.primary.withValues(alpha: 0.2),
       child: Wrap(
         textDirection: TextDirection.rtl,
         alignment: WrapAlignment.spaceBetween,
         crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: 16,
-        runSpacing: 12,
+        spacing: 12,
+        runSpacing: 8,
         children: [
           Row(
             mainAxisSize: MainAxisSize.min,
             textDirection: TextDirection.rtl,
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
                   color: TfcColors.primary.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.analytics_rounded, color: TfcColors.primary, size: 24),
+                child: const Icon(Icons.analytics_rounded, color: TfcColors.primary, size: 18),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 10),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
                     "مركز التقارير الشاملة والذكاء المالي 📈",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white),
                   ),
                   Text(
                     _getPeriodLabel(),
-                    style: const TextStyle(fontSize: 12, color: TfcColors.primary),
+                    style: const TextStyle(fontSize: 11, color: TfcColors.primary),
                   ),
                 ],
               ),

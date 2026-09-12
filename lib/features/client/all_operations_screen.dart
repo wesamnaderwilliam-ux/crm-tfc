@@ -269,14 +269,15 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
           appBar: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
+            toolbarHeight: 44,
             title: Text(
               "العمليات العامة",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: isMobile ? 18 : 20),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: isMobile ? 16 : 18),
             ),
             centerTitle: false,
             actions: [
               IconButton(
-                icon: const Icon(Icons.refresh, color: TfcColors.primary),
+                icon: const Icon(Icons.refresh, color: TfcColors.primary, size: 20),
                 onPressed: _loadAllOperations,
                 tooltip: "تحديث البيانات",
               )
@@ -284,8 +285,8 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
           ),
           body: Padding(
             padding: EdgeInsets.symmetric(
-              horizontal: isMobile ? 12.0 : 24.0,
-              vertical: isMobile ? 12.0 : 24.0,
+              horizontal: isMobile ? 10.0 : 16.0,
+              vertical: isMobile ? 8.0 : 10.0,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
