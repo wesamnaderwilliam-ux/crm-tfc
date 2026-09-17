@@ -160,9 +160,37 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
         return matchesEmpId || matchesEmpName;
       }).toList();
 
+      // Query existing operations from DB to permanently determine which distributions are converted
+      final opsResponse = await SupabaseConfig.client
+          .from('operation_entries')
+          .select('client_id, bank_name, program_name');
+      final List<dynamic> opsRows = opsResponse as List<dynamic>;
+
+      final Set<String> existingConvertedIds = {};
+      for (final d in loaded) {
+        final dClientId = d['client_id']?.toString() ?? '';
+        final dBankName = (d['bank_name']?.toString() ?? '').trim().toLowerCase();
+        final dProgramName = (d['program_name']?.toString() ?? '').trim().toLowerCase();
+
+        final hasMatchingOp = opsRows.any((op) {
+          final opClientId = op['client_id']?.toString() ?? '';
+          final opBankName = (op['bank_name']?.toString() ?? '').trim().toLowerCase();
+          final opProgramName = (op['program_name']?.toString() ?? '').trim().toLowerCase();
+
+          return opClientId == dClientId &&
+              opBankName == dBankName &&
+              (dProgramName.isEmpty || opProgramName == dProgramName || opProgramName.contains(dProgramName) || dProgramName.contains(opProgramName));
+        });
+
+        if (hasMatchingOp) {
+          existingConvertedIds.add(d['id']?.toString() ?? '');
+        }
+      }
+
       if (mounted) {
         setState(() {
           _distributions = loaded;
+          _convertedDistributionIds.addAll(existingConvertedIds);
           _isLoading = false;
         });
       }
