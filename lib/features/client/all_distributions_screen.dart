@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme.dart';
 import '../../core/supabase_config.dart';
-import '../../providers/banks_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/client_provider.dart';
 import '../../providers/employees_provider.dart';
 import '../../core/utils/client_visibility_helper.dart';
 import '../../core/widgets/toggleable_filter_panel.dart';
-import '../../core/widgets/interactive_hover_card.dart';
 import 'operations_widget.dart';
 
 class AllDistributionsScreen extends ConsumerStatefulWidget {
@@ -28,6 +26,9 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
   bool _isLoading = false;
   List<Map<String, dynamic>> _distributions = [];
   
+  // Track which distribution IDs have been converted to operations (green button state)
+  final Set<String> _convertedDistributionIds = {};
+
   // Tab Selection: 0 = النشطة (Active), 1 = المغلقة (Closed)
   int _selectedTab = 0;
 
@@ -112,7 +113,6 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
           ''');
 
       final userFullName = authState.fullName.trim().toLowerCase();
-      final userBankName = (authState.bankName ?? '').trim().toLowerCase();
       final userId = authState.user?.id ?? '';
 
       final response = await query;
@@ -300,6 +300,9 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
               ElevatedButton(
                 onPressed: () async {
                   final amt = double.tryParse(amountCtrl.text.trim()) ?? 0.0;
+                  final distributionId = d['id']?.toString() ?? '';
+                  // Capture messenger before async gap
+                  final messenger = ScaffoldMessenger.of(context);
                   Navigator.pop(ctx);
                   await OperationsWidget.addOperation(
                     clientId: d['client_id'],
@@ -310,13 +313,19 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                     staffName: staffName,
                   );
                   if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("تم تحويل التوزيع إلى عملية بنجاح", textAlign: TextAlign.right),
-                        backgroundColor: TfcColors.success,
-                      ),
-                    );
+                    setState(() {
+                      if (distributionId.isNotEmpty) {
+                        _convertedDistributionIds.add(distributionId);
+                      }
+                    });
                   }
+                  ref.read(operationsRefreshTriggerProvider.notifier).state++;
+                  messenger.showSnackBar(
+                    const SnackBar(
+                      content: Text("تم تحويل التوزيع إلى عملية بنجاح ✅", textAlign: TextAlign.right),
+                      backgroundColor: TfcColors.success,
+                    ),
+                  );
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: TfcColors.primary),
                 child: const Text("تأكيد التحويل", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
@@ -372,8 +381,17 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
     final isAdmin = authState.role == 'admin';
     final isManager = authState.role == 'manager';
     final isAdminOrManager = isAdmin || isManager;
-    final banksAsync = ref.watch(allBanksProvider);
-    final programsAsync = ref.watch(coreProgramsProvider);
+
+    // When operations are added or deleted, reload distributions and sync conversion state
+    ref.listen<int>(operationsRefreshTriggerProvider, (previous, next) {
+      if (previous != null && next != previous) {
+        _loadAllDistributions();
+        if (next < (previous)) {
+          // Operation deleted → clear all locally-tracked conversions
+          setState(() => _convertedDistributionIds.clear());
+        }
+      }
+    });
 
     final clientState = ref.watch(clientProvider);
     final employeesState = ref.watch(employeesProvider);
@@ -587,7 +605,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                             });
                           }
                           return _buildFilterDropdown(
-                            value: uniqueBanks.containsKey(_selectedBankFilter) || _selectedBankFilter == 'all'
+                            selectedValue: uniqueBanks.containsKey(_selectedBankFilter) || _selectedBankFilter == 'all'
                                 ? _selectedBankFilter
                                 : 'all',
                             hint: "كل البنوك",
@@ -629,7 +647,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                             });
                           }
                           return _buildFilterDropdown(
-                            value: uniquePrograms.containsKey(_selectedProgramFilter) || _selectedProgramFilter == 'all'
+                            selectedValue: uniquePrograms.containsKey(_selectedProgramFilter) || _selectedProgramFilter == 'all'
                                 ? _selectedProgramFilter
                                 : 'all',
                             hint: "كل البرامج",
@@ -654,7 +672,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                     Expanded(
                       flex: isWide ? 1 : 0,
                       child: _buildFilterDropdown(
-                        value: _selectedStatusFilter,
+                        selectedValue: _selectedStatusFilter,
                         hint: "كل الحالات",
                         items: _statusNames.entries
                             .map((e) => DropdownMenuItem(
@@ -709,7 +727,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
   }
 
   Widget _buildFilterDropdown({
-    required String value,
+    required String selectedValue,
     required String hint,
     required List<DropdownMenuItem<String>> items,
     required ValueChanged<String?> onChanged,
@@ -717,7 +735,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
     return Directionality(
       textDirection: TextDirection.rtl,
       child: DropdownButtonFormField<String>(
-        value: value,
+        initialValue: selectedValue,
         dropdownColor: TfcColors.surfaceDim,
         style: const TextStyle(color: Colors.white, fontSize: 13),
         decoration: InputDecoration(
@@ -881,19 +899,29 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       _buildStatusActionsDropdown(d['id'], d['status'], d['is_closed'] == true),
-                                      if (d['status'] == 'accepted') ...[
+                                       if (d['status'] == 'accepted') ...[
                                         const SizedBox(width: 8),
-                                        ElevatedButton.icon(
-                                          onPressed: () => _convertToOperation(d),
-                                          icon: const Icon(Icons.settings_suggest, size: 12),
-                                          label: const Text("تحويل لعملية", style: TextStyle(fontSize: 11)),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.blueAccent,
-                                            foregroundColor: Colors.white,
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                            minimumSize: Size.zero,
-                                          ),
-                                        ),
+                                        Builder(builder: (context) {
+                                          final distId = d['id']?.toString() ?? '';
+                                          final isConverted = _convertedDistributionIds.contains(distId);
+                                          return ElevatedButton.icon(
+                                            onPressed: () => _convertToOperation(d),
+                                            icon: Icon(
+                                              isConverted ? Icons.check_circle : Icons.settings_suggest,
+                                              size: 12,
+                                            ),
+                                            label: Text(
+                                              isConverted ? "تم التحويل ✓" : "تحويل لعملية",
+                                              style: const TextStyle(fontSize: 11),
+                                            ),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: isConverted ? Colors.green : Colors.blueAccent,
+                                              foregroundColor: Colors.white,
+                                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                              minimumSize: Size.zero,
+                                            ),
+                                          );
+                                        }),
                                         if (authState.role == 'bank_employee') ...[
                                         const SizedBox(width: 6),
                                         OutlinedButton.icon(
@@ -1072,16 +1100,26 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                                   runSpacing: 6,
                                   alignment: WrapAlignment.end,
                                   children: [
-                                    ElevatedButton.icon(
-                                      onPressed: () => _convertToOperation(d),
-                                      icon: const Icon(Icons.settings_suggest, size: 12),
-                                      label: const Text("تحويل لعملية", style: TextStyle(fontSize: 11)),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.blueAccent,
-                                        foregroundColor: Colors.white,
-                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                      ),
-                                    ),
+                                    Builder(builder: (context) {
+                                      final distId = d['id']?.toString() ?? '';
+                                      final isConverted = _convertedDistributionIds.contains(distId);
+                                      return ElevatedButton.icon(
+                                        onPressed: () => _convertToOperation(d),
+                                        icon: Icon(
+                                          isConverted ? Icons.check_circle : Icons.settings_suggest,
+                                          size: 12,
+                                        ),
+                                        label: Text(
+                                          isConverted ? "تم التحويل ✓" : "تحويل لعملية",
+                                          style: const TextStyle(fontSize: 11),
+                                        ),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: isConverted ? Colors.green : Colors.blueAccent,
+                                          foregroundColor: Colors.white,
+                                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        ),
+                                      );
+                                    }),
                                     if (authState.role == 'bank_employee')
                                     OutlinedButton.icon(
                                       onPressed: () => _requestPhoneFromDistribution(d),

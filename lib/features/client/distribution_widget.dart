@@ -147,7 +147,6 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
             : "برنامج غير معروف";
 
         final isBankEmp = authState.role == 'bank_employee';
-        final userBankName = authState.bankName?.trim().toLowerCase() ?? '';
         final userEmpId = authState.user?.id ?? '';
         final userBankEmpId = authState.bankEmployeeId?.toString().trim() ?? '';
         final userFullName = authState.fullName.trim().toLowerCase();
@@ -1355,59 +1354,6 @@ class _InfoRow extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _GlowButton extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _GlowButton({
-    required this.label,
-    required this.icon,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                const Color(0xFF7B61FF).withValues(alpha: 0.15),
-                TfcColors.primary.withValues(alpha: 0.1),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: const Color(0xFF7B61FF).withValues(alpha: 0.3),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 16, color: const Color(0xFF7B61FF)),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Color(0xFF7B61FF),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

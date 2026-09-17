@@ -192,7 +192,6 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
       final bool isUserAdmin = authState.role == 'admin';
       final bool isBankEmp = authState.role == 'bank_employee';
       final String userFullName = authState.fullName.trim().toLowerCase();
-      final String userBankName = authState.bankName?.trim().toLowerCase() ?? '';
 
       final loaded = rows.map((r) {
         final entry = OperationEntry.fromJson(r);
@@ -419,6 +418,8 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
         }
       }
 
+      ref.read(operationsRefreshTriggerProvider.notifier).state++;
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -627,13 +628,14 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
               ElevatedButton(
                 onPressed: () async {
                   final newAmt = double.tryParse(amountCtrl.text.trim()) ?? op.requestedAmount;
+                  final nav = Navigator.of(ctx);
                   if (SupabaseConfig.isInitialized) {
                     await SupabaseConfig.client.from('operation_entries').update({
                       'requested_amount': newAmt,
                       'transfer_date': selectedDate.toIso8601String(),
                     }).eq('id', op.id);
                   }
-                  Navigator.pop(ctx);
+                  nav.pop();
                   _loadOperations();
                 },
                 style: ElevatedButton.styleFrom(backgroundColor: TfcColors.primary),
@@ -665,7 +667,7 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
                 Directionality(
                   textDirection: TextDirection.rtl,
                   child: DropdownButtonFormField<String>(
-                    value: selectedStatus,
+                    initialValue: selectedStatus,
                     dropdownColor: TfcColors.surfaceDim,
                     decoration: const InputDecoration(labelText: "الحالة"),
                     items: const [
@@ -1082,7 +1084,6 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
               itemBuilder: (context, index) {
                 final op = _operations[index];
                 final statusColor = _getStatusColor(op.status);
-                final statusLabel = _getStatusLabel(op.status);
 
                 return Container(
                   padding: const EdgeInsets.all(16),
@@ -1356,15 +1357,8 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
   }
 
   Widget _buildStatusChip(String status) {
-    Color color = TfcColors.warning;
-    String label = "يتم العمل";
-    if (status == 'approved') {
-      color = TfcColors.success;
-      label = "موافقة";
-    } else if (status == 'rejected') {
-      color = TfcColors.error;
-      label = "رفض";
-    }
+    final color = _getStatusColor(status);
+    final label = _getStatusLabel(status);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
