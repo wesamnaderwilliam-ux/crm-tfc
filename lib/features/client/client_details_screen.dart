@@ -4070,8 +4070,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
-          width: 60%;
-          opacity: 0.04;
+          width: 65%;
+          opacity: 0.08;
           z-index: -1;
           pointer-events: none;
         }
