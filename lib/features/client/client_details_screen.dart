@@ -1474,7 +1474,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         client.cashSalaryAmount! > 0;
 
     return GlassCard(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       borderColor: TfcColors.primary.withValues(alpha: 0.1),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2143,64 +2143,99 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       color: Colors.white.withValues(alpha: 0.02),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      textDirection: TextDirection.rtl,
-                      children: [
-                        Expanded(
-                          child: Row(
-                            textDirection: TextDirection.rtl,
+                    child: LayoutBuilder(
+                      builder: (ctx, bc) {
+                        final isNarrow = bc.maxWidth < 380;
+                        if (isNarrow) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              Text(l.bankName,
-                                  style: const TextStyle(
-                                      fontWeight: FontWeight.bold)),
-                              const SizedBox(width: 12),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                textDirection: TextDirection.rtl,
+                                children: [
+                                  Text(l.bankName,
+                                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                  if (canEditClients)
+                                    Row(mainAxisSize: MainAxisSize.min, children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.edit, color: Colors.blueAccent, size: 16),
+                                        onPressed: () => _showAddEditLoanDialog(context, client, staffName, loan: l),
+                                        padding: EdgeInsets.zero,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      IconButton(
+                                        icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 16),
+                                        onPressed: () => _confirmDeleteLoanOrCard(context, clientId: client.id, loanId: l.id, staffName: staffName),
+                                        padding: EdgeInsets.zero,
+                                      ),
+                                    ]),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
                               Text(
                                 "القسط: ${_formatLargeNumber(l.installmentValue)} ج.م",
-                                style: const TextStyle(
-                                    color: TfcColors.secondary, fontSize: 13),
+                                textDirection: TextDirection.rtl,
+                                style: const TextStyle(color: TfcColors.secondary, fontSize: 13),
                               ),
                               if (l.notes != null && l.notes!.isNotEmpty) ...[
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    "(${l.notes})",
-                                    style: const TextStyle(
-                                        color: TfcColors.outline, fontSize: 11),
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: TextAlign.right,
+                                const SizedBox(height: 2),
+                                Text("(${l.notes})",
+                                    textDirection: TextDirection.rtl,
+                                    style: const TextStyle(color: TfcColors.outline, fontSize: 12)),
+                              ],
+                            ],
+                          );
+                        }
+                        return Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          textDirection: TextDirection.rtl,
+                          children: [
+                            Expanded(
+                              child: Row(
+                                textDirection: TextDirection.rtl,
+                                children: [
+                                  Text(l.bankName,
+                                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    "القسط: ${_formatLargeNumber(l.installmentValue)} ج.م",
+                                    style: const TextStyle(color: TfcColors.secondary, fontSize: 13),
                                   ),
-                                ),
-                              ]
-                            ],
-                          ),
-                        ),
-                        if (canEditClients)
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.edit,
-                                    color: Colors.blueAccent, size: 16),
-                                onPressed: () => _showAddEditLoanDialog(
-                                    context, client, staffName,
-                                    loan: l),
-                                padding: EdgeInsets.zero,
+                                  if (l.notes != null && l.notes!.isNotEmpty) ...[
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Text(
+                                        "(${l.notes})",
+                                        style: const TextStyle(color: TfcColors.outline, fontSize: 11),
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.right,
+                                      ),
+                                    ),
+                                  ]
+                                ],
                               ),
-                              const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(Icons.delete_outline,
-                                    color: Colors.redAccent, size: 16),
-                                onPressed: () => _confirmDeleteLoanOrCard(
-                                    context,
-                                    clientId: client.id,
-                                    loanId: l.id,
-                                    staffName: staffName),
-                                padding: EdgeInsets.zero,
+                            ),
+                            if (canEditClients)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.edit, color: Colors.blueAccent, size: 16),
+                                    onPressed: () => _showAddEditLoanDialog(context, client, staffName, loan: l),
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 16),
+                                    onPressed: () => _confirmDeleteLoanOrCard(context, clientId: client.id, loanId: l.id, staffName: staffName),
+                                    padding: EdgeInsets.zero,
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                      ],
+                          ],
+                        );
+                      },
                     ),
                   );
                 },
@@ -4758,14 +4793,16 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
 
   Widget _buildSubInfoRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 3),
       child: Wrap(
         textDirection: TextDirection.rtl,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: 4,
         children: [
-          Text("$label: ", style: const TextStyle(fontSize: 11, color: Colors.white54)),
+          Text("$label:", style: const TextStyle(fontSize: 13, color: Colors.white60, fontWeight: FontWeight.w500)),
           Text(value,
               textDirection: TextDirection.rtl,
-              style: const TextStyle(fontSize: 11, color: Colors.white)),
+              style: const TextStyle(fontSize: 13, color: Colors.white, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -5309,48 +5346,77 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   }
 
   Widget _buildInfoRow(String label, String value, {bool highlight = false}) {
-    return Container(
-      decoration: highlight
-          ? BoxDecoration(
-              color: TfcColors.primary.withAlpha((0.08 * 255).toInt()),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                  color: TfcColors.primary.withAlpha((0.25 * 255).toInt())),
-            )
-          : null,
-      padding: highlight
-          ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
-          : const EdgeInsets.symmetric(vertical: 8.0),
-      margin:
-          highlight ? const EdgeInsets.symmetric(vertical: 4) : EdgeInsets.zero,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        textDirection: TextDirection.rtl,
-        children: [
-          Text(label,
-              style: TextStyle(
-                  color: highlight
-                      ? TfcColors.primary
-                      : TfcColors.onSurfaceVariant,
-                  fontSize: 13,
-                  fontWeight: highlight ? FontWeight.bold : FontWeight.normal)),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              value,
-              textAlign: TextAlign.left,
-              textDirection: TextDirection.rtl,
-              overflow: TextOverflow.ellipsis,
-              maxLines: 2,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: highlight ? 14 : 13,
-                color: highlight ? TfcColors.primary : null,
-              ),
-            ),
-          ),
-        ],
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isNarrow = constraints.maxWidth < 420;
+        final labelStyle = TextStyle(
+          color: highlight ? TfcColors.primary : TfcColors.onSurfaceVariant,
+          fontSize: isNarrow ? 12 : 13,
+          fontWeight: highlight ? FontWeight.bold : FontWeight.normal,
+        );
+        final valueStyle = TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: isNarrow ? 13 : (highlight ? 14 : 13),
+          color: highlight ? TfcColors.primary : null,
+        );
+
+        return Container(
+          decoration: highlight
+              ? BoxDecoration(
+                  color: TfcColors.primary.withAlpha((0.08 * 255).toInt()),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                      color: TfcColors.primary.withAlpha((0.25 * 255).toInt())),
+                )
+              : null,
+          padding: highlight
+              ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
+              : const EdgeInsets.symmetric(vertical: 6.0),
+          margin: highlight
+              ? const EdgeInsets.symmetric(vertical: 4)
+              : EdgeInsets.zero,
+          child: isNarrow
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(label, style: labelStyle, textDirection: TextDirection.rtl),
+                    const SizedBox(height: 3),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.04),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        value,
+                        textAlign: TextAlign.right,
+                        textDirection: TextDirection.rtl,
+                        style: valueStyle,
+                      ),
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  textDirection: TextDirection.rtl,
+                  children: [
+                    Text(label, style: labelStyle),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        value,
+                        textAlign: TextAlign.left,
+                        textDirection: TextDirection.rtl,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                        style: valueStyle,
+                      ),
+                    ),
+                  ],
+                ),
+        );
+      },
     );
   }
 

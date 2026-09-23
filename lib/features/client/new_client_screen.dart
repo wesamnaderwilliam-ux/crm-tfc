@@ -2390,119 +2390,107 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          Row(
-                            textDirection: TextDirection.rtl,
-                            children: [
-                              Expanded(
-                                child: _buildFormField(
-                                  label: "اسم الكمبوند",
-                                  child: TextFormField(
-                                    controller: entry['compoundName'],
-                                    textAlign: TextAlign.right,
-                                    decoration: const InputDecoration(hintText: "مثال: بيفيرلي هيلز"),
-                                  ),
-                                ),
+                          LayoutBuilder(builder: (ctx, bc) {
+                            final bool compact = bc.maxWidth < 500;
+                            final gap = compact ? const SizedBox(height: 12) : const SizedBox(width: 12);
+                            Widget field1 = _buildFormField(
+                              label: "اسم الكمبوند",
+                              child: TextFormField(
+                                controller: entry['compoundName'],
+                                textAlign: TextAlign.right,
+                                decoration: const InputDecoration(hintText: "مثال: بيفيرلي هيلز"),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildFormField(
-                                  label: "اسم المطور",
-                                  child: TextFormField(
-                                    controller: entry['developerName'],
-                                    textAlign: TextAlign.right,
-                                    decoration: const InputDecoration(hintText: "مثال: سوديك"),
-                                  ),
-                                ),
+                            );
+                            Widget field2 = _buildFormField(
+                              label: "اسم المطور",
+                              child: TextFormField(
+                                controller: entry['developerName'],
+                                textAlign: TextAlign.right,
+                                decoration: const InputDecoration(hintText: "مثال: سوديك"),
                               ),
-                            ],
-                          ),
+                            );
+                            return compact
+                                ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [field1, gap, field2])
+                                : Row(textDirection: TextDirection.rtl, children: [Expanded(child: field1), gap, Expanded(child: field2)]);
+                          }),
                           const SizedBox(height: 12),
-                          Row(
-                            textDirection: TextDirection.rtl,
-                            children: [
-                              Expanded(
-                                child: _buildFormField(
-                                  label: "تاريخ التعاقد",
-                                  child: TextFormField(
-                                    controller: entry['contractDate'],
-                                    textAlign: TextAlign.right,
-                                    decoration: const InputDecoration(hintText: "مثال: 2022-01-01"),
-                                  ),
-                                ),
+                          LayoutBuilder(builder: (ctx, bc) {
+                            final bool compact = bc.maxWidth < 500;
+                            final gap = compact ? const SizedBox(height: 12) : const SizedBox(width: 12);
+                            Widget field1 = _buildFormField(
+                              label: "تاريخ التعاقد",
+                              child: TextFormField(
+                                controller: entry['contractDate'],
+                                textAlign: TextAlign.right,
+                                decoration: const InputDecoration(hintText: "مثال: 2022-01-01"),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildFormField(
-                                  label: "قيمة الوحدة",
-                                  child: TextFormField(
-                                    controller: entry['unitValue'],
-                                    textAlign: TextAlign.right,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(hintText: "0.00"),
-                                  ),
-                                ),
+                            );
+                            Widget field2 = _buildFormField(
+                              label: "قيمة الوحدة",
+                              child: TextFormField(
+                                controller: entry['unitValue'],
+                                textAlign: TextAlign.right,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(hintText: "0.00"),
                               ),
-                            ],
-                          ),
+                            );
+                            return compact
+                                ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [field1, gap, field2])
+                                : Row(textDirection: TextDirection.rtl, children: [Expanded(child: field1), gap, Expanded(child: field2)]);
+                          }),
                           const SizedBox(height: 12),
-                          Row(
-                            textDirection: TextDirection.rtl,
-                            children: [
-                              Expanded(
-                                child: _buildFormField(
-                                  label: "المقدم المدفوع",
-                                  child: TextFormField(
-                                    controller: entry['downPayment'],
-                                    textAlign: TextAlign.right,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(hintText: "0.00"),
-                                  ),
-                                ),
+                          LayoutBuilder(builder: (ctx, bc) {
+                            final bool compact = bc.maxWidth < 500;
+                            final gap = compact ? const SizedBox(height: 12) : const SizedBox(width: 12);
+                            Widget field1 = _buildFormField(
+                              label: "المقدم المدفوع",
+                              child: TextFormField(
+                                controller: entry['downPayment'],
+                                textAlign: TextAlign.right,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(hintText: "0.00"),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildFormField(
-                                  label: "نسبة المقدم",
-                                  child: TextFormField(
-                                    controller: entry['downPaymentPercent'],
-                                    textAlign: TextAlign.right,
-                                    readOnly: true,
-                                    style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold),
-                                    decoration: const InputDecoration(hintText: "0.0%"),
-                                  ),
-                                ),
+                            );
+                            Widget field2 = _buildFormField(
+                              label: "نسبة المقدم",
+                              child: TextFormField(
+                                controller: entry['downPaymentPercent'],
+                                textAlign: TextAlign.right,
+                                readOnly: true,
+                                style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold),
+                                decoration: const InputDecoration(hintText: "0.0%"),
                               ),
-                            ],
-                          ),
+                            );
+                            return compact
+                                ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [field1, gap, field2])
+                                : Row(textDirection: TextDirection.rtl, children: [Expanded(child: field1), gap, Expanded(child: field2)]);
+                          }),
                           const SizedBox(height: 12),
-                          Row(
-                            textDirection: TextDirection.rtl,
-                            children: [
-                              Expanded(
-                                child: _buildFormField(
-                                  label: "عدد الأقساط المدفوعة",
-                                  child: TextFormField(
-                                    controller: entry['paidInstallmentsCount'],
-                                    textAlign: TextAlign.right,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(hintText: "0"),
-                                  ),
-                                ),
+                          LayoutBuilder(builder: (ctx, bc) {
+                            final bool compact = bc.maxWidth < 500;
+                            final gap = compact ? const SizedBox(height: 12) : const SizedBox(width: 12);
+                            Widget field1 = _buildFormField(
+                              label: "عدد الأقساط المدفوعة",
+                              child: TextFormField(
+                                controller: entry['paidInstallmentsCount'],
+                                textAlign: TextAlign.right,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(hintText: "0"),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildFormField(
-                                  label: "قيمة ما تم دفعه",
-                                  child: TextFormField(
-                                    controller: entry['paidAmount'],
-                                    textAlign: TextAlign.right,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(hintText: "0.00"),
-                                  ),
-                                ),
+                            );
+                            Widget field2 = _buildFormField(
+                              label: "قيمة ما تم دفعه",
+                              child: TextFormField(
+                                controller: entry['paidAmount'],
+                                textAlign: TextAlign.right,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(hintText: "0.00"),
                               ),
-                            ],
-                          ),
+                            );
+                            return compact
+                                ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [field1, gap, field2])
+                                : Row(textDirection: TextDirection.rtl, children: [Expanded(child: field1), gap, Expanded(child: field2)]);
+                          }),
                           const SizedBox(height: 12),
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -2672,87 +2660,81 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          Row(
-                            textDirection: TextDirection.rtl,
-                            children: [
-                              Expanded(
-                                child: _buildFormField(
-                                  label: "نوع السيارة",
-                                  child: TextFormField(
-                                    controller: entry['carType'],
-                                    textAlign: TextAlign.right,
-                                    decoration: const InputDecoration(hintText: "مثال: هيونداي توسان"),
-                                  ),
-                                ),
+                          LayoutBuilder(builder: (ctx, bc) {
+                            final bool compact = bc.maxWidth < 500;
+                            final gap = compact ? const SizedBox(height: 12) : const SizedBox(width: 12);
+                            Widget field1 = _buildFormField(
+                              label: "نوع السيارة",
+                              child: TextFormField(
+                                controller: entry['carType'],
+                                textAlign: TextAlign.right,
+                                decoration: const InputDecoration(hintText: "مثال: هيونداي توسان"),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildFormField(
-                                  label: "موديل كام",
-                                  child: TextFormField(
-                                    controller: entry['carModel'],
-                                    textAlign: TextAlign.right,
-                                    decoration: const InputDecoration(hintText: "مثال: 2022"),
-                                  ),
-                                ),
+                            );
+                            Widget field2 = _buildFormField(
+                              label: "موديل كام",
+                              child: TextFormField(
+                                controller: entry['carModel'],
+                                textAlign: TextAlign.right,
+                                decoration: const InputDecoration(hintText: "مثال: 2022"),
                               ),
-                            ],
-                          ),
+                            );
+                            return compact
+                                ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [field1, gap, field2])
+                                : Row(textDirection: TextDirection.rtl, children: [Expanded(child: field1), gap, Expanded(child: field2)]);
+                          }),
                           const SizedBox(height: 12),
-                          Row(
-                            textDirection: TextDirection.rtl,
-                            children: [
-                              Expanded(
-                                child: _buildFormField(
-                                  label: "قيمة سعر السيارة اليوم",
-                                  child: TextFormField(
-                                    controller: entry['carTodayValue'],
-                                    textAlign: TextAlign.right,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(hintText: "0.00"),
-                                  ),
-                                ),
+                          LayoutBuilder(builder: (ctx, bc) {
+                            final bool compact = bc.maxWidth < 500;
+                            final gap = compact ? const SizedBox(height: 12) : const SizedBox(width: 12);
+                            Widget field1 = _buildFormField(
+                              label: "قيمة سعر السيارة اليوم",
+                              child: TextFormField(
+                                controller: entry['carTodayValue'],
+                                textAlign: TextAlign.right,
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(hintText: "0.00"),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildFormField(
-                                  label: "الرخصة",
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white.withValues(alpha: 0.04),
-                                      borderRadius: BorderRadius.circular(10),
-                                      border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                                    ),
-                                    child: DropdownButtonHideUnderline(
-                                      child: DropdownButton<String>(
-                                        value: entry['licenseStatus'],
-                                        dropdownColor: TfcColors.surfaceDim,
-                                        isExpanded: true,
-                                        items: const [
-                                          DropdownMenuItem(
-                                            value: 'عليها حظر',
-                                            child: Text("عليها حظر"),
-                                          ),
-                                          DropdownMenuItem(
-                                            value: 'بدون حظر',
-                                            child: Text("بدون حظر"),
-                                          ),
-                                        ],
-                                        onChanged: (val) {
-                                          if (val != null) {
-                                            setState(() {
-                                              entry['licenseStatus'] = val;
-                                            });
-                                          }
-                                        },
+                            );
+                            Widget field2 = _buildFormField(
+                              label: "الرخصة",
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.04),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                                ),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButton<String>(
+                                    value: entry['licenseStatus'],
+                                    dropdownColor: TfcColors.surfaceDim,
+                                    isExpanded: true,
+                                    items: const [
+                                      DropdownMenuItem(
+                                        value: 'عليها حظر',
+                                        child: Text("عليها حظر"),
                                       ),
-                                    ),
+                                      DropdownMenuItem(
+                                        value: 'بدون حظر',
+                                        child: Text("بدون حظر"),
+                                      ),
+                                    ],
+                                    onChanged: (val) {
+                                      if (val != null) {
+                                        setState(() {
+                                          entry['licenseStatus'] = val;
+                                        });
+                                      }
+                                    },
                                   ),
                                 ),
                               ),
-                            ],
-                          ),
+                            );
+                            return compact
+                                ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [field1, gap, field2])
+                                : Row(textDirection: TextDirection.rtl, children: [Expanded(child: field1), gap, Expanded(child: field2)]);
+                          }),
                         ],
                       ),
                     );
@@ -2785,82 +2767,79 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   textDirection: TextDirection.rtl),
               const SizedBox(height: 20),
-              Row(
-                textDirection: TextDirection.rtl,
-                children: [
-                  Expanded(
-                    child: _buildFormField(
-                      label: "مبلغ التمويل المطلوب (ج.م)",
-                      child: TextFormField(
-                        controller: _amountController,
-                        textAlign: TextAlign.right,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(hintText: "0.00"),
-                        validator: (v) => v!.isEmpty ? "مطلوب" : null,
+              LayoutBuilder(builder: (ctx, bc) {
+                final bool compact = bc.maxWidth < 500;
+                final gap = compact ? const SizedBox(height: 16) : const SizedBox(width: 16);
+                Widget field1 = _buildFormField(
+                  label: "مبلغ التمويل المطلوب (ج.م)",
+                  child: TextFormField(
+                    controller: _amountController,
+                    textAlign: TextAlign.right,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(hintText: "0.00"),
+                    validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                  ),
+                );
+                Widget field2 = _buildFormField(
+                  label: "المحافظة",
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.04),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08)),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _governorate,
+                        dropdownColor: TfcColors.surfaceDim,
+                        isExpanded: true,
+                        items: const [
+                          "القاهرة",
+                          "الجيزة",
+                          "الإسكندرية",
+                          "الدقهلية",
+                          "البحر الأحمر",
+                          "البحيرة",
+                          "الفيوم",
+                          "الغربية",
+                          "الإسماعيلية",
+                          "المنوفية",
+                          "المنيا",
+                          "القليوبية",
+                          "الوادي الجديد",
+                          "السويس",
+                          "أسوان",
+                          "أسيوط",
+                          "بني سويف",
+                          "بورسعيد",
+                          "دمياط",
+                          "الشرقية",
+                          "جنوب سيناء",
+                          "كفر الشيخ",
+                          "مطروح",
+                          "الأقصر",
+                          "قنا",
+                          "شمال سيناء",
+                          "سوهاج"
+                        ]
+                            .map((g) =>
+                                DropdownMenuItem(value: g, child: Text(g)))
+                            .toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _governorate = val);
+                          }
+                        },
                       ),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildFormField(
-                      label: "المحافظة",
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.04),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.08)),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: _governorate,
-                            dropdownColor: TfcColors.surfaceDim,
-                            isExpanded: true,
-                            items: const [
-                              "القاهرة",
-                              "الجيزة",
-                              "الإسكندرية",
-                              "الدقهلية",
-                              "البحر الأحمر",
-                              "البحيرة",
-                              "الفيوم",
-                              "الغربية",
-                              "الإسماعيلية",
-                              "المنوفية",
-                              "المنيا",
-                              "القليوبية",
-                              "الوادي الجديد",
-                              "السويس",
-                              "أسوان",
-                              "أسيوط",
-                              "بني سويف",
-                              "بورسعيد",
-                              "دمياط",
-                              "الشرقية",
-                              "جنوب سيناء",
-                              "كفر الشيخ",
-                              "مطروح",
-                              "الأقصر",
-                              "قنا",
-                              "شمال سيناء",
-                              "سوهاج"
-                            ]
-                                .map((g) =>
-                                    DropdownMenuItem(value: g, child: Text(g)))
-                                .toList(),
-                            onChanged: (val) {
-                              if (val != null) {
-                                setState(() => _governorate = val);
-                              }
-                            },
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                );
+                return compact
+                    ? Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [field1, gap, field2])
+                    : Row(textDirection: TextDirection.rtl, children: [Expanded(child: field1), gap, Expanded(child: field2)]);
+              }),
               const SizedBox(height: 16),
               _buildFormField(
                 label: "العنوان بالتفصيل",
