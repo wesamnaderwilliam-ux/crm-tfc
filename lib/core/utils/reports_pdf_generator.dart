@@ -256,16 +256,22 @@ class ReportsPdfGenerator {
                   headerDecoration: const pw.BoxDecoration(color: PdfColor.fromInt(0xFF1E1E38)),
                   cellStyle: pw.TextStyle(font: font, fontSize: 8),
                   cellAlignment: pw.Alignment.center,
-                  headers: ['نسبة الإنجاز', 'المبيعات المنفذة', 'التارجت المستهدف', 'العمليات الناجحة', 'العملاء المسجلين', 'الدور / الفريق', 'اسم الموظف'],
-                  data: employeeStats.map((e) => [
-                    "${(e['achievement_rate'] as double).toStringAsFixed(1)}%",
-                    "${_formatNumber(e['achieved_amount'] ?? 0)} ج.م",
-                    "${_formatNumber(e['target_amount'] ?? 0)} ج.م",
-                    "${e['operations_count']}",
-                    "${e['clients_count']}",
-                    e['role_or_team'] ?? '—',
-                    e['name'] ?? '—',
-                  ]).toList(),
+                  headers: ['نسبة الإنجاز', 'المبيعات المنفذة (المحقق)', 'التارجت المستهدف', 'العمليات الناجحة', 'العملاء المسجلين', 'الدور / الفريق', 'اسم الموظف'],
+                  data: employeeStats.map((e) {
+                    final opsCount = e['operations_count'] ?? 0;
+                    final distinctClients = e['distinct_clients_count'] ?? 0;
+                    final opsText = opsCount > 0 ? "$opsCount ($distinctClients عميل)" : "0";
+
+                    return [
+                      "${(e['achievement_rate'] as double).toStringAsFixed(1)}%",
+                      "${_formatNumber(e['achieved_amount'] ?? 0)} ج.م",
+                      "${_formatNumber(e['target_amount'] ?? 0)} ج.م",
+                      opsText,
+                      "${e['clients_count']}",
+                      e['role_or_team'] ?? '—',
+                      e['name'] ?? '—',
+                    ];
+                  }).toList(),
                 ),
         ],
       ),

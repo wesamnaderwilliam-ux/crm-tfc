@@ -730,6 +730,11 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
   // 2. تبويب تقارير الموظفين والتارجت ومقارنة الفرق
   // ─────────────────────────────────────────────────────────────────────────────
   Widget _buildEmployeesReportsTab(List employees, List clients) {
+    // Helper map of clients by ID for quick lookup
+    final Map<String, dynamic> clientsById = {
+      for (var c in clients) c.id: c
+    };
+
     // 1. Calculate per-employee statistics in the selected period
     final List<Map<String, dynamic>> employeeStats = [];
 
@@ -740,7 +745,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
       final empEmail = (emp.email as String? ?? '').trim().toLowerCase();
       final empId = emp.id.toString();
 
-      // Count clients assigned to this employee
+      // Count all clients assigned to or created by this employee
       final empClients = clients.where((c) {
         final rep = (c.representativeName ?? '').trim().toLowerCase();
         final creator = (c.createdBy ?? '').trim().toLowerCase();
@@ -748,14 +753,31 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
                (creator.isNotEmpty && (creator == empFullName || creator == empEmail || creator == empId));
       }).toList();
 
-      // Approved operations for this employee
+      // Approved operations belonging to this sales employee (matched via client representative/creator or operation staff)
       final empApprovedOps = _allOperations.where((op) {
         final d = op.approvalDate ?? op.transferDate;
+        if (!_isDateInSelectedPeriod(d) || op.status != 'approved') return false;
+
+        // 1. Match via client representative or creator
+        final client = clientsById[op.clientId];
+        if (client != null) {
+          final rep = (client.representativeName ?? '').trim().toLowerCase();
+          final creator = (client.createdBy ?? '').trim().toLowerCase();
+          if ((rep.isNotEmpty && (rep == empFullName || rep == empEmail || rep == empId)) ||
+              (creator.isNotEmpty && (creator == empFullName || creator == empEmail || creator == empId))) {
+            return true;
+          }
+        }
+
+        // 2. Fallback match via employeeName field on operation
         final opEmp = op.employeeName.trim().toLowerCase();
-        final isMatch = opEmp == empFullName || (empFullName.isNotEmpty && opEmp.contains(empFullName));
-        return isMatch && op.status == 'approved' && _isDateInSelectedPeriod(d);
+        return opEmp == empFullName || (empFullName.isNotEmpty && opEmp.contains(empFullName));
       }).toList();
 
+      // Distinct clients from which successful operations came
+      final Set<String> distinctClientIdsWithApprovedOps = empApprovedOps.map((op) => op.clientId).toSet();
+
+      // Achieved amount for this employee (المبيعات المنفذة)
       final double achievedAmount = empApprovedOps.fold(0.0, (sum, op) => sum + (op.approvedAmount ?? op.requestedAmount));
 
       // Calculate Target for this period
@@ -782,6 +804,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
         'role_or_team': emp.role == 'manager' ? 'مدير فريق / مشرف' : 'مسؤول مبيعات',
         'clients_count': empClients.length,
         'operations_count': empApprovedOps.length,
+        'distinct_clients_count': distinctClientIdsWithApprovedOps.length,
         'target_amount': targetAmount,
         'achieved_amount': achievedAmount,
         'achievement_rate': rate,
@@ -791,7 +814,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
     // Sort by achieved amount descending
     employeeStats.sort((a, b) => (b['achieved_amount'] as double).compareTo(a['achieved_amount'] as double));
 
-    // 2. Team rollup statistics
+    // 2. Team rollup statistics (المحقق كلي والتارجت الكلي للمجموعة/الفريق)
     final List<Map<String, dynamic>> teamStats = [];
     final managers = employees.where((e) => e.role == 'manager' || e.role == 'admin').toList();
 
@@ -931,17 +954,30 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> with SingleTicker
                       DataColumn(label: Text("العملاء", style: TextStyle(fontWeight: FontWeight.bold))),
                       DataColumn(label: Text("العمليات الناجحة", style: TextStyle(fontWeight: FontWeight.bold))),
                       DataColumn(label: Text("التارجت المستهدف", style: TextStyle(fontWeight: FontWeight.bold))),
-                      DataColumn(label: Text("المبيعات المنفذة", style: TextStyle(fontWeight: FontWeight.bold))),
+                      DataColumn(label: Text("المبيعات المنفذة (المحقق)", style: TextStyle(fontWeight: FontWeight.bold))),
                       DataColumn(label: Text("نسبة الإنجاز", style: TextStyle(fontWeight: FontWeight.bold))),
                     ],
                     rows: employeeStats.map((e) {
                       final rate = e['achievement_rate'] as double;
+                      final opsCount = e['operations_count'] as int;
+                      final distinctClients = e['distinct_clients_count'] as int;
+
                       return DataRow(
                         cells: [
                           DataCell(Text(e['name'], style: const TextStyle(fontWeight: FontWeight.bold))),
                           DataCell(Text(e['role_or_team'])),
                           DataCell(Text("${e['clients_count']}")),
-                          DataCell(Text("${e['operations_count']}")),
+                          DataCell(
+                            Text(
+                              opsCount > 0 
+                                  ? "$opsCount عملية ($distinctClients عميل)" 
+                                  : "0",
+                              style: TextStyle(
+                                fontWeight: opsCount > 0 ? FontWeight.bold : FontWeight.normal,
+                                color: opsCount > 0 ? Colors.cyanAccent : TfcColors.outline,
+                              ),
+                            ),
+                          ),
                           DataCell(Text("${_formatNumber(e['target_amount'])} ج.م")),
                           DataCell(Text("${_formatNumber(e['achieved_amount'])} ج.م", style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold))),
                           DataCell(
