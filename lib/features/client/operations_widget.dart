@@ -23,6 +23,7 @@ class OperationEntry {
   bool hasInvoice;
   double? invoicePercentage;
   double? invoiceFees;
+  bool isInvoiceClosed;
   String? invoiceCollected; // 'collected', 'not_collected'
 
   OperationEntry({
@@ -39,6 +40,7 @@ class OperationEntry {
     this.hasInvoice = false,
     this.invoicePercentage,
     this.invoiceFees,
+    this.isInvoiceClosed = false,
     this.invoiceCollected,
   });
 
@@ -61,6 +63,7 @@ class OperationEntry {
       hasInvoice: json['has_invoice'] ?? false,
       invoicePercentage: (json['invoice_percentage'] as num?)?.toDouble(),
       invoiceFees: (json['invoice_fees'] as num?)?.toDouble(),
+      isInvoiceClosed: json['is_invoice_closed'] == true,
       invoiceCollected: json['invoice_collected'],
     );
   }
@@ -79,6 +82,7 @@ class OperationEntry {
       'has_invoice': hasInvoice,
       'invoice_percentage': invoicePercentage,
       'invoice_fees': invoiceFees,
+      'is_invoice_closed': isInvoiceClosed,
       'invoice_collected': invoiceCollected,
     };
   }
@@ -259,6 +263,7 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
                 'has_invoice': op.hasInvoice,
                 'invoice_percentage': op.invoicePercentage,
                 'invoice_fees': op.invoiceFees,
+                'is_invoice_closed': op.isInvoiceClosed,
                 'invoice_collected': op.invoiceCollected,
               })
               .eq('id', op.id);
@@ -977,6 +982,7 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
                 op.hasInvoice = false;
                 op.invoicePercentage = null;
                 op.invoiceFees = null;
+                op.isInvoiceClosed = false;
                 op.invoiceCollected = null;
               });
               Navigator.pop(ctx);
