@@ -95,7 +95,7 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
             clients ( full_name )
           ''');
 
-      final response = await query;
+      final response = await query.order('transfer_date', ascending: false);
 
       final List<dynamic> rows = response as List<dynamic>;
       final List<Map<String, dynamic>> loaded = rows.map((r) {
@@ -127,6 +127,16 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
 
         return matchesEmp;
       }).toList();
+
+      // ترتيب من الأجدد للأقدم — العمليات بدون تاريخ تحويل تنزل لآخر القائمة
+      loaded.sort((a, b) {
+        final String? dateA = a['transfer_date'] as String?;
+        final String? dateB = b['transfer_date'] as String?;
+        if (dateA == null && dateB == null) return 0;
+        if (dateA == null) return 1;
+        if (dateB == null) return -1;
+        return dateB.compareTo(dateA);
+      });
 
       if (mounted) {
         setState(() {
