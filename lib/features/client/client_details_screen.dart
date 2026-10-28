@@ -1,3 +1,4 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:convert';
@@ -84,6 +85,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   @override
   void initState() {
     super.initState();
+    _loadSavedFilters();
     _checkPhoneRequestStatus();
     _loadAdminPhoneRequests();
   }
@@ -96,6 +98,48 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         widget.clientId!.isNotEmpty) {
       _checkPhoneRequestStatus();
       _loadAdminPhoneRequests();
+    }
+  }
+
+  
+  Future<void> _loadSavedFilters() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final savedStatus = prefs.getString('client_details_status_filter');
+      final savedRep = prefs.getString('client_details_rep_filter');
+      final savedFollowUpStatus = prefs.getString('client_details_followup_status_filter');
+      final savedFollowUpRep = prefs.getString('client_details_followup_rep_filter');
+      final savedFiltersCollapsed = prefs.getBool('client_details_filters_collapsed');
+
+      if (mounted) {
+        setState(() {
+          if (savedStatus != null) _selectedStatusFilter = savedStatus;
+          if (savedRep != null) _selectedRepFilter = savedRep;
+          if (savedFollowUpStatus != null) _selectedFollowUpStatusFilter = savedFollowUpStatus;
+          if (savedFollowUpRep != null) _selectedFollowUpRepFilter = savedFollowUpRep;
+          if (savedFiltersCollapsed != null) _filtersCollapsed = savedFiltersCollapsed;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading saved client filters: ' + e.toString());
+    }
+  }
+
+  Future<void> _saveFilter(String key, String value) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(key, value);
+    } catch (e) {
+      debugPrint('Error saving filter: ' + e.toString());
+    }
+  }
+
+  Future<void> _saveBoolFilter(String key, bool value) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(key, value);
+    } catch (e) {
+      debugPrint('Error saving bool filter: ' + e.toString());
     }
   }
 
@@ -685,7 +729,10 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                       // ── Toggleable Filters ──
                                       InkWell(
                                         borderRadius: BorderRadius.circular(8),
-                                        onTap: () => setState(() => _filtersCollapsed = !_filtersCollapsed),
+                                        onTap: () {
+                                          setState(() => _filtersCollapsed = !_filtersCollapsed);
+                                          _saveBoolFilter('client_details_filters_collapsed', _filtersCollapsed);
+                                        },
                                         child: Padding(
                                           padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
                                           child: Row(
@@ -760,6 +807,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                                     setState(() {
                                                       _selectedStatusFilter = val;
                                                     });
+                                                    _saveFilter('client_details_status_filter', val);
                                                   }
                                                 },
                                               ),
@@ -801,6 +849,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                                     setState(() {
                                                       _selectedRepFilter = val;
                                                     });
+                                                    _saveFilter('client_details_rep_filter', val);
                                                   }
                                                 },
                                               ),
@@ -815,6 +864,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                                       _selectedStatusFilter = 'all';
                                                       _selectedRepFilter = 'all';
                                                     });
+                                                    _saveFilter('client_details_status_filter', 'all');
+                                                    _saveFilter('client_details_rep_filter', 'all');
                                                   },
                                                   icon: const Icon(Icons.refresh, size: 14, color: TfcColors.outline),
                                                   label: const Text(
@@ -7636,6 +7687,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                         setState(() {
                           _selectedFollowUpStatusFilter = val;
                         });
+                        _saveFilter('client_details_followup_status_filter', val);
                       }
                     },
                   ),
@@ -7675,6 +7727,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                         setState(() {
                           _selectedFollowUpRepFilter = val;
                         });
+                        _saveFilter('client_details_followup_rep_filter', val);
                       }
                     },
                   ),
