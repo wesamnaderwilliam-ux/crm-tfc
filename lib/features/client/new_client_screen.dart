@@ -646,7 +646,7 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
   @override
   Widget build(BuildContext context) {
     final activeTheme = ref.watch(themeProvider);
-    final isModern = activeTheme == AppThemeMode.modernTheme;
+    final isModern = activeTheme.isModern;
 
     return Scaffold(
       backgroundColor: Colors.transparent,

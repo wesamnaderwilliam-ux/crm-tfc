@@ -1094,7 +1094,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     ),
                    ),
                   const SizedBox(height: 12),
-                  if (ref.watch(themeProvider) == AppThemeMode.modernTheme) ...[
+                  if (ref.watch(themeProvider).isModern) ...[
                     // Modern Stage Filter Chips matching tfc_mobile_prototype.html
                     SizedBox(
                       height: 38,
@@ -1322,7 +1322,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
 
   Widget _buildClientListTile(ClientModel item, bool isSelected) {
     final isBankEmp = ref.read(authProvider).role == 'bank_employee' || widget.bankEmployeeMode;
-    final isModern = ref.watch(themeProvider) == AppThemeMode.modernTheme;
+    final isModern = ref.watch(themeProvider).isModern;
     final primaryColor = isModern ? const Color(0xFF00E5FF) : TfcColors.primary;
     final cardGlow = isModern
         ? (isSelected ? const Color(0xFF00E5FF) : const Color(0xFFD4AF37))
@@ -1496,7 +1496,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     bool showDocuments,
   ) {
     final isBankEmp = authState.role == 'bank_employee' || widget.bankEmployeeMode;
-    final isModern = ref.watch(themeProvider) == AppThemeMode.modernTheme;
+    final isModern = ref.watch(themeProvider).isModern;
 
     return Column(
       children: [
@@ -4779,7 +4779,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         // Visual Stepper Bar
         LayoutBuilder(
           builder: (context, constraints) {
-            final isModern = ref.watch(themeProvider) == AppThemeMode.modernTheme;
+            final isModern = ref.watch(themeProvider).isModern;
             // Steps to display: if rejected, show the 6 normal steps + rejected
             // Otherwise show only 6 (excluding rejected)
             final displaySteps = isRejected
@@ -7620,7 +7620,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
 
   Widget _buildMainTabChip(int index, String title, IconData icon) {
     final isSelected = _selectedMainView == index;
-    final isModern = ref.watch(themeProvider) == AppThemeMode.modernTheme;
+    final isModern = ref.watch(themeProvider).isModern;
     final activeColor = isModern ? const Color(0xFF00E5FF) : TfcColors.primary;
 
     return InkWell(

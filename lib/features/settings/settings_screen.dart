@@ -1399,7 +1399,7 @@ class _AppThemeSelectorCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentTheme = ref.watch(themeProvider);
-    final isModern = currentTheme == AppThemeMode.modernTheme;
+    final isModern = currentTheme.isModern;
 
     return GlassCard(
       borderColor: (isModern ? const Color(0xFFD4AF37) : TfcColors.primary).withValues(alpha: 0.3),

@@ -7,6 +7,12 @@ enum AppThemeMode {
   prototypeTheme, // ثيم 3 - النموذج الكامل (Full Prototype UI)
 }
 
+extension AppThemeModeX on AppThemeMode {
+  bool get isModern => this == AppThemeMode.modernTheme || this == AppThemeMode.prototypeTheme;
+  bool get isTheme3 => this == AppThemeMode.prototypeTheme;
+}
+
+
 class ThemeNotifier extends StateNotifier<AppThemeMode> {
   static const String _prefKey = 'selected_app_theme_mode';
 

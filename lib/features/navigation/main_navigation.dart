@@ -673,7 +673,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
         builder: (context, screenConstraints) {
           final isMobile = screenConstraints.maxWidth < 700;
           final currentTheme = ref.watch(themeProvider);
-          final isModern = currentTheme == AppThemeMode.modernTheme;
+          final isModern = currentTheme.isModern;
 
           return Scaffold(
             backgroundColor: Colors.transparent,

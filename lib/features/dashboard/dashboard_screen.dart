@@ -95,7 +95,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
 
     final themeMode = ref.watch(themeProvider);
-    final isModern = themeMode == AppThemeMode.modernTheme;
+    final isModern = themeMode.isModern;
 
     // Preserved existing widgets
     final targetWidget = const _DashboardTargetPerformanceWidget();
@@ -129,13 +129,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            isModern ? "لوحة التحكم المالية (مودرن) ✨" : "لوحة التحكم المالية",
+                            themeMode.isTheme3
+                                ? "لوحة التحكم المالية (ثيم 3 - النموذج الكامل) 💎"
+                                : (isModern ? "لوحة التحكم المالية (مودرن) ✨" : "لوحة التحكم المالية"),
                             style: TextStyle(
                               fontSize: isMobile ? 16 : 20,
                               fontWeight: FontWeight.bold,
                               color: isModern ? const Color(0xFFD4AF37) : TfcColors.primary,
                             ),
                           ),
+
                           const SizedBox(height: 2),
                           Text(
                             "مرحباً بك، ${authState.fullName} - تابع طلبات التمويل والقروض",
