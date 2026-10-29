@@ -2421,6 +2421,80 @@
                 </div>
             </section>
 
+            <!-- 12. SETTINGS & THEME SCREEN (قسم الإعدادات والثيمات والصلاحيات) -->
+            <section id="view-settings" class="view-section">
+                <div class="section-headline">
+                    <span>⚙️ الإعدادات والمظهر البصري</span>
+                    <button class="chip-pill" onclick="switchSection('dashboard', 'الرئيسية')">🏠 الرئيسية</button>
+                </div>
+
+                <!-- Theme Selection Card -->
+                <div class="feed-card" style="border-color:var(--border-glow-gold); margin-bottom:14px;">
+                    <div class="feed-top">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:22px;">🎨</span>
+                            <div>
+                                <b style="color:#fff; font-size:14px;">اختيار ثيم ومظهر المنظومة</b>
+                                <div style="font-size:11px; color:var(--text-secondary);">يعمل عبر كافة أنظمة التشغيل (Windows, Android, iOS)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
+                        <!-- Option 1: Classic Theme -->
+                        <div class="sub-block" style="cursor:pointer; border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:10px;" onclick="showToast('تم تفعيل الثيم الافتراضي (Classic)')">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="font-size:18px;">🏛️</span>
+                                    <div>
+                                        <b style="color:#fff; font-size:12.5px;">1. الثيم الافتراضي (Classic)</b>
+                                        <div style="font-size:10.5px; color:var(--text-secondary);">المظهر المعتمد الأصلي للقوائم والجداول الكلاسيكية</div>
+                                    </div>
+                                </div>
+                                <span class="status-chip" style="background:rgba(255,255,255,0.08); color:var(--text-secondary);">كلاسيك</span>
+                            </div>
+                        </div>
+
+                        <!-- Option 2: Modern Theme (Dark Glass) -->
+                        <div class="sub-block" style="cursor:pointer; border:1.5px solid var(--border-glow-cyan); border-radius:12px; padding:10px; background:rgba(0,229,255,0.04);" onclick="showToast('تم تفعيل ثيم مودرن (Dark Glass + Cyan)')">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="font-size:18px;">✨</span>
+                                    <div>
+                                        <b style="color:var(--cyan); font-size:12.5px;">2. ثيم مودرن (Modern Dark Glass)</b>
+                                        <div style="font-size:10.5px; color:var(--text-secondary);">المظهر الزجاجي الليلي مع توهج السيان والذهب</div>
+                                    </div>
+                                </div>
+                                <span class="status-chip status-chip-cyan">نشط حالياً</span>
+                            </div>
+                        </div>
+
+                        <!-- Option 3: Full Prototype UI (Theme 3) -->
+                        <div class="sub-block" style="cursor:pointer; border:1.5px solid var(--border-glow-gold); border-radius:12px; padding:10px; background:rgba(212,175,55,0.05);" onclick="showToast('تم تفعيل ثيم البروتوتايب المتكامل (Theme 3)')">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="font-size:18px;">💎</span>
+                                    <div>
+                                        <b style="color:var(--gold); font-size:12.5px;">3. ثيم النموذج الكامل (Prototype Theme 3)</b>
+                                        <div style="font-size:10.5px; color:var(--text-secondary);">تجربة الـ UX/UI المتكاملة مع الدوك العائم وبطاقة الهيرو والـ 8 فلاتر</div>
+                                    </div>
+                                </div>
+                                <span class="status-chip" style="background:rgba(212,175,55,0.18); color:var(--gold); border:1px solid rgba(212,175,55,0.4);">ثيم 3 ✨</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Info Card -->
+                <div class="feed-card">
+                    <div style="font-size:13px; font-weight:800; color:#fff; margin-bottom:8px;">معلومات التطبيق والمزامنة:</div>
+                    <div class="detail-row"><span class="detail-lbl">قاعدة البيانات:</span><span class="detail-val" style="color:var(--green)">متصل بـ Supabase (نشط ✓)</span></div>
+                    <div class="detail-row"><span class="detail-lbl">إصدار النظام:</span><span class="detail-val">TFC CRM v2.5.0 Modern</span></div>
+                    <div class="detail-row"><span class="detail-lbl">المستخدم الحالي:</span><span class="detail-val" style="color:var(--gold)">وسام نادر (مدير النظام)</span></div>
+                    <div class="detail-row"><span class="detail-lbl">صلاحية التعديل والحذف:</span><span class="detail-val" style="color:var(--cyan)">كامل الصلاحيات (Admin)</span></div>
+                </div>
+            </section>
+
         </main>
 
         <!-- Floating Blurred Glass Dock (Exact bottom bar) -->
@@ -2502,6 +2576,10 @@
                     <div class="drawer-card-item" onclick="switchSection('calculator', 'حاسبة التمويل')">
                         <span style="font-size:20px;">🧮</span>
                         <span style="font-size:12px; font-weight:700;">حاسبة التمويل</span>
+                    </div>
+                    <div class="drawer-card-item" onclick="switchSection('settings', 'الإعدادات والصلاحيات')">
+                        <span style="font-size:20px;">⚙️</span>
+                        <span style="font-size:12px; font-weight:700;">الإعدادات والصلاحيات</span>
                     </div>
                 </div>
             </div>

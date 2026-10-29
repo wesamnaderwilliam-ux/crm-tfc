@@ -2,8 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 enum AppThemeMode {
-  defaultTheme, // الثيم الافتراضي
-  modernTheme,  // ثيم مودرن
+  defaultTheme,   // الثيم الافتراضي (Classic)
+  modernTheme,    // ثيم مودرن (Dark Glass)
+  prototypeTheme, // ثيم 3 - النموذج الكامل (Full Prototype UI)
 }
 
 class ThemeNotifier extends StateNotifier<AppThemeMode> {
@@ -17,7 +18,9 @@ class ThemeNotifier extends StateNotifier<AppThemeMode> {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedStr = prefs.getString(_prefKey);
-      if (savedStr == 'modernTheme') {
+      if (savedStr == 'prototypeTheme' || savedStr == 'theme3') {
+        state = AppThemeMode.prototypeTheme;
+      } else if (savedStr == 'modernTheme') {
         state = AppThemeMode.modernTheme;
       } else {
         state = AppThemeMode.defaultTheme;
@@ -33,7 +36,8 @@ class ThemeNotifier extends StateNotifier<AppThemeMode> {
     } catch (_) {}
   }
 
-  bool get isModern => state == AppThemeMode.modernTheme;
+  bool get isModern => state == AppThemeMode.modernTheme || state == AppThemeMode.prototypeTheme;
+  bool get isTheme3 => state == AppThemeMode.prototypeTheme;
 }
 
 final themeProvider = StateNotifierProvider<ThemeNotifier, AppThemeMode>((ref) {

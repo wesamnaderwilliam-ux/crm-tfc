@@ -1448,15 +1448,15 @@ class _AppThemeSelectorCard extends ConsumerWidget {
           ),
           const SizedBox(height: 20),
 
-          // 2 Cards Grid for Theme Selection
+          // 3 Cards Grid for Theme Selection
           LayoutBuilder(
             builder: (context, constraints) {
-              final isNarrow = constraints.maxWidth < 600;
+              final isNarrow = constraints.maxWidth < 800;
 
               final defaultCard = _buildThemeOptionCard(
                 context: context,
-                isSelected: !isModern,
-                title: "الافتراضي (Classic CRM)",
+                isSelected: currentTheme == AppThemeMode.defaultTheme,
+                title: "1. الافتراضي (Classic)",
                 subtitle: "المظهر الأصلي المعتمد ذو الألوان والخطوط الكلاسيكية",
                 badgeText: "الافتراضي",
                 primaryAccent: const Color(0xFF00F5D4),
@@ -1469,15 +1469,29 @@ class _AppThemeSelectorCard extends ConsumerWidget {
 
               final modernCard = _buildThemeOptionCard(
                 context: context,
-                isSelected: isModern,
-                title: "ثيم مودرن (Modern Glass)",
-                subtitle: "مظهر زجاجي داكن فاخر مع لمسات ذهبية وسيان وانسيابية عالية",
-                badgeText: "جديد ✨",
-                primaryAccent: const Color(0xFFD4AF37),
-                secondaryAccent: const Color(0xFF00E5FF),
+                isSelected: currentTheme == AppThemeMode.modernTheme,
+                title: "2. ثيم مودرن (Dark Glass)",
+                subtitle: "مظهر زجاجي داكن مع لمسات ذهبية وسيان وانسيابية عالية",
+                badgeText: "مودرن ✨",
+                primaryAccent: const Color(0xFF00E5FF),
+                secondaryAccent: const Color(0xFFD4AF37),
                 icon: Icons.auto_awesome_rounded,
                 onTap: () {
                   ref.read(themeProvider.notifier).setTheme(AppThemeMode.modernTheme);
+                },
+              );
+
+              final prototypeCard = _buildThemeOptionCard(
+                context: context,
+                isSelected: currentTheme == AppThemeMode.prototypeTheme,
+                title: "3. ثيم النموذج الكامل (ثيم 3)",
+                subtitle: "كامل تجربة البروتوتايب (Hero Card، الدوك العائم، 8 فلاتر، الأيقونات الدائرية)",
+                badgeText: "ثيم 3 💎",
+                primaryAccent: const Color(0xFFD4AF37),
+                secondaryAccent: const Color(0xFF10B981),
+                icon: Icons.phone_android_rounded,
+                onTap: () {
+                  ref.read(themeProvider.notifier).setTheme(AppThemeMode.prototypeTheme);
                 },
               );
 
@@ -1487,6 +1501,8 @@ class _AppThemeSelectorCard extends ConsumerWidget {
                     defaultCard,
                     const SizedBox(height: 12),
                     modernCard,
+                    const SizedBox(height: 12),
+                    prototypeCard,
                   ],
                 );
               }
@@ -1494,8 +1510,10 @@ class _AppThemeSelectorCard extends ConsumerWidget {
               return Row(
                 children: [
                   Expanded(child: defaultCard),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(child: modernCard),
+                  const SizedBox(width: 12),
+                  Expanded(child: prototypeCard),
                 ],
               );
             },

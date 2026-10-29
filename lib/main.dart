@@ -37,7 +37,7 @@ class TfcCrmApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeProvider);
-    final isModern = themeMode == AppThemeMode.modernTheme;
+    final isModern = themeMode == AppThemeMode.modernTheme || themeMode == AppThemeMode.prototypeTheme;
 
     return MaterialApp(
       title: 'TFC Financial CRM',
