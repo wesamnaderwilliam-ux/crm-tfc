@@ -1094,41 +1094,77 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     ),
                    ),
                   const SizedBox(height: 12),
-                  Directionality(
-                    textDirection: TextDirection.rtl,
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedStatusFilter,
-                      dropdownColor: TfcColors.surfaceDim,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.filter_list, color: TfcColors.outline, size: 18),
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.03),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
-                        ),
+                  if (ref.watch(themeProvider) == AppThemeMode.modernTheme) ...[
+                    // Modern Stage Filter Chips matching tfc_mobile_prototype.html
+                    SizedBox(
+                      height: 38,
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        children: [
+                          _buildModernFilterChip('all', '🌐 الكل', count: visibleClients.length),
+                          const SizedBox(width: 6),
+                          _buildModernFilterChip('pending', '⏳ قيد الانتظار',
+                              count: visibleClients.where((c) => c.status == 'pending').length),
+                          const SizedBox(width: 6),
+                          _buildModernFilterChip('iscore_inquiry', '🔍 استعلام ايسكور',
+                              count: visibleClients.where((c) => c.status == 'iscore_inquiry').length),
+                          const SizedBox(width: 6),
+                          _buildModernFilterChip('preparing_documents', '📄 تحضير الاوراق',
+                              count: visibleClients.where((c) => c.status == 'preparing_documents').length),
+                          const SizedBox(width: 6),
+                          _buildModernFilterChip('under_review', '📝 قيد الدراسة',
+                              count: visibleClients.where((c) => c.status == 'under_review').length),
+                          const SizedBox(width: 6),
+                          _buildModernFilterChip('at_bank', '🏛️ فى البنك',
+                              count: visibleClients.where((c) => c.status == 'at_bank').length),
+                          const SizedBox(width: 6),
+                          _buildModernFilterChip('approved', '✅ مقبول',
+                              count: visibleClients.where((c) => c.status == 'approved').length),
+                          const SizedBox(width: 6),
+                          _buildModernFilterChip('rejected', '❌ مرفوض',
+                              count: visibleClients.where((c) => c.status == 'rejected').length),
+                        ],
                       ),
-                      items: _statusNames.entries.map((e) {
-                        return DropdownMenuItem(
-                          value: e.key,
-                          child: Text(e.value, textDirection: TextDirection.rtl),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          setState(() {
-                            _selectedStatusFilter = val;
-                          });
-                        }
-                      },
                     ),
-                  ),
+                    const SizedBox(height: 10),
+                  ] else ...[
+                    Directionality(
+                      textDirection: TextDirection.rtl,
+                      child: DropdownButtonFormField<String>(
+                        value: _selectedStatusFilter,
+                        dropdownColor: TfcColors.surfaceDim,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        decoration: InputDecoration(
+                          prefixIcon: const Icon(Icons.filter_list, color: TfcColors.outline, size: 18),
+                          filled: true,
+                          fillColor: Colors.white.withValues(alpha: 0.03),
+                          contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+                          ),
+                        ),
+                        items: _statusNames.entries.map((e) {
+                          return DropdownMenuItem(
+                            value: e.key,
+                            child: Text(e.value, textDirection: TextDirection.rtl),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() {
+                              _selectedStatusFilter = val;
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Directionality(
                     textDirection: TextDirection.rtl,
@@ -1323,47 +1359,118 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  Text(
-                    item.fullName,
-                    style: TextStyle(
-                      color: () {
-                        switch (item.status) {
-                          case 'approved':
-                            return TfcColors.success;
-                          case 'under_review':
-                            return Colors.blueAccent;
-                          case 'iscore_inquiry':
-                            return Colors.orangeAccent;
-                          case 'preparing_documents':
-                            return Colors.cyan;
-                          case 'at_bank':
-                            return Colors.deepPurpleAccent;
-                          case 'rejected':
-                            return Colors.redAccent;
-                          default:
-                            return Colors.amber;
-                        }
-                      }(),
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      fontSize: 13,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     textDirection: TextDirection.rtl,
-                    overflow: TextOverflow.ellipsis,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          item.fullName,
+                          style: TextStyle(
+                            color: isModern ? Colors.white : () {
+                              switch (item.status) {
+                                case 'approved':
+                                  return TfcColors.success;
+                                case 'under_review':
+                                  return Colors.blueAccent;
+                                case 'iscore_inquiry':
+                                  return Colors.orangeAccent;
+                                case 'preparing_documents':
+                                  return Colors.cyan;
+                                case 'at_bank':
+                                  return Colors.deepPurpleAccent;
+                                case 'rejected':
+                                  return Colors.redAccent;
+                                default:
+                                  return Colors.amber;
+                              }
+                            }(),
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w700,
+                            fontSize: 13.5,
+                          ),
+                          textDirection: TextDirection.rtl,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (isModern) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: () {
+                              switch (item.status) {
+                                case 'approved':
+                                  return const Color(0xFF10B981).withValues(alpha: 0.18);
+                                case 'rejected':
+                                  return const Color(0xFFEF4444).withValues(alpha: 0.18);
+                                case 'at_bank':
+                                  return const Color(0xFF00E5FF).withValues(alpha: 0.18);
+                                default:
+                                  return const Color(0xFFF59E0B).withValues(alpha: 0.18);
+                              }
+                            }(),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: () {
+                                switch (item.status) {
+                                  case 'approved':
+                                    return const Color(0xFF10B981).withValues(alpha: 0.4);
+                                  case 'rejected':
+                                    return const Color(0xFFEF4444).withValues(alpha: 0.4);
+                                  case 'at_bank':
+                                    return const Color(0xFF00E5FF).withValues(alpha: 0.4);
+                                  default:
+                                    return const Color(0xFFF59E0B).withValues(alpha: 0.4);
+                                }
+                              }(),
+                            ),
+                          ),
+                          child: Text(
+                            _statusNames[item.status] ?? item.status,
+                            style: TextStyle(
+                              color: () {
+                                switch (item.status) {
+                                  case 'approved':
+                                    return const Color(0xFF10B981);
+                                  case 'rejected':
+                                    return const Color(0xFFEF4444);
+                                  case 'at_bank':
+                                    return const Color(0xFF00E5FF);
+                                  default:
+                                    return const Color(0xFFF59E0B);
+                                }
+                              }(),
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                  if (!isBankEmp) ...[
-                    const SizedBox(height: 2),
-                    Text(
-                      item.phoneNumber,
-                      style: const TextStyle(color: TfcColors.outline, fontSize: 10),
-                      textDirection: TextDirection.rtl,
-                    ),
-                  ],
+                  const SizedBox(height: 3),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      Text(
+                        "${item.requestedAmount > 0 ? '${item.requestedAmount.toStringAsFixed(0)} ج.م' : 'طلب تمويل'} • ${item.governorate}",
+                        style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+                        textDirection: TextDirection.rtl,
+                      ),
+                      if (!isBankEmp)
+                        Text(
+                          item.phoneNumber,
+                          style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 10.5),
+                          textDirection: TextDirection.ltr,
+                        ),
+                    ],
+                  ),
                 ],
               ),
             ),
             Icon(
               Icons.chevron_left,
-              color: isSelected ? TfcColors.primary : TfcColors.outline,
+              color: isSelected ? primaryColor : TfcColors.outline,
               size: 16,
             ),
           ],
@@ -1389,8 +1496,99 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     bool showDocuments,
   ) {
     final isBankEmp = authState.role == 'bank_employee' || widget.bankEmployeeMode;
+    final isModern = ref.watch(themeProvider) == AppThemeMode.modernTheme;
+
     return Column(
       children: [
+        if (isModern) ...[
+          // ─── MODERN HERO PROFILE CARD (Matching tfc_mobile_prototype.html) ───
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF182236), Color(0xFF0E131D)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: const Color(0xFFD4AF37).withValues(alpha: 0.4),
+                width: 1.2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  textDirection: TextDirection.rtl,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            client.fullName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                            ),
+                            textDirection: TextDirection.rtl,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            client.requestedAmount > 0
+                                ? "طلب تمويل: ${client.requestedAmount.toStringAsFixed(0)} ج.م"
+                                : "طلب تمويل جديد",
+                            style: const TextStyle(
+                              color: Color(0xFFD4AF37),
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textDirection: TextDirection.rtl,
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981).withValues(alpha: 0.18),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                        ),
+                      ),
+                      child: Text(
+                        "الآي سكور: ${client.creditScore}",
+                        style: const TextStyle(
+                          color: Color(0xFF10B981),
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "${(client.jobTitle?.isNotEmpty ?? false) ? client.jobTitle! : 'وظيفة غير محددة'} • ${(client.companyName?.isNotEmpty ?? false) ? client.companyName! : client.governorate} • ${client.salaryTransferMethod == 'bank_transfer' ? 'تحويل بنكي' : 'كاش'}",
+                  style: const TextStyle(color: Color(0xFF94A3B8), fontSize: 12),
+                  textDirection: TextDirection.rtl,
+                ),
+              ],
+            ),
+          ),
+        ],
         _buildCollapsibleSection(
           key: 'personal',
           title: 'البيانات الشخصية والمالية للعميل',
@@ -7422,23 +7620,37 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
 
   Widget _buildMainTabChip(int index, String title, IconData icon) {
     final isSelected = _selectedMainView == index;
+    final isModern = ref.watch(themeProvider) == AppThemeMode.modernTheme;
+    final activeColor = isModern ? const Color(0xFF00E5FF) : TfcColors.primary;
+
     return InkWell(
       onTap: () {
         setState(() {
           _selectedMainView = index;
         });
       },
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(10),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? TfcColors.primary.withValues(alpha: 0.2) : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
+          color: isSelected
+              ? (isModern ? activeColor.withValues(alpha: 0.2) : TfcColors.primary.withValues(alpha: 0.2))
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? TfcColors.primary : Colors.transparent,
-            width: 1,
+            color: isSelected ? activeColor : Colors.transparent,
+            width: 1.2,
           ),
+          boxShadow: isModern && isSelected
+              ? [
+                  BoxShadow(
+                    color: activeColor.withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -7448,7 +7660,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             Icon(
               icon,
               size: 16,
-              color: isSelected ? TfcColors.primary : Colors.white60,
+              color: isSelected ? activeColor : Colors.white60,
             ),
             const SizedBox(width: 6),
             Text(
@@ -7457,6 +7669,57 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 color: isSelected ? Colors.white : Colors.white60,
                 fontSize: 12,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildModernFilterChip(String stageKey, String label, {int count = 0}) {
+    final isSelected = _selectedStatusFilter == stageKey;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          _selectedStatusFilter = stageKey;
+        });
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF00E5FF)
+              : const Color(0xFF0F1420),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected
+                ? const Color(0xFF00E5FF)
+                : Colors.white.withValues(alpha: 0.12),
+            width: 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF00E5FF).withValues(alpha: 0.35),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  )
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          textDirection: TextDirection.rtl,
+          children: [
+            Text(
+              count > 0 ? "$label ($count)" : label,
+              style: TextStyle(
+                color: isSelected ? Colors.black : const Color(0xFF94A3B8),
+                fontSize: 11.5,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
               ),
             ),
           ],

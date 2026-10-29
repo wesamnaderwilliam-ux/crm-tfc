@@ -164,10 +164,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
             // 1. KPI Financial cards (visible conditionally if user can view analytics)
             if (permissions.canViewAnalytics) ...[
-              if (isModern && isMobile) ...[
-                // ─── MODERN MOBILE KPI CAROUSEL ───
+              if (isModern) ...[
+                // ─── MODERN KPI CAROUSEL (Active on Windows, Tablet, Android, iOS) ───
                 SizedBox(
-                  height: 105,
+                  height: 115,
                   child: ListView(
                     scrollDirection: Axis.horizontal,
                     physics: const BouncingScrollPhysics(),
@@ -179,7 +179,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         accentColor: const Color(0xFF00E5FF),
                         badge: "نشط ⚡",
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 10),
                       _buildModernKpiBox(
                         title: "التمويلات المعتمدة",
                         value: "${_formatMoney(approvedAmount)} ج.م",
@@ -187,7 +187,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         accentColor: const Color(0xFF10B981),
                         badge: "معتمد ✓",
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 10),
                       _buildModernKpiBox(
                         title: "متوسط الآي سكور",
                         value: "${averageCreditScore.toStringAsFixed(0)} / 850",
@@ -195,7 +195,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         accentColor: const Color(0xFFD4AF37),
                         badge: "ائتمان",
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 10),
                       _buildModernKpiBox(
                         title: "الطلبات المعلقة",
                         value: "$pendingCount طلب",
@@ -206,14 +206,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
 
                 // ─── MODERN 4 QUICK ACTION ICONS (المحفظة، التارجت، المتابعات، الحالات) ───
                 Container(
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.03),
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                   ),
                   child: Row(
@@ -246,7 +246,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
               ] else ...[
                 // CLASSIC KPI GRID
                 LayoutBuilder(
