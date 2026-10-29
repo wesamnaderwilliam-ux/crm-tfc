@@ -108,6 +108,89 @@ class TfcTheme {
       ),
     ),
   );
+
+  // Modern Theme (ثيم مودرن الفاخر)
+  static final ThemeData modernTheme = ThemeData(
+    brightness: Brightness.dark,
+    scaffoldBackgroundColor: Colors.transparent,
+    primaryColor: const Color(0xFF00E5FF),
+    colorScheme: const ColorScheme.dark(
+      primary: Color(0xFF00E5FF), // Modern Cyan
+      onPrimary: Color(0xFF00272D),
+      secondary: Color(0xFFD4AF37), // Metallic Gold
+      onSecondary: Color(0xFF2E2200),
+      surface: Color(0xFF0F172A),
+      onSurface: Color(0xFFF8FAFC),
+      error: Color(0xFFEF4444),
+    ),
+    dialogTheme: const DialogThemeData(
+      backgroundColor: Color(0xFF0F172A),
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      surfaceTintColor: Colors.transparent,
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+    ),
+    textTheme: const TextTheme(
+      displayLarge: TextStyle(
+        fontSize: 44,
+        fontWeight: FontWeight.bold,
+        color: Color(0xFFD4AF37),
+        letterSpacing: -0.88,
+      ),
+      headlineLarge: TextStyle(
+        fontSize: 30,
+        fontWeight: FontWeight.w700,
+        color: Color(0xFF00E5FF),
+        letterSpacing: -0.3,
+      ),
+      headlineMedium: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w700,
+        color: Color(0xFFF8FAFC),
+      ),
+      bodyLarge: TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.normal,
+        color: Color(0xFFF8FAFC),
+      ),
+      bodyMedium: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.normal,
+        color: Color(0xFF94A3B8),
+      ),
+      labelLarge: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: Color(0xFFD4AF37),
+        letterSpacing: 0.7,
+      ),
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: const Color(0xFF131C2E),
+      hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
+      labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
+      floatingLabelStyle: const TextStyle(color: Color(0xFF00E5FF)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0x3300E5FF), width: 1),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0x22FFFFFF), width: 1),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Color(0xFF00E5FF), width: 1.5),
+      ),
+    ),
+  );
 }
 
 // =============================================================================

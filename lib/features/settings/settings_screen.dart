@@ -5,6 +5,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../providers/ai_provider.dart';
 import '../../providers/prospects_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../models/google_sheet_config_model.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -52,6 +53,12 @@ class SettingsScreen extends ConsumerWidget {
             // 0. User Profile & Password Security Card
             // ─────────────────────────────────────────────
             const _UserProfileSecurityCard(),
+            const SizedBox(height: 24),
+
+            // ─────────────────────────────────────────────
+            // 0.5. App Theme Selector (الافتراضي vs ثيم مودرن)
+            // ─────────────────────────────────────────────
+            const _AppThemeSelectorCard(),
             const SizedBox(height: 24),
 
             // ─────────────────────────────────────────────
@@ -1378,6 +1385,260 @@ class _UserProfileSecurityCardState extends ConsumerState<_UserProfileSecurityCa
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Theme Selector Card (الافتراضي vs ثيم مودرن)
+// ─────────────────────────────────────────────────────────────
+class _AppThemeSelectorCard extends ConsumerWidget {
+  const _AppThemeSelectorCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentTheme = ref.watch(themeProvider);
+    final isModern = currentTheme == AppThemeMode.modernTheme;
+
+    return GlassCard(
+      borderColor: (isModern ? const Color(0xFFD4AF37) : TfcColors.primary).withValues(alpha: 0.3),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            textDirection: TextDirection.rtl,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: (isModern ? const Color(0xFFD4AF37) : TfcColors.primary).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.palette_rounded,
+                  color: isModern ? const Color(0xFFD4AF37) : TfcColors.primary,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "المظهر والثيم البصري (Theme Mode)",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                      textDirection: TextDirection.rtl,
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      "اختر المظهر المفضل لك، يعمل عبر أنظمة Windows، Android، iOS والأجهزة اللوحية دون التأثير على البيانات أو الصلاحيات",
+                      style: TextStyle(color: TfcColors.outline, fontSize: 12),
+                      textDirection: TextDirection.rtl,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // 2 Cards Grid for Theme Selection
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 600;
+
+              final defaultCard = _buildThemeOptionCard(
+                context: context,
+                isSelected: !isModern,
+                title: "الافتراضي (Classic CRM)",
+                subtitle: "المظهر الأصلي المعتمد ذو الألوان والخطوط الكلاسيكية",
+                badgeText: "الافتراضي",
+                primaryAccent: const Color(0xFF00F5D4),
+                secondaryAccent: const Color(0xFFFFB1C2),
+                icon: Icons.layers_outlined,
+                onTap: () {
+                  ref.read(themeProvider.notifier).setTheme(AppThemeMode.defaultTheme);
+                },
+              );
+
+              final modernCard = _buildThemeOptionCard(
+                context: context,
+                isSelected: isModern,
+                title: "ثيم مودرن (Modern Glass)",
+                subtitle: "مظهر زجاجي داكن فاخر مع لمسات ذهبية وسيان وانسيابية عالية",
+                badgeText: "جديد ✨",
+                primaryAccent: const Color(0xFFD4AF37),
+                secondaryAccent: const Color(0xFF00E5FF),
+                icon: Icons.auto_awesome_rounded,
+                onTap: () {
+                  ref.read(themeProvider.notifier).setTheme(AppThemeMode.modernTheme);
+                },
+              );
+
+              if (isNarrow) {
+                return Column(
+                  children: [
+                    defaultCard,
+                    const SizedBox(height: 12),
+                    modernCard,
+                  ],
+                );
+              }
+
+              return Row(
+                children: [
+                  Expanded(child: defaultCard),
+                  const SizedBox(width: 16),
+                  Expanded(child: modernCard),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThemeOptionCard({
+    required BuildContext context,
+    required bool isSelected,
+    required String title,
+    required String subtitle,
+    required String badgeText,
+    required Color primaryAccent,
+    required Color secondaryAccent,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeInOut,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          color: isSelected ? primaryAccent.withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.02),
+          border: Border.all(
+            color: isSelected ? primaryAccent : Colors.white.withValues(alpha: 0.08),
+            width: isSelected ? 2 : 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: primaryAccent.withValues(alpha: 0.25),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              textDirection: TextDirection.rtl,
+              children: [
+                Icon(icon, color: isSelected ? primaryAccent : Colors.white60, size: 24),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? Colors.white : Colors.white70,
+                    ),
+                    textDirection: TextDirection.rtl,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: isSelected ? primaryAccent.withValues(alpha: 0.2) : Colors.white10,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isSelected ? primaryAccent.withValues(alpha: 0.4) : Colors.white12,
+                    ),
+                  ),
+                  child: Text(
+                    badgeText,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.bold,
+                      color: isSelected ? primaryAccent : Colors.white60,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: const TextStyle(
+                fontSize: 12,
+                color: TfcColors.outline,
+                height: 1.4,
+              ),
+              textDirection: TextDirection.rtl,
+            ),
+            const SizedBox(height: 12),
+            Row(
+              textDirection: TextDirection.rtl,
+              children: [
+                Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: primaryAccent,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: secondaryAccent,
+                  ),
+                ),
+                const Spacer(),
+                if (isSelected)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.check_circle_rounded, color: primaryAccent, size: 18),
+                      const SizedBox(width: 4),
+                      Text(
+                        "مفعل حالياً",
+                        style: TextStyle(
+                          color: primaryAccent,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  const Text(
+                    "اضغط للتفعيل",
+                    style: TextStyle(
+                      color: TfcColors.outline,
+                      fontSize: 11,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

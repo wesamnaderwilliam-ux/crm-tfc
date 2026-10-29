@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../core/theme.dart';
 import '../../core/widgets/interactive_hover_card.dart';
 import '../../core/utils/web_helper.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/theme_provider.dart';
 import '../../providers/permissions_provider.dart';
 import '../../providers/employees_provider.dart';
 import '../../providers/client_provider.dart';
@@ -672,18 +672,29 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       child: LayoutBuilder(
         builder: (context, screenConstraints) {
           final isMobile = screenConstraints.maxWidth < 700;
+          final currentTheme = ref.watch(themeProvider);
+          final isModern = currentTheme == AppThemeMode.modernTheme;
 
           return Scaffold(
             backgroundColor: Colors.transparent,
             bottomNavigationBar: isMobile
                 ? Container(
                     decoration: BoxDecoration(
-                      color: const Color(0xFF16162A).withValues(alpha: 0.96),
-                      border: const Border(top: BorderSide(color: Colors.white10)),
+                      color: isModern
+                          ? const Color(0xFF0F172A).withValues(alpha: 0.95)
+                          : const Color(0xFF16162A).withValues(alpha: 0.96),
+                      border: Border(
+                        top: BorderSide(
+                          color: isModern
+                              ? const Color(0xFFD4AF37).withValues(alpha: 0.25)
+                              : Colors.white10,
+                          width: isModern ? 1.5 : 1.0,
+                        ),
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.4),
-                          blurRadius: 10,
+                          color: Colors.black.withValues(alpha: isModern ? 0.6 : 0.4),
+                          blurRadius: isModern ? 16 : 10,
                           offset: const Offset(0, -2),
                         ),
                       ],
@@ -697,14 +708,16 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                           // Home Button
                           IconButton(
                             icon: const Icon(Icons.home_rounded),
-                            color: _selectedIndex == 0 ? const Color(0xFF00CEC9) : Colors.white60,
+                            color: _selectedIndex == 0
+                                ? (isModern ? const Color(0xFFD4AF37) : const Color(0xFF00CEC9))
+                                : Colors.white60,
                             tooltip: "الرئيسية",
                             onPressed: _goHome,
                           ),
                           // Back Button
                           IconButton(
                             icon: const Icon(Icons.arrow_back_rounded),
-                            color: Colors.amberAccent,
+                            color: isModern ? const Color(0xFF00E5FF) : Colors.amberAccent,
                             tooltip: "رجوع",
                             onPressed: _goBack,
                           ),
@@ -715,13 +728,16 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFF6C5CE7), Color(0xFFA29BFE)],
+                                gradient: LinearGradient(
+                                  colors: isModern
+                                      ? [const Color(0xFFD4AF37), const Color(0xFFB8860B)]
+                                      : [const Color(0xFF6C5CE7), const Color(0xFFA29BFE)],
                                 ),
                                 borderRadius: BorderRadius.circular(14),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF6C5CE7).withValues(alpha: 0.4),
+                                    color: (isModern ? const Color(0xFFD4AF37) : const Color(0xFF6C5CE7))
+                                        .withValues(alpha: 0.4),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
                                   ),

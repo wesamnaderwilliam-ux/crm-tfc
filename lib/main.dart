@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'core/theme.dart';
 import 'core/supabase_config.dart';
 import 'providers/auth_provider.dart';
+import 'providers/theme_provider.dart';
 import 'features/auth/login_screen.dart';
 import 'features/auth/pending_confirmation_screen.dart';
 import 'features/navigation/main_navigation.dart';
@@ -30,15 +31,18 @@ void main() async {
   );
 }
 
-class TfcCrmApp extends StatelessWidget {
+class TfcCrmApp extends ConsumerWidget {
   const TfcCrmApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
+    final isModern = themeMode == AppThemeMode.modernTheme;
+
     return MaterialApp(
       title: 'TFC Financial CRM',
       debugShowCheckedModeBanner: false,
-      theme: TfcTheme.darkTheme,
+      theme: isModern ? TfcTheme.modernTheme : TfcTheme.darkTheme,
       
       // Localization setup for Arabic support
       locale: const Locale('ar', 'EG'),
