@@ -1,0 +1,3239 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TFC CRM - Full Mobile Application (All 11 Sections)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-base: #06080e;
+            --bg-card: #0f1420;
+            --bg-card-inner: #151c2c;
+            --gold: #D4AF37;
+            --cyan: #00E5FF;
+            --cyan-glow: rgba(0, 229, 255, 0.18);
+            --green: #10B981;
+            --green-glow: rgba(16, 185, 129, 0.18);
+            --amber: #F59E0B;
+            --red: #EF4444;
+            --text-primary: #FFFFFF;
+            --text-secondary: #94A3B8;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-glow-gold: rgba(212, 175, 55, 0.4);
+            --border-glow-cyan: rgba(0, 229, 255, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: #000000;
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 6px;
+        }
+
+        .phone-container {
+            width: 100%;
+            max-width: 416px;
+            height: 900px;
+            max-height: 98vh;
+            background: var(--bg-base);
+            border-radius: 48px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.85), 0 0 0 10px #151a26, 0 0 0 13px #262e42;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .phone-notch {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 114px;
+            height: 28px;
+            background: #000;
+            border-radius: 20px;
+            z-index: 999;
+        }
+
+        /* Top Bar exactly matching uploaded design */
+        .app-header {
+            padding: 44px 18px 12px 18px;
+            background: rgba(15, 20, 32, 0.94);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            z-index: 100;
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-monogram {
+            font-size: 19px;
+            font-weight: 900;
+            color: var(--gold);
+            letter-spacing: 0.5px;
+            font-family: sans-serif;
+        }
+
+        .brand-name {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        .header-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .bell-icon {
+            color: var(--cyan);
+            font-size: 18px;
+            cursor: pointer;
+            position: relative;
+        }
+        .bell-dot {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            width: 6px;
+            height: 6px;
+            background: var(--red);
+            border-radius: 50%;
+        }
+
+        .user-greeting {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .user-avatar-img {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #232d42;
+            border: 1.5px solid var(--gold);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--gold);
+            font-weight: 800;
+        }
+
+        /* Screen Content Body */
+        .screen-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px 14px 85px 14px;
+            scrollbar-width: none;
+        }
+        .screen-content::-webkit-scrollbar { display: none; }
+
+        .view-section {
+            display: none;
+        }
+        .view-section.active {
+            display: block;
+            animation: fadeIn 0.22s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* KPI Carousel */
+        .kpi-carousel {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            margin-bottom: 20px;
+            scrollbar-width: none;
+        }
+        .kpi-carousel::-webkit-scrollbar { display: none; }
+
+        .kpi-card-box {
+            min-width: 142px;
+            height: 104px;
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .kpi-gold {
+            border: 1.5px solid var(--border-glow-gold);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.12) inset;
+        }
+
+        .kpi-cyan {
+            border: 1.5px solid var(--border-glow-cyan);
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.12) inset;
+        }
+
+        .kpi-slate {
+            border: 1px solid var(--border);
+            opacity: 0.85;
+        }
+
+        .kpi-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .kpi-arrow { font-size: 12px; color: var(--text-secondary); }
+
+        .kpi-num-row {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
+
+        .kpi-number {
+            font-size: 28px;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1;
+        }
+
+        .kpi-badge {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--green);
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 5px;
+            border-radius: 6px;
+        }
+
+        /* 4 Circular Action Buttons (Exactly like user photo) */
+        .section-headline {
+            font-size: 14px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .quick-actions-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding: 0 6px;
+        }
+
+        .circular-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 7px;
+            cursor: pointer;
+        }
+
+        .circle-glass-btn {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #182030, #101522);
+            border: 1.2px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), 0 0 15px rgba(0, 229, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+            color: #fff;
+            transition: all 0.2s;
+        }
+
+        .circular-action:active .circle-glass-btn {
+            transform: scale(0.92);
+            border-color: var(--cyan);
+            box-shadow: 0 0 15px var(--cyan-glow);
+        }
+
+        .action-text {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        /* Feeds / List Cards */
+        .feed-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 14px 15px;
+            margin-bottom: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .feed-card:hover, .feed-card:active {
+            border-color: rgba(0, 229, 255, 0.35);
+        }
+
+        .feed-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .feed-client-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .bank-badge-round {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: #192233;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .feed-client-name {
+            font-size: 14.5px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .bank-pill-label {
+            background: rgba(0, 229, 255, 0.08);
+            border: 1px solid rgba(0, 229, 255, 0.25);
+            color: var(--cyan);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 3px 9px;
+            border-radius: 8px;
+        }
+        .bank-pill-gold {
+            background: rgba(212, 175, 55, 0.08);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            color: var(--gold);
+        }
+
+        .feed-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 8px;
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .feed-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .dots-btn {
+            color: var(--text-secondary);
+            font-size: 16px;
+            padding: 4px 8px;
+            cursor: pointer;
+        }
+
+        .feed-arrow-btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .status-chip {
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .status-chip-green {
+            background: var(--green-glow);
+            color: var(--green);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+        }
+        .status-chip-amber {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--amber);
+            border: 1px solid rgba(245, 158, 11, 0.35);
+        }
+        .status-chip-cyan {
+            background: var(--cyan-glow);
+            color: var(--cyan);
+            border: 1px solid rgba(0, 229, 255, 0.35);
+        }
+
+        /* Filter Chips */
+        .chips-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            margin-bottom: 14px;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+        .chips-scroll::-webkit-scrollbar { display: none; }
+
+        .chip-pill {
+            padding: 6px 14px;
+            border-radius: 20px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .chip-pill.active {
+            background: var(--cyan);
+            color: #000;
+            border-color: var(--cyan);
+            box-shadow: 0 0 14px rgba(0, 229, 255, 0.3);
+        }
+
+        /* Profile Segment Tabs Bar */
+        .client-tabs-bar {
+            display: flex;
+            gap: 7px;
+            overflow-x: auto;
+            margin: 14px 0 12px 0;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+        .client-tabs-bar::-webkit-scrollbar { display: none; }
+
+        .client-tab-btn {
+            padding: 8px 14px;
+            border-radius: 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            font-size: 11.5px;
+            font-weight: 800;
+            color: var(--text-secondary);
+            cursor: pointer;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+        .client-tab-btn.active {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(0, 229, 255, 0.05));
+            border-color: var(--cyan);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.25);
+        }
+
+        .client-tab-pane {
+            display: none;
+            animation: fadeIn 0.22s ease-out;
+        }
+        .client-tab-pane.active {
+            display: block;
+        }
+
+        /* Form Wizard Styling for New Client */
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-label {
+            display: block;
+            font-size: 11.5px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+        .form-input, .form-select {
+            width: 100%;
+            background: var(--bg-card-inner);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 9px 12px;
+            color: #fff;
+            font-size: 12.5px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-input:focus, .form-select:focus {
+            border-color: var(--cyan);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+        }
+        .form-select option {
+            background: #101522;
+            color: #fff;
+        }
+        .form-checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 8px 0;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+        }
+        .form-checkbox-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--cyan);
+        }
+        .wizard-steps-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.02);
+            padding: 8px 12px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+        }
+        .wizard-step-item {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .wizard-step-item.active {
+            color: var(--gold);
+        }
+        .wizard-step-item.done {
+            color: var(--green);
+        }
+        .wizard-step-badge {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1c2436;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 800;
+        }
+        .wizard-step-item.active .wizard-step-badge {
+            background: var(--gold);
+            color: #000;
+        }
+        .wizard-step-item.done .wizard-step-badge {
+            background: var(--green);
+            color: #000;
+        }
+
+        /* Collapsible Section Cards for Client Details */
+        .collapsible-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            margin-bottom: 11px;
+            overflow: hidden;
+        }
+        .collapsible-header {
+            padding: 13px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.02);
+        }
+        .collapsible-title {
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .collapsible-body {
+            display: none;
+            padding: 13px 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 12px;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+        .collapsible-card.open .collapsible-body {
+            display: block;
+            animation: fadeIn 0.2s ease-out;
+        }
+        .collapsible-card.open .toggle-arrow {
+            transform: rotate(180deg);
+            color: var(--gold);
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-lbl { color: var(--text-secondary); }
+        .detail-val { color: #fff; font-weight: 700; }
+
+        .sub-block {
+            background: var(--bg-card-inner);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+        }
+
+        /* Stepper matching Flutter app exactly */
+        .stepper-scroll-wrapper {
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding: 4px 2px 8px 2px;
+            margin: 10px 0 6px 0;
+        }
+        .stepper-scroll-wrapper::-webkit-scrollbar { display: none; }
+        .stepper-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            min-width: 370px;
+            position: relative;
+        }
+        .stepper-line {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            right: 20px;
+            height: 2.5px;
+            background: rgba(255, 255, 255, 0.08);
+            z-index: 1;
+        }
+        .step-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            width: 52px;
+            text-align: center;
+            z-index: 2;
+        }
+        .step-circle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #141b2b;
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+        .step-node.completed .step-circle {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--green);
+            color: var(--green);
+        }
+        .step-node.active .step-circle {
+            width: 36px;
+            height: 36px;
+            background: rgba(212, 175, 55, 0.2);
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            box-shadow: 0 0 14px rgba(212, 175, 55, 0.5);
+        }
+        .step-node.rejected .step-circle {
+            background: rgba(239, 68, 68, 0.18);
+            border-color: var(--red);
+            color: var(--red);
+        }
+        .step-label {
+            font-size: 8.5px;
+            color: rgba(255, 255, 255, 0.4);
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        .step-node.completed .step-label {
+            color: var(--green);
+            font-weight: 700;
+        }
+        .step-node.active .step-label {
+            color: var(--gold);
+            font-weight: 800;
+            font-size: 9px;
+        }
+        .step-node.rejected .step-label {
+            color: var(--red);
+            font-weight: 700;
+        }
+
+        /* Floating Blurred Bottom Dock */
+        .bottom-nav {
+            position: absolute;
+            bottom: 12px;
+            left: 14px;
+            right: 14px;
+            height: 62px;
+            background: rgba(18, 24, 38, 0.88);
+            backdrop-filter: blur(25px);
+            border: 1.2px solid rgba(255, 255, 255, 0.12);
+            border-radius: 26px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 8px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.7);
+            z-index: 900;
+        }
+
+        .nav-button {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            color: var(--text-secondary);
+            font-size: 10.5px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .nav-button.active {
+            color: var(--cyan);
+        }
+
+        .nav-btn-icon {
+            font-size: 19px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Full App Sections Modal Sheet */
+        .modal-drawer {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(10px);
+            z-index: 950;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .modal-drawer.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .drawer-sheet {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            max-height: 84%;
+            background: #101522;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 30px 30px 0 0;
+            padding: 22px 16px 36px 16px;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .modal-drawer.open .drawer-sheet {
+            transform: translateY(0);
+        }
+
+        .drawer-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .drawer-card-item {
+            background: var(--bg-card-inner);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            padding: 12px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+        .drawer-card-item:hover, .drawer-card-item.active {
+            border-color: var(--cyan);
+            background: rgba(0, 229, 255, 0.08);
+        }
+
+        /* Toast */
+        .toast-msg {
+            position: absolute;
+            top: 76px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: var(--gold);
+            color: #000;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 7px 18px;
+            border-radius: 20px;
+            box-shadow: 0 6px 25px rgba(0, 0, 0, 0.6);
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        .toast-msg.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="phone-container">
+        <div class="phone-notch"></div>
+        <div id="toast" class="toast-msg">تمت العملية بنجاح ✨</div>
+
+        <!-- Exact Top Header -->
+        <header class="app-header">
+            <div class="header-brand">
+                <span class="brand-monogram">FC</span>
+                <span class="brand-name">TFC</span>
+            </div>
+            <div class="header-user">
+                <span class="bell-icon" onclick="showToast('لا توجد إشعارات جديدة')">🔔<span class="bell-dot"></span></span>
+                <span class="user-greeting">أهلاً وسام</span>
+                <div class="user-avatar-img">W</div>
+            </div>
+        </header>
+
+        <!-- Main Screen Content -->
+        <main class="screen-content">
+
+            <!-- 1. DASHBOARD (الرئيسية) -->
+            <section id="view-dashboard" class="view-section active">
+                <!-- KPI Carousel Row -->
+                <div class="kpi-carousel">
+                    <div class="kpi-card-box kpi-gold" onclick="switchSection('profile', 'ملف العميل')">
+                        <div class="kpi-head">
+                            <span>إجمالي العملاء</span>
+                            <span class="kpi-arrow">➔</span>
+                        </div>
+                        <div class="kpi-num-row">
+                            <span class="kpi-number">248</span>
+                            <span class="kpi-badge">+12%</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card-box kpi-cyan" onclick="switchSection('distributions', 'التوزيعات العامة')">
+                        <div class="kpi-head">
+                            <span style="color:var(--cyan)">توزيعات نشطة</span>
+                            <span class="kpi-arrow">➔</span>
+                        </div>
+                        <div class="kpi-num-row">
+                            <span class="kpi-number" style="color:var(--cyan)">42</span>
+                        </div>
+                    </div>
+
+                    <div class="kpi-card-box kpi-slate" onclick="switchSection('operations', 'العمليات العامة')">
+                        <div class="kpi-head">
+                            <span>العمليات المنجزة</span>
+                            <span class="kpi-arrow">➔</span>
+                        </div>
+                        <div class="kpi-num-row">
+                            <span class="kpi-number">183</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Action Icons Row (العمليات السريعة) -->
+                <div class="section-headline">العمليات السريعة</div>
+                <div class="quick-actions-row">
+                    <div class="circular-action" onclick="switchSection('new-client', 'إضافة عميل جديد')">
+                        <div class="circle-glass-btn">➕</div>
+                        <span class="action-text">إضافة عميل</span>
+                    </div>
+                    <div class="circular-action" onclick="switchSection('calculator', 'حاسبة التمويل')">
+                        <div class="circle-glass-btn">🧮</div>
+                        <span class="action-text">حاسبة التمويل</span>
+                    </div>
+                    <div class="circular-action" onclick="switchSection('distributions', 'التوزيعات')">
+                        <div class="circle-glass-btn">🏛️</div>
+                        <span class="action-text">توزيع بنكي</span>
+                    </div>
+                    <div class="circular-action" onclick="switchSection('reports', 'التقارير')">
+                        <div class="circle-glass-btn">📑</div>
+                        <span class="action-text">التقارير</span>
+                    </div>
+                </div>
+
+                <!-- Financial & Performance Dash Widgets (المحفظة، التارجت، المتابعات، حالات الطلبات) -->
+                <div class="section-headline">
+                    <span>مؤشرات وإدارة الأداء</span>
+                    <span style="font-size:11px; color:var(--cyan); font-weight:700;">اضغط للعرض الفوري ⚡</span>
+                </div>
+                <div class="quick-actions-row" style="margin-bottom: 20px;">
+                    <div class="circular-action" onclick="openDashModal('modal-wallet')">
+                        <div class="circle-glass-btn" style="border-color: rgba(212, 175, 55, 0.4); box-shadow: 0 0 15px rgba(212, 175, 55, 0.2);">💰</div>
+                        <span class="action-text" style="color:var(--gold);">المحفظة</span>
+                    </div>
+                    <div class="circular-action" onclick="openDashModal('modal-target')">
+                        <div class="circle-glass-btn" style="border-color: rgba(0, 229, 255, 0.4); box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);">🎯</div>
+                        <span class="action-text" style="color:var(--cyan);">التارجت</span>
+                    </div>
+                    <div class="circular-action" onclick="openDashModal('modal-followups')">
+                        <div class="circle-glass-btn" style="border-color: rgba(16, 185, 129, 0.4); box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);">📅</div>
+                        <span class="action-text" style="color:var(--green);">المتابعات</span>
+                    </div>
+                    <div class="circular-action" onclick="openDashModal('modal-status')">
+                        <div class="circle-glass-btn" style="border-color: rgba(245, 158, 11, 0.4); box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);">📊</div>
+                        <span class="action-text" style="color:var(--amber);">حالات الطلب</span>
+                    </div>
+                </div>
+
+                <!-- Recent Clients Feed -->
+                <div class="section-headline">أحدث العملاء والمتابعات</div>
+
+                <div class="feed-card" onclick="openClientProfile('محمد إسماعيل القرشي', 'EG Bank', 'مقبول', 740)">
+                    <div class="feed-top">
+                        <div class="feed-client-info">
+                            <div class="bank-badge-round" style="color:#10B981">EG</div>
+                            <span class="feed-client-name">محمد إسماعيل القرشي</span>
+                        </div>
+                        <span class="bank-pill-label">EG Bank</span>
+                    </div>
+                    <div class="feed-bottom">
+                        <span class="status-chip status-chip-green">مقبول</span>
+                        <div class="feed-actions">
+                            <span class="dots-btn" onclick="event.stopPropagation(); showToast('خيارات العميل')">⋮</span>
+                            <div class="feed-arrow-btn">➔</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feed-card" onclick="openClientProfile('أحمد محمود', 'التجاري وفا', 'قيد المراجعة', 650)">
+                    <div class="feed-top">
+                        <div class="feed-client-info">
+                            <div class="bank-badge-round" style="color:#D4AF37">WA</div>
+                            <span class="feed-client-name">أحمد محمود</span>
+                        </div>
+                        <span class="bank-pill-label bank-pill-gold">التجاري وفا</span>
+                    </div>
+                    <div class="feed-bottom">
+                        <span class="status-chip status-chip-amber">قيد المراجعة</span>
+                        <div class="feed-actions">
+                            <span class="dots-btn" onclick="event.stopPropagation(); showToast('خيارات العميل')">⋮</span>
+                            <div class="feed-arrow-btn">➔</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. CLIENTS DIRECTORY & FOLLOW-UPS (إدارة العملاء وقسم المتابعات الشاملة) -->
+            <section id="view-clients" class="view-section">
+                <!-- Dual Main Tab Switcher (مطابق لتبويبات التطبيق: دليل العملاء / قسم المتابعات) -->
+                <div style="background:rgba(255,255,255,0.04); padding:4px; border-radius:16px; border:1px solid rgba(255,255,255,0.08); display:flex; gap:6px; margin-bottom:12px;">
+                    <button class="client-tab-btn active" id="main-client-tab-0" style="flex:1; border-radius:12px; padding:10px 4px; display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px;" onclick="switchMainClientsTab(0)">
+                        <span>👥</span><span>دليل العملاء</span>
+                    </button>
+                    <button class="client-tab-btn" id="main-client-tab-1" style="flex:1; border-radius:12px; padding:10px 4px; display:flex; align-items:center; justify-content:center; gap:6px; font-size:12px;" onclick="switchMainClientsTab(1)">
+                        <span>📅</span><span>قسم المتابعات</span>
+                        <span style="background:var(--red); color:#fff; font-size:9.5px; padding:1px 6px; border-radius:10px; font-weight:800;">7</span>
+                    </button>
+                </div>
+
+                <!-- SUB-VIEW 0: دليل العملاء -->
+                <div id="subview-clients-directory">
+                    <!-- Search & Filters -->
+                    <div style="display:flex; gap:8px; margin-bottom:12px;">
+                        <div style="flex:1; position:relative;">
+                            <input type="text" id="client-search-input" onkeyup="filterClientsList()" placeholder="🔍 ابحث بالاسم، الهاتف، الرقم القومي..." 
+                                style="width:100%; background:var(--bg-card); border:1px solid var(--border); border-radius:14px; padding:10px 14px; color:#fff; font-size:12px; outline:none;">
+                        </div>
+                        <button class="chip-pill active" style="padding:0 14px; font-size:11px;" onclick="switchSection('new-client', 'إضافة عميل جديد')">➕ جديد</button>
+                    </div>
+
+                    <!-- Stage Filter Chips (أزرار التصفية العلوية المطابقة تمامًا لحالات الطلب) -->
+                    <div class="chips-scroll" id="client-stage-chips">
+                        <span class="chip-pill active" onclick="filterByStage('all', this)">🌐 الكل (248)</span>
+                        <span class="chip-pill" onclick="filterByStage('pending', this)">⏳ قيد الانتظار (35)</span>
+                        <span class="chip-pill" onclick="filterByStage('iscore_inquiry', this)">🔍 استعلام ايسكور (45)</span>
+                        <span class="chip-pill" onclick="filterByStage('preparing_documents', this)">📄 تحضير الاوراق (28)</span>
+                        <span class="chip-pill" onclick="filterByStage('under_review', this)">📝 قيد الدراسة (37)</span>
+                        <span class="chip-pill" onclick="filterByStage('at_bank', this)">🏛️ فى البنك (42)</span>
+                        <span class="chip-pill" onclick="filterByStage('approved', this)">✅ مقبول (42)</span>
+                        <span class="chip-pill" onclick="filterByStage('rejected', this)">❌ مرفوض (19)</span>
+                    </div>
+
+                    <!-- Clients List Count & Sort Header -->
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin:6px 0 10px 0;">
+                        <span style="font-size:12px; font-weight:800; color:var(--text-secondary);" id="clients-counter-text">عرض 248 عميل</span>
+                        <span style="font-size:11px; color:var(--cyan); font-weight:700;">ترتيب: الأحدث أولاً ▼</span>
+                    </div>
+
+                <!-- Clients List Container -->
+                <div id="clients-cards-list">
+                    <!-- Client 1: فى البنك -->
+                    <div class="feed-card client-list-item" data-stage="at_bank" data-name="محمد إسماعيل القرشي" data-bank="CIB" data-phone="01012345678" onclick="openClientProfile('محمد إسماعيل القرشي', 'CIB', 'at_bank', 740, '250,000 ج.م', 'مهندس موقع أول • المقاولون العرب', '14,500 ج.م')">
+                        <div class="feed-top">
+                            <div class="feed-client-info">
+                                <div class="bank-badge-round" style="color:var(--cyan)">CIB</div>
+                                <div>
+                                    <span class="feed-client-name">محمد إسماعيل القرشي</span>
+                                    <div style="font-size:11px; color:var(--text-secondary);">طلب تمويل: 250,000 ج.م • مهندس مدني</div>
+                                </div>
+                            </div>
+                            <span class="status-chip status-chip-cyan">🏛️ فى البنك</span>
+                        </div>
+                        <div class="detail-row"><span class="detail-lbl">المرحلة:</span><span class="detail-val" style="color:var(--cyan)">فى البنك</span></div>
+                        <div class="detail-row"><span class="detail-lbl">الآي سكور:</span><span class="detail-val" style="color:var(--green)">740 نقطة (ممتاز)</span></div>
+                        <div class="feed-bottom">
+                            <span style="font-size:10.5px; color:var(--text-secondary)">📞 01012345678 • القاهرة</span>
+                            <div class="feed-arrow-btn">➔</div>
+                        </div>
+                    </div>
+
+                    <!-- Client 2: مقبول -->
+                    <div class="feed-card client-list-item" data-stage="approved" data-name="أحمد محمود السعيد" data-bank="التجاري وفا" data-phone="01155443322" onclick="openClientProfile('أحمد محمود السعيد', 'التجاري وفا', 'approved', 710, '180,000 ج.م', 'مدير مبيعات • العربي جروب', '16,000 ج.م')">
+                        <div class="feed-top">
+                            <div class="feed-client-info">
+                                <div class="bank-badge-round" style="color:var(--gold)">WA</div>
+                                <div>
+                                    <span class="feed-client-name">أحمد محمود السعيد</span>
+                                    <div style="font-size:11px; color:var(--text-secondary);">طلب تمويل: 180,000 ج.م • مبيعات</div>
+                                </div>
+                            </div>
+                            <span class="status-chip status-chip-green">✅ مقبول</span>
+                        </div>
+                        <div class="detail-row"><span class="detail-lbl">المرحلة:</span><span class="detail-val" style="color:var(--green)">مقبول (جاهز للصرف)</span></div>
+                        <div class="detail-row"><span class="detail-lbl">الآي سكور:</span><span class="detail-val" style="color:var(--green)">710 نقطة</span></div>
+                        <div class="feed-bottom">
+                            <span style="font-size:10.5px; color:var(--text-secondary)">📞 01155443322 • الجيزة</span>
+                            <div class="feed-arrow-btn">➔</div>
+                        </div>
+                    </div>
+
+                    <!-- Client 3: استعلام ايسكور -->
+                    <div class="feed-card client-list-item" data-stage="iscore_inquiry" data-name="إبراهيم مصطفى حسانين" data-bank="EG Bank" data-phone="01288997766" onclick="openClientProfile('إبراهيم مصطفى حسانين', 'EG Bank', 'iscore_inquiry', 660, '120,000 ج.م', 'محاسب قانوني • مكتب حازم حسن', '11,000 ج.م')">
+                        <div class="feed-top">
+                            <div class="feed-client-info">
+                                <div class="bank-badge-round" style="color:var(--green)">EG</div>
+                                <div>
+                                    <span class="feed-client-name">إبراهيم مصطفى حسانين</span>
+                                    <div style="font-size:11px; color:var(--text-secondary);">طلب تمويل: 120,000 ج.م • محاسب</div>
+                                </div>
+                            </div>
+                            <span class="status-chip status-chip-amber">🔍 استعلام ايسكور</span>
+                        </div>
+                        <div class="detail-row"><span class="detail-lbl">المرحلة:</span><span class="detail-val" style="color:var(--amber)">استعلام ايسكور</span></div>
+                        <div class="detail-row"><span class="detail-lbl">الآي سكور:</span><span class="detail-val" style="color:var(--amber)">660 نقطة (مقبول)</span></div>
+                        <div class="feed-bottom">
+                            <span style="font-size:10.5px; color:var(--text-secondary)">📞 01288997766 • الإسكندرية</span>
+                            <div class="feed-arrow-btn">➔</div>
+                        </div>
+                    </div>
+
+                    <!-- Client 4: قيد الانتظار -->
+                    <div class="feed-card client-list-item" data-stage="pending" data-name="سامح نبيل عبد الرحمن" data-bank="الأهلي المتحد" data-phone="01099887766" onclick="openClientProfile('سامح نبيل عبد الرحمن', 'الأهلي المتحد', 'pending', 620, '90,000 ج.م', 'أخصائي تسويق • شركة أدوية', '9,500 ج.م')">
+                        <div class="feed-top">
+                            <div class="feed-client-info">
+                                <div class="bank-badge-round" style="color:#A855F7">AUB</div>
+                                <div>
+                                    <span class="feed-client-name">سامح نبيل عبد الرحمن</span>
+                                    <div style="font-size:11px; color:var(--text-secondary);">طلب تمويل: 90,000 ج.م • تسويق</div>
+                                </div>
+                            </div>
+                            <span class="status-chip" style="background:rgba(212,175,55,0.15); color:var(--gold); border:1px solid rgba(212,175,55,0.3);">⏳ قيد الانتظار</span>
+                        </div>
+                        <div class="detail-row"><span class="detail-lbl">المرحلة:</span><span class="detail-val" style="color:var(--gold)">قيد الانتظار</span></div>
+                        <div class="detail-row"><span class="detail-lbl">الآي سكور:</span><span class="detail-val">620 نقطة</span></div>
+                        <div class="feed-bottom">
+                            <span style="font-size:10.5px; color:var(--text-secondary)">📞 01099887766 • المنصورة</span>
+                            <div class="feed-arrow-btn">➔</div>
+                        </div>
+                    </div>
+
+                    <!-- Client 5: تحضير الاوراق -->
+                    <div class="feed-card client-list-item" data-stage="preparing_documents" data-name="طارق عبد الله الجوهري" data-bank="CIB" data-phone="01066778899" onclick="openClientProfile('طارق عبد الله الجوهري', 'CIB', 'preparing_documents', 690, '350,000 ج.م', 'طبيب بشري • مستشفى خاص', '25,000 ج.م')">
+                        <div class="feed-top">
+                            <div class="feed-client-info">
+                                <div class="bank-badge-round" style="color:var(--cyan)">CIB</div>
+                                <div>
+                                    <span class="feed-client-name">طارق عبد الله الجوهري</span>
+                                    <div style="font-size:11px; color:var(--text-secondary);">طلب تمويل: 350,000 ج.م • طبيب</div>
+                                </div>
+                            </div>
+                            <span class="status-chip" style="background:rgba(0,229,255,0.15); color:var(--cyan); border:1px solid rgba(0,229,255,0.3);">📄 تحضير الاوراق</span>
+                        </div>
+                        <div class="detail-row"><span class="detail-lbl">المرحلة:</span><span class="detail-val" style="color:var(--cyan)">تحضير الاوراق</span></div>
+                        <div class="detail-row"><span class="detail-lbl">الآي سكور:</span><span class="detail-val" style="color:var(--green)">690 نقطة</span></div>
+                        <div class="feed-bottom">
+                            <span style="font-size:10.5px; color:var(--text-secondary)">📞 01066778899 • القاهرة</span>
+                            <div class="feed-arrow-btn">➔</div>
+                        </div>
+                    </div>
+
+                    <!-- Client 6: قيد الدراسة -->
+                    <div class="feed-card client-list-item" data-stage="under_review" data-name="كريم يوسف الشناوي" data-bank="بنك القاهرة" data-phone="01122334455" onclick="openClientProfile('كريم يوسف الشناوي', 'بنك القاهرة', 'under_review', 675, '150,000 ج.م', 'مهندس برمجيات • شركة تكنولوجيا', '18,000 ج.م')">
+                        <div class="feed-top">
+                            <div class="feed-client-info">
+                                <div class="bank-badge-round" style="color:var(--amber)">BDC</div>
+                                <div>
+                                    <span class="feed-client-name">كريم يوسف الشناوي</span>
+                                    <div style="font-size:11px; color:var(--text-secondary);">طلب تمويل: 150,000 ج.م • مهندس برمجيات</div>
+                                </div>
+                            </div>
+                            <span class="status-chip" style="background:rgba(245,158,11,0.15); color:var(--amber); border:1px solid rgba(245,158,11,0.3);">📝 قيد الدراسة</span>
+                        </div>
+                        <div class="detail-row"><span class="detail-lbl">المرحلة:</span><span class="detail-val" style="color:var(--amber)">قيد الدراسة</span></div>
+                        <div class="detail-row"><span class="detail-lbl">الآي سكور:</span><span class="detail-val" style="color:var(--green)">675 نقطة</span></div>
+                        <div class="feed-bottom">
+                            <span style="font-size:10.5px; color:var(--text-secondary)">📞 01122334455 • الجيزة</span>
+                            <div class="feed-arrow-btn">➔</div>
+                        </div>
+                    </div>
+
+                    <!-- Client 7: مرفوض -->
+                    <div class="feed-card client-list-item" data-stage="rejected" data-name="ماجد فؤاد توفيق" data-bank="بنك مصر" data-phone="01233445566" onclick="openClientProfile('ماجد فؤاد توفيق', 'بنك مصر', 'rejected', 530, '300,000 ج.م', 'أعمال حرة • تجارة', '22,000 ج.م')">
+                        <div class="feed-top">
+                            <div class="feed-client-info">
+                                <div class="bank-badge-round" style="color:var(--red)">BM</div>
+                                <div>
+                                    <span class="feed-client-name">ماجد فؤاد توفيق</span>
+                                    <div style="font-size:11px; color:var(--text-secondary);">طلب تمويل: 300,000 ج.م • أعمال حرة</div>
+                                </div>
+                            </div>
+                            <span class="status-chip" style="background:rgba(239,68,68,0.15); color:var(--red); border:1px solid rgba(239,68,68,0.3);">❌ مرفوض</span>
+                        </div>
+                        <div class="detail-row"><span class="detail-lbl">المرحلة:</span><span class="detail-val" style="color:var(--red)">مرفوض (ارتفاع عبء الدين DBR)</span></div>
+                        <div class="detail-row"><span class="detail-lbl">الآي سكور:</span><span class="detail-val" style="color:var(--red)">530 نقطة (تأخيرات سابقة)</span></div>
+                        <div class="feed-bottom">
+                            <span style="font-size:10.5px; color:var(--text-secondary)">📞 01233445566 • طنطا</span>
+                            <div class="feed-arrow-btn">➔</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SUB-VIEW 1: قسم المتابعات الشاملة (مطابق تماماً للتطبيق الأصلي) -->
+                <div id="subview-clients-followups" style="display:none;">
+                    <!-- Quick Stats Badges -->
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; margin-bottom:12px;">
+                        <div class="kpi-card-box" style="min-width:auto; height:auto; padding:10px 12px; border:1px solid rgba(245,158,11,0.3); background:rgba(245,158,11,0.06);">
+                            <span style="font-size:10.5px; color:var(--amber); font-weight:700;">⏳ قيد المتابعة</span>
+                            <span style="font-size:18px; font-weight:900; color:#fff; margin-top:2px;">18 متابعة</span>
+                        </div>
+                        <div class="kpi-card-box" style="min-width:auto; height:auto; padding:10px 12px; border:1px solid rgba(239,68,68,0.3); background:rgba(239,68,68,0.06);">
+                            <span style="font-size:10.5px; color:var(--red); font-weight:700;">🚨 عاجلة / اليوم</span>
+                            <span style="font-size:18px; font-weight:900; color:#fff; margin-top:2px;">7 متابعات</span>
+                        </div>
+                    </div>
+
+                    <!-- Search & Filter Controls -->
+                    <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:12px; margin-bottom:12px;">
+                        <div style="position:relative; margin-bottom:8px;">
+                            <input type="text" id="followup-search-input" onkeyup="filterFollowUpsList()" placeholder="🔍 ابحث بالعميل، الملاحظة، أو الموظف..." 
+                                style="width:100%; background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:12px; padding:9px 12px; color:#fff; font-size:11.5px; outline:none;">
+                        </div>
+                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                            <div>
+                                <label style="font-size:10.5px; color:var(--text-secondary); margin-bottom:3px; display:block;">حالة المتابعة:</label>
+                                <select class="form-select" id="followup-filter-status" style="font-size:11.5px; padding:7px 8px;" onchange="filterFollowUpsList()">
+                                    <option value="all">كل الحالات</option>
+                                    <option value="pending">قيد المتابعة فقط ⏳</option>
+                                    <option value="urgent">متأخرة / اليوم 🚨</option>
+                                    <option value="tomorrow">مستحقة غداً 📅</option>
+                                    <option value="completed">تمت المتابعة ✅</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="font-size:10.5px; color:var(--text-secondary); margin-bottom:3px; display:block;">المندوب المسؤول:</label>
+                                <select class="form-select" id="followup-filter-rep" style="font-size:11.5px; padding:7px 8px;" onchange="filterFollowUpsList()">
+                                    <option value="all">كل المناديب</option>
+                                    <option value="وسام نادر">وسام نادر (المدير)</option>
+                                    <option value="هايدي عادل">هايدي عادل</option>
+                                    <option value="مصطفى كمال">مصطفى كمال</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Follow-ups Cards Container -->
+                    <div id="followups-list-container">
+                        <!-- Follow-up Card 1: عاجل اليوم -->
+                        <div class="feed-card followup-card-item" data-status="urgent" data-rep="وسام نادر" data-search="محمد إسماعيل CIB أوراق مفردات المرتب">
+                            <div class="feed-top">
+                                <div>
+                                    <b style="color:#fff; font-size:13px;">محمد إسماعيل القرشي</b>
+                                    <div style="font-size:10.5px; color:var(--text-secondary);">طلب 250,000 ج.م • CIB</div>
+                                </div>
+                                <span class="status-chip" style="background:rgba(239,68,68,0.18); color:var(--red); border:1px solid rgba(239,68,68,0.4);">🚨 مستحق اليوم</span>
+                            </div>
+                            <div style="background:rgba(255,255,255,0.02); padding:8px 10px; border-radius:10px; font-size:11.5px; color:#e2e8f0; margin:6px 0; border-right:3px solid var(--red);">
+                                📝 "مطلوب التواصل مع العميل لاستلام أصل مفردات المرتب ورفعها على النظام البنكي قبل الساعة 2 ظهرًا."
+                            </div>
+                            <div class="detail-row"><span class="detail-lbl">تاريخ المتابعة:</span><span class="detail-val" style="color:var(--gold)">اليوم (29/10/2026) 12:30 م</span></div>
+                            <div class="detail-row"><span class="detail-lbl">المسؤول:</span><span class="detail-val">وسام نادر (المدير)</span></div>
+                            <div style="display:flex; gap:6px; margin-top:8px;">
+                                <button class="chip-pill active" style="flex:1; padding:6px; font-size:11px;" onclick="showToast('اتصال بالعميل: 01012345678')">📞 اتصال</button>
+                                <button class="chip-pill" style="flex:1; padding:6px; font-size:11px; border-color:var(--green); color:var(--green);" onclick="markFollowUpDone(this)">✓ تم الإنجاز</button>
+                                <button class="chip-pill" style="padding:6px 10px; font-size:11px;" onclick="openClientProfile('محمد إسماعيل القرشي', 'CIB', 'at_bank', 740)">ملف العميل ➔</button>
+                            </div>
+                        </div>
+
+                        <!-- Follow-up Card 2: مستحق غداً -->
+                        <div class="feed-card followup-card-item" data-status="tomorrow" data-rep="هايدي عادل" data-search="أحمد محمود السعيد التجاري وفا كشف الحساب">
+                            <div class="feed-top">
+                                <div>
+                                    <b style="color:#fff; font-size:13px;">أحمد محمود السعيد</b>
+                                    <div style="font-size:10.5px; color:var(--text-secondary);">طلب 180,000 ج.م • التجاري وفا</div>
+                                </div>
+                                <span class="status-chip" style="background:rgba(245,158,11,0.18); color:var(--amber); border:1px solid rgba(245,158,11,0.4);">📅 مستحق غداً</span>
+                            </div>
+                            <div style="background:rgba(255,255,255,0.02); padding:8px 10px; border-radius:10px; font-size:11.5px; color:#e2e8f0; margin:6px 0; border-right:3px solid var(--amber);">
+                                📝 "متابعة نتيجة فحص الاستعلام الميداني وتأكيد مقر العمل مع إدارة الائتمان بالبنك."
+                            </div>
+                            <div class="detail-row"><span class="detail-lbl">تاريخ المتابعة:</span><span class="detail-val">غداً (30/10/2026) 10:00 ص</span></div>
+                            <div class="detail-row"><span class="detail-lbl">المسؤول:</span><span class="detail-val">هايدي عادل</span></div>
+                            <div style="display:flex; gap:6px; margin-top:8px;">
+                                <button class="chip-pill active" style="flex:1; padding:6px; font-size:11px;" onclick="showToast('اتصال بالعميل: 01155443322')">📞 اتصال</button>
+                                <button class="chip-pill" style="flex:1; padding:6px; font-size:11px; border-color:var(--green); color:var(--green);" onclick="markFollowUpDone(this)">✓ تم الإنجاز</button>
+                                <button class="chip-pill" style="padding:6px 10px; font-size:11px;" onclick="openClientProfile('أحمد محمود السعيد', 'التجاري وفا', 'approved', 710)">ملف العميل ➔</button>
+                            </div>
+                        </div>
+
+                        <!-- Follow-up Card 3: مكتملة -->
+                        <div class="feed-card followup-card-item" data-status="completed" data-rep="مصطفى كمال" data-search="طارق عبد الله الجوهري استعلام ايسكور سداد فيزا">
+                            <div class="feed-top">
+                                <div>
+                                    <b style="color:#fff; font-size:13px;">طارق عبد الله الجوهري</b>
+                                    <div style="font-size:10.5px; color:var(--text-secondary);">طلب 350,000 ج.م • CIB</div>
+                                </div>
+                                <span class="status-chip status-chip-green">✅ مكتملة</span>
+                            </div>
+                            <div style="background:rgba(255,255,255,0.02); padding:8px 10px; border-radius:10px; font-size:11.5px; color:#94a3b8; margin:6px 0; border-right:3px solid var(--green); text-decoration: line-through;">
+                                📝 "تم استلام مخالصة سداد بطاقة ائتمان البنك الأهلي ورفعها للبنك وتم قبول الاستثناء."
+                            </div>
+                            <div class="detail-row"><span class="detail-lbl">تاريخ الإنجاز:</span><span class="detail-val">28/10/2026 04:15 م</span></div>
+                            <div class="detail-row"><span class="detail-lbl">المسؤول:</span><span class="detail-val">مصطفى كمال</span></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. CLIENT FULL PROFILE (تفاصيل العميل المختار) -->
+            <section id="view-profile" class="view-section">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                    <div style="cursor: pointer; color: var(--gold); font-size: 12px; font-weight: 800;" onclick="switchSection('clients', 'العملاء')">
+                        ➔ العودة لقائمة العملاء
+                    </div>
+                    <div style="cursor: pointer; color: var(--text-secondary); font-size: 11.5px; font-weight: 700;" onclick="switchSection('dashboard', 'الرئيسية')">
+                        🏠 الرئيسية
+                    </div>
+                </div>
+
+                <!-- Hero Profile -->
+                <div class="feed-card" style="border-color: var(--border-glow-gold); background: linear-gradient(150deg, #182236, #0e131d);">
+                    <div class="feed-top">
+                        <div>
+                            <div class="feed-client-name" id="prof-name" style="font-size:17px;">محمد إسماعيل القرشي</div>
+                            <div style="font-size:12px; color:var(--gold); font-weight:700; margin-top:3px;">طلب تمويل: 250,000 ج.م</div>
+                        </div>
+                        <span class="status-chip status-chip-green" id="prof-score">الآي سكور: 740</span>
+                    </div>
+                    <div style="font-size:11.5px; color:var(--text-secondary); margin:6px 0;">
+                        مهندس مدني • المقاولون العرب • الراتب: 14,500 ج.م
+                    </div>
+                    <div style="display:flex; gap:8px; margin-top:10px;">
+                        <button class="chip-pill active" style="flex:1; border-radius:10px; padding:8px;" onclick="showToast('اتصال: 01012345678')">📞 اتصال هاتفي</button>
+                        <button class="chip-pill" style="flex:1; border-radius:10px; padding:8px; border-color:var(--green); color:var(--green);" onclick="showToast('فتح محادثة واتساب')">💬 واتساب</button>
+                    </div>
+                </div>
+
+                <!-- Horizontal Client Segment Tabs (أزرار التبويب) -->
+                <div class="client-tabs-bar">
+                    <button class="client-tab-btn active" id="tab-btn-data" onclick="switchClientTab('data')">
+                        <span>👤</span><span>البيانات الأساسية</span>
+                    </button>
+                    <button class="client-tab-btn" id="tab-btn-credit" onclick="switchClientTab('credit')">
+                        <span>📊</span><span>الائتمان والأصول</span>
+                    </button>
+                    <button class="client-tab-btn" id="tab-btn-dist" onclick="switchClientTab('dist')">
+                        <span>🏛️</span><span>التوزيع والعمليات</span>
+                    </button>
+                    <button class="client-tab-btn" id="tab-btn-invoices" onclick="switchClientTab('invoices')">
+                        <span>💳</span><span>الفواتير والعمولات</span>
+                    </button>
+                    <button class="client-tab-btn" id="tab-btn-docs" onclick="switchClientTab('docs')">
+                        <span>📁</span><span>المستندات (4)</span>
+                    </button>
+                    <button class="client-tab-btn" id="tab-btn-logs" onclick="switchClientTab('logs')">
+                        <span>📝</span><span>الملاحظات والسجل</span>
+                    </button>
+                </div>
+
+                <!-- TAB 1: البيانات الأساسية والوظيفة -->
+                <div class="client-tab-pane active" id="pane-data">
+                    <div class="collapsible-card open" id="c-basic">
+                        <div class="collapsible-header" onclick="toggleCard('c-basic')">
+                            <div class="collapsible-title"><span>👤</span><span>البيانات الأساسية والشخصية</span></div>
+                            <span class="toggle-arrow">▼</span>
+                        </div>
+                        <div class="collapsible-body">
+                            <div class="detail-row"><span class="detail-lbl">الاسم بالكامل:</span><span class="detail-val">محمد إسماعيل القرشي</span></div>
+                            <div class="detail-row"><span class="detail-lbl">الرقم القومي (14 رقم):</span><span class="detail-val" style="letter-spacing:1px; color:var(--cyan)">28910151203456</span></div>
+                            <div class="detail-row"><span class="detail-lbl">تاريخ الميلاد والسن:</span><span class="detail-val">15/10/1989 (35 سنة)</span></div>
+                            <div class="detail-row"><span class="detail-lbl">رقم الهاتف الأساسي:</span><span class="detail-val" style="color:var(--green); direction:ltr;">01012345678</span></div>
+                            <div class="detail-row"><span class="detail-lbl">رقم هاتف إضافي (بديل):</span><span class="detail-val" style="direction:ltr;">01198765432</span></div>
+                            <div class="detail-row"><span class="detail-lbl">المحافظة:</span><span class="detail-val">القاهرة</span></div>
+                            <div class="detail-row"><span class="detail-lbl">العنوان بالتفصيل:</span><span class="detail-val">15 شارع النصر، المعادي الجديدة</span></div>
+                            <div class="detail-row"><span class="detail-lbl">اسم المندوب / المصدر:</span><span class="detail-val" style="color:var(--gold)">محمود السعدني (مندوب معتمد)</span></div>
+                            <div class="detail-row"><span class="detail-lbl">تاريخ إضافة العميل:</span><span class="detail-val">12/03/2026</span></div>
+                        </div>
+                    </div>
+
+                    <div class="collapsible-card open" id="c-work">
+                        <div class="collapsible-header" onclick="toggleCard('c-work')">
+                            <div class="collapsible-title"><span>💼</span><span>جهة العمل ومصادر الدخل</span></div>
+                            <span class="toggle-arrow">▼</span>
+                        </div>
+                        <div class="collapsible-body">
+                            <div class="detail-row"><span class="detail-lbl">نوع جهة العمل:</span><span class="detail-val">قطاع خاص (شركات كبرى)</span></div>
+                            <div class="detail-row"><span class="detail-lbl">اسم جهة العمل / الشركة:</span><span class="detail-val">شركة المقاولون العرب (عثمان أحمد عثمان)</span></div>
+                            <div class="detail-row"><span class="detail-lbl">المسمى الوظيفي:</span><span class="detail-val">مهندس موقع أول</span></div>
+                            <div class="detail-row"><span class="detail-lbl">الموقف التأميني:</span><span class="detail-val" style="color:var(--green)">مؤمن عليه (منتظم)</span></div>
+                            <div class="detail-row"><span class="detail-lbl">طريقة تحويل الراتب:</span><span class="detail-val" style="color:var(--cyan)">تحويل بنكي رسمي</span></div>
+                            <div class="sub-block" style="margin-top:8px;">
+                                <div style="font-weight:700; color:#fff; font-size:11.5px; margin-bottom:4px;">تفاصيل حساب الراتب بالبنك:</div>
+                                <div class="detail-row"><span class="detail-lbl">البنك المحول إليه:</span><span class="detail-val">البنك التجاري الدولي (CIB)</span></div>
+                                <div class="detail-row"><span class="detail-lbl">صافي الراتب الشهري:</span><span class="detail-val" style="color:var(--gold)">14,500 ج.م</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2: الائتمان والأصول والقروض -->
+                <div class="client-tab-pane" id="pane-credit">
+                    <div class="collapsible-card open" id="c-eval">
+                        <div class="collapsible-header" onclick="toggleCard('c-eval')">
+                            <div class="collapsible-title"><span>📊</span><span>التقييم الائتماني وقرار المعاملة</span></div>
+                            <span class="toggle-arrow">▼</span>
+                        </div>
+                        <div class="collapsible-body">
+                            <div class="detail-row"><span class="detail-lbl">درجة الآي سكور (I-SCORE):</span><span class="detail-val" style="color:var(--green)">740 نقطة (مقبول ومنتظم)</span></div>
+                            <div class="detail-row"><span class="detail-lbl">مبلغ التمويل المطلوب:</span><span class="detail-val" style="color:var(--gold)">250,000 ج.م</span></div>
+                            <div class="detail-row"><span class="detail-lbl">المرحلة الحالية للمعاملة:</span><span class="detail-val" id="prof-current-status-badge" style="color:var(--cyan); font-weight:800;">فى البنك</span></div>
+                            
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; margin-bottom:4px;">
+                                <div style="font-weight: 700; font-size: 12px; color:#fff; display:flex; align-items:center; gap:6px;">
+                                    <span style="color:var(--gold);">⏳</span>
+                                    <span>حالة المعاملة (المسار الفعلي):</span>
+                                </div>
+                                <span style="font-size:10px; color:var(--text-secondary);">(اسحب أفقيًا لعرض المراحل)</span>
+                            </div>
+
+                            <!-- Stepper Container Matching Flutter App 100% -->
+                            <div class="stepper-scroll-wrapper">
+                                <div class="stepper-container" id="profile-status-stepper">
+                                    <div class="stepper-line"></div>
+                                    <!-- 1. قيد الانتظار (pending) -->
+                                    <div class="step-node completed" id="step-node-pending">
+                                        <div class="step-circle">⏳</div>
+                                        <span class="step-label">قيد الانتظار</span>
+                                    </div>
+                                    <!-- 2. استعلام ايسكور (iscore_inquiry) -->
+                                    <div class="step-node completed" id="step-node-iscore_inquiry">
+                                        <div class="step-circle">🔍</div>
+                                        <span class="step-label">استعلام ايسكور</span>
+                                    </div>
+                                    <!-- 3. تحضير الاوراق (preparing_documents) -->
+                                    <div class="step-node completed" id="step-node-preparing_documents">
+                                        <div class="step-circle">📄</div>
+                                        <span class="step-label">تحضير الاوراق</span>
+                                    </div>
+                                    <!-- 4. قيد الدراسة (under_review) -->
+                                    <div class="step-node completed" id="step-node-under_review">
+                                        <div class="step-circle">📝</div>
+                                        <span class="step-label">قيد الدراسة</span>
+                                    </div>
+                                    <!-- 5. فى البنك (at_bank) -->
+                                    <div class="step-node active" id="step-node-at_bank">
+                                        <div class="step-circle">🏛️</div>
+                                        <span class="step-label">فى البنك</span>
+                                    </div>
+                                    <!-- 6. مقبول (approved) -->
+                                    <div class="step-node" id="step-node-approved">
+                                        <div class="step-circle">✅</div>
+                                        <span class="step-label">مقبول</span>
+                                    </div>
+                                    <!-- 7. مرفوض (rejected) - مشروط -->
+                                    <div class="step-node" id="step-node-rejected" style="display:none;">
+                                        <div class="step-circle">❌</div>
+                                        <span class="step-label">مرفوض</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- تغيير حالة المعاملة (خاص بالمسؤول) -->
+                            <div style="background:rgba(255,255,255,0.03); border:1px dashed rgba(255,255,255,0.12); border-radius:12px; padding:10px 12px; margin-top:10px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                    <span style="font-size:11.5px; font-weight:700; color:var(--gold);">⚡ تغيير حالة المعاملة (إدارة / مدير):</span>
+                                    <span style="font-size:10px; color:var(--text-secondary);">تطبيق فوري</span>
+                                </div>
+                                <select class="form-select" id="profile-status-select" style="font-size:12px; padding:8px 12px;" onchange="updateTransactionStatus(this.value)">
+                                    <option value="pending">⏳ قيد الانتظار</option>
+                                    <option value="iscore_inquiry">🔍 استعلام ايسكور</option>
+                                    <option value="preparing_documents">📄 تحضير الاوراق</option>
+                                    <option value="under_review">📝 قيد الدراسة</option>
+                                    <option value="at_bank" selected>🏛️ فى البنك</option>
+                                    <option value="approved">✅ مقبول</option>
+                                    <option value="rejected">❌ مرفوض</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="collapsible-card open" id="c-loans">
+                        <div class="collapsible-header" onclick="toggleCard('c-loans')">
+                            <div class="collapsible-title"><span>💳</span><span>تفاصيل القروض والبطاقات القائمة</span></div>
+                            <span class="toggle-arrow">▼</span>
+                        </div>
+                        <div class="collapsible-body">
+                            <div class="sub-block">
+                                <div style="display:flex; justify-content:space-between;"><b style="color:var(--cyan)">قرض شخصي • بنك مصر</b><span class="status-chip status-chip-green" style="font-size:9.5px;">قائم</span></div>
+                                <div class="detail-row"><span class="detail-lbl">القسط الشهري:</span><span class="detail-val">2,300 ج.م</span></div>
+                                <div class="detail-row"><span class="detail-lbl">المتبقي:</span><span class="detail-val">48,000 ج.م (21 شهر)</span></div>
+                                <div class="detail-row"><span class="detail-lbl">ملاحظات:</span><span class="detail-val" style="font-size:11px;">سداد منتظم وبدون تأخير</span></div>
+                            </div>
+
+                            <div class="sub-block">
+                                <div style="display:flex; justify-content:space-between;"><b style="color:var(--gold)">فيزا مشتريات • CIB</b><span style="font-size:10px; color:var(--text-secondary)">بطاقة ائتمان</span></div>
+                                <div class="detail-row"><span class="detail-lbl">الحد الائتماني (الليمت):</span><span class="detail-val">25,000 ج.م</span></div>
+                                <div class="detail-row"><span class="detail-lbl">أعلى سحب:</span><span class="detail-val">18,500 ج.م</span></div>
+                                <div class="detail-row"><span class="detail-lbl">عبء الدين (5%):</span><span class="detail-val" style="color:var(--gold)">1,250 ج.م</span></div>
+                            </div>
+
+                            <div class="sub-block">
+                                <div style="display:flex; justify-content:space-between;"><b style="color:var(--cyan)">تطبيق تقسيط • ValU</b><span style="font-size:10px; color:var(--text-secondary)">أبلكيشن</span></div>
+                                <div class="detail-row"><span class="detail-lbl">الليمت:</span><span class="detail-val">15,000 ج.م</span></div>
+                                <div class="detail-row"><span class="detail-lbl">عبء الدين (5%):</span><span class="detail-val" style="color:var(--gold)">750 ج.م</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="collapsible-card open" id="c-dbr">
+                        <div class="collapsible-header" onclick="toggleCard('c-dbr')">
+                            <div class="collapsible-title"><span>📈</span><span>ملخص الالتزامات والدخل الافتراضي</span></div>
+                            <span class="toggle-arrow">▼</span>
+                        </div>
+                        <div class="collapsible-body">
+                            <div class="detail-row"><span class="detail-lbl">إجمالي أقساط القروض:</span><span class="detail-val">2,300 ج.م</span></div>
+                            <div class="detail-row"><span class="detail-lbl">أعباء البطاقات والتقسيط (5%):</span><span class="detail-val">2,000 ج.م</span></div>
+                            <div class="detail-row" style="background:rgba(255,255,255,0.03); padding:6px; border-radius:8px;">
+                                <span class="detail-lbl" style="color:#fff; font-weight:800">إجمالي الالتزامات الشهرية (DBR):</span>
+                                <span class="detail-val" style="color:var(--amber); font-size:13.5px;">4,300 ج.م</span>
+                            </div>
+
+                            <div style="margin-top:10px; padding-top:8px; border-top:1px dashed var(--border);">
+                                <div style="font-weight:800; color:var(--gold); margin-bottom:4px;">💡 حسابات الدخل الافتراضي (Virtual Income):</div>
+                                <div class="detail-row"><span class="detail-lbl">الراتب الأساسي المثبت:</span><span class="detail-val">14,500 ج.م</span></div>
+                                <div class="detail-row"><span class="detail-lbl">الدخل الافتراضي المقدر بنكياً:</span><span class="detail-val" style="color:var(--green)">19,200 ج.م</span></div>
+                                <div class="detail-row"><span class="detail-lbl">أقصى قسط متاح جديد (50% DBR):</span><span class="detail-val" style="color:var(--cyan)">5,300 ج.م</span></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="collapsible-card open" id="c-assets">
+                        <div class="collapsible-header" onclick="toggleCard('c-assets')">
+                            <div class="collapsible-title"><span>🏡</span><span>الأصول (الكمبوند والسيارة الحديثة)</span></div>
+                            <span class="toggle-arrow">▼</span>
+                        </div>
+                        <div class="collapsible-body">
+                            <div class="sub-block">
+                                <b style="color:var(--gold); display:block; margin-bottom:4px;">وحدة في كمبوند • زايد ديونز</b>
+                                <div class="detail-row"><span class="detail-lbl">اسم المطور:</span><span class="detail-val">ديونز للتطوير العقاري</span></div>
+                                <div class="detail-row"><span class="detail-lbl">قيمة الوحدة:</span><span class="detail-val">3,800,000 ج.م</span></div>
+                                <div class="detail-row"><span class="detail-lbl">المقدم المدفوع:</span><span class="detail-val">760,000 ج.م (20%)</span></div>
+                                <div class="detail-row"><span class="detail-lbl">الأقساط المسددة:</span><span class="detail-val">8 أقساط (420,000 ج.م)</span></div>
+                            </div>
+
+                            <div class="sub-block">
+                                <b style="color:var(--cyan); display:block; margin-bottom:4px;">سيارة حديثة • كيا سبورتاج</b>
+                                <div class="detail-row"><span class="detail-lbl">سنة الموديل:</span><span class="detail-val">2023</span></div>
+                                <div class="detail-row"><span class="detail-lbl">القيمة الحالية التقديرية:</span><span class="detail-val">1,450,000 ج.م</span></div>
+                                <div class="detail-row"><span class="detail-lbl">حالة الرخصة:</span><span class="detail-val" style="color:var(--green)">سارية حتى 05/2027</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3: التوزيع البنكي والعمليات -->
+                <div class="client-tab-pane" id="pane-dist">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-size:13px; font-weight:800; color:#fff;">التوزيعات البنكية الخاصة بالعميل:</span>
+                        <button class="chip-pill active" style="padding:4px 10px; font-size:11px;" onclick="showToast('توزيع جديد على بنك')">➕ توزيع بنكي</button>
+                    </div>
+
+                    <div class="feed-card" style="margin-bottom:10px;">
+                        <div class="feed-top">
+                            <div class="feed-client-info">
+                                <div class="bank-badge-round" style="color:#10B981">EG</div>
+                                <div>
+                                    <div style="font-weight:800; color:#fff;">EG Bank - إي جي بنك</div>
+                                    <div style="font-size:11px; color:var(--text-secondary);">برنامج تمويل الأطباء والمهندسين</div>
+                                </div>
+                            </div>
+                            <span class="status-chip status-chip-green">توزيع نشط</span>
+                        </div>
+                        <div class="detail-row"><span class="detail-lbl">تاريخ التوزيع:</span><span class="detail-val">15/03/2026</span></div>
+                        <div class="detail-row"><span class="detail-lbl">الموظف المسؤول بالبنك:</span><span class="detail-val">أحمد رامي (مسؤول ائتمان)</span></div>
+                        <div class="detail-row"><span class="detail-lbl">هاتف الموظف:</span><span class="detail-val" style="direction:ltr;">01223456789</span></div>
+                        <div class="feed-bottom" style="margin-top:8px;">
+                            <button class="chip-pill active" style="flex:1; padding:6px; font-size:11px;" onclick="showToast('تم تحويل التوزيع لعملية بنكية!')">تحويل لعملية منفذة ➔</button>
+                        </div>
+                    </div>
+
+                    <div style="font-size:13px; font-weight:800; color:#fff; margin:14px 0 8px 0;">العمليات والتمويلات المنفذة:</div>
+                    <div class="feed-card">
+                        <div class="feed-top">
+                            <div>
+                                <b style="color:var(--gold);">عملية تمويل شخصي • CIB</b>
+                                <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">كود المعاملة: OP-2026-88</div>
+                            </div>
+                            <span class="status-chip status-chip-green">تم الصرف</span>
+                        </div>
+                        <div class="detail-row"><span class="detail-lbl">مبلغ التمويل المصروف:</span><span class="detail-val" style="color:var(--gold); font-size:13px;">250,000 ج.م</span></div>
+                        <div class="detail-row"><span class="detail-lbl">نسبة العمولة:</span><span class="detail-val">5% (12,500 ج.م)</span></div>
+                        <div class="detail-row"><span class="detail-lbl">تاريخ تنفيذ العملية:</span><span class="detail-val">28/03/2026</span></div>
+                    </div>
+                </div>
+
+                <!-- TAB 4: الفواتير والمستحقات والعمولات -->
+                <div class="client-tab-pane" id="pane-invoices">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-size:13px; font-weight:800; color:#fff;">فواتير العمولات والمطالبات:</span>
+                        <button class="chip-pill active" style="padding:4px 10px; font-size:11px;" onclick="showToast('إنشاء فاتورة جديدة')">➕ فاتورة جديدة</button>
+                    </div>
+
+                    <div class="feed-card" style="margin-bottom:10px;">
+                        <div class="feed-top">
+                            <div>
+                                <b style="color:#fff;">فاتورة عمولة تمويل CIB</b>
+                                <div style="font-size:11px; color:var(--text-secondary); margin-top:2px;">رقم: INV-2026-042</div>
+                            </div>
+                            <span class="status-chip status-chip-amber">مفتوحة (قيد التحصيل)</span>
+                        </div>
+                        <div class="detail-row"><span class="detail-lbl">إجمالي قيمة الفاتورة:</span><span class="detail-val" style="color:var(--gold); font-size:14px;">12,500 ج.م</span></div>
+                        <div class="detail-row"><span class="detail-lbl">المدفوع مقدماً:</span><span class="detail-val" style="color:var(--green)">2,500 ج.م</span></div>
+                        <div class="detail-row"><span class="detail-lbl">المبلغ المتبقي للتحصيل:</span><span class="detail-val" style="color:var(--red); font-weight:800;">10,000 ج.م</span></div>
+                        <div class="feed-bottom" style="margin-top:8px;">
+                            <button class="chip-pill" style="flex:1; padding:6px; border-color:var(--green); color:var(--green);" onclick="showToast('تسجيل سداد دفعة')">💵 تسجيل تحصيل</button>
+                            <button class="chip-pill" style="flex:1; padding:6px;" onclick="showToast('تحميل إيصال الفاتورة PDF')">📥 إيصال PDF</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 5: المستندات والملفات المرفوعة -->
+                <div class="client-tab-pane" id="pane-docs">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                        <span style="font-size:13px; font-weight:800; color:#fff;">ملفات وأوراق العميل:</span>
+                        <button class="chip-pill active" style="padding:4px 12px; font-size:11px;" onclick="showToast('رفع مستند جديد')">📤 رفع مستند</button>
+                    </div>
+
+                    <div class="sub-block" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:20px;">🪪</span>
+                            <div>
+                                <div style="color:#fff; font-weight:700;">صورة بطاقة الرقم القومي (وجه وظهر)</div>
+                                <div style="font-size:10.5px; color:var(--text-secondary);">تم الرفع: 12/03/2026 • 1.8 MB</div>
+                            </div>
+                        </div>
+                        <button class="chip-pill" style="padding:4px 8px; font-size:11px;" onclick="showToast('عرض صورة البطاقة')">معاينة 👁️</button>
+                    </div>
+
+                    <div class="sub-block" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:20px;">📑</span>
+                            <div>
+                                <div style="color:#fff; font-weight:700;">مفردات مرتب حديثة (HR Letter)</div>
+                                <div style="font-size:10.5px; color:var(--text-secondary);">تم الرفع: 14/03/2026 • 940 KB</div>
+                            </div>
+                        </div>
+                        <button class="chip-pill" style="padding:4px 8px; font-size:11px;" onclick="showToast('عرض مفردات المرتب')">معاينة 👁️</button>
+                    </div>
+
+                    <div class="sub-block" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:20px;">🏦</span>
+                            <div>
+                                <div style="color:#fff; font-weight:700;">كشف حساب بنكي (6 أشهر) CIB</div>
+                                <div style="font-size:10.5px; color:var(--text-secondary);">تم الرفع: 15/03/2026 • 3.2 MB</div>
+                            </div>
+                        </div>
+                        <button class="chip-pill" style="padding:4px 8px; font-size:11px;" onclick="showToast('عرض كشف الحساب')">معاينة 👁️</button>
+                    </div>
+
+                    <div class="sub-block" style="display:flex; justify-content:space-between; align-items:center;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <span style="font-size:20px;">📜</span>
+                            <div>
+                                <div style="color:#fff; font-weight:700;">عقد وحدة كمبوند زايد ديونز</div>
+                                <div style="font-size:10.5px; color:var(--text-secondary);">تم الرفع: 16/03/2026 • 5.1 MB</div>
+                            </div>
+                        </div>
+                        <button class="chip-pill" style="padding:4px 8px; font-size:11px;" onclick="showToast('عرض عقد الكمبوند')">معاينة 👁️</button>
+                    </div>
+                </div>
+
+                <!-- TAB 6: الملاحظات وسجل المتابعات والتفاعل -->
+                <div class="client-tab-pane" id="pane-logs">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                        <span style="font-size:13px; font-weight:800; color:#fff;">سجل المتابعات والملاحظات:</span>
+                        <button class="chip-pill active" style="padding:4px 10px; font-size:11px;" onclick="showToast('إضافة ملاحظة جديدة')">➕ ملاحظة</button>
+                    </div>
+
+                    <div class="sub-block" style="margin-bottom:8px; border-right:3px solid var(--gold);">
+                        <div style="display:flex; justify-content:space-between;">
+                            <b style="color:var(--gold); font-size:12px;">وسام نادر (المدير)</b>
+                            <span style="font-size:10px; color:var(--text-secondary)">28/03/2026 14:30</span>
+                        </div>
+                        <p style="margin-top:4px; font-size:11.5px; color:#fff;">تم التأكيد مع مسؤول ائتمان بنك CIB بالموافقة النهائية على صرف التمويل بقيمة 250 ألف، وجاري إصدار الشيك.</p>
+                    </div>
+
+                    <div class="sub-block" style="margin-bottom:8px; border-right:3px solid var(--cyan);">
+                        <div style="display:flex; justify-content:space-between;">
+                            <b style="color:var(--cyan); font-size:12px;">سارة أحمد (متابعة ائتمان)</b>
+                            <span style="font-size:10px; color:var(--text-secondary)">20/03/2026 11:15</span>
+                        </div>
+                        <p style="margin-top:4px; font-size:11.5px; color:#fff;">تم استيفاء إيصال مرافق حديث للعنوان وتم إرساله للبنك بنجاح والآي سكور ممتاز 740.</p>
+                    </div>
+
+                    <div class="sub-block" style="border-right:3px solid var(--green);">
+                        <div style="display:flex; justify-content:space-between;">
+                            <b style="color:var(--green); font-size:12px;">محمود السعدني (المندوب)</b>
+                            <span style="font-size:10px; color:var(--text-secondary)">12/03/2026 09:00</span>
+                        </div>
+                        <p style="margin-top:4px; font-size:11.5px; color:#fff;">تم استلام الملف كاملاً من العميل وتوقيع استمارة التفويض للاستعلام الائتماني.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. PROSPECTS (العملاء المحتملين) -->
+            <section id="view-prospects" class="view-section">
+                <div class="chips-scroll">
+                    <span class="chip-pill active">الكل (142)</span>
+                    <span class="chip-pill">جديد (12)</span>
+                    <span class="chip-pill">تم التواصل</span>
+                    <span class="chip-pill">مؤهل للتمويل</span>
+                    <span class="chip-pill">غير مهتم</span>
+                </div>
+
+                <div class="feed-card">
+                    <div class="feed-top">
+                        <div class="feed-client-info">
+                            <span class="feed-client-name">أحمد كمال الدين الشريف</span>
+                        </div>
+                        <span class="status-chip status-chip-green">مؤهل للتمويل</span>
+                    </div>
+                    <div class="detail-row"><span class="detail-lbl">الهاتف:</span><span class="detail-val">01124567890</span></div>
+                    <div class="detail-row"><span class="detail-lbl">الوظيفة والراتب:</span><span class="detail-val">مهندس بترول • 18,000 ج.م</span></div>
+                    <div class="feed-bottom">
+                        <span style="font-size:11px; color:var(--text-secondary)">المصدر: حملة فيسبوك</span>
+                        <button class="chip-pill active" style="padding:4px 12px; font-size:11px;" onclick="showToast('تم تحويل العميل المحتمل إلى عميل فعلي ✓')">تحويل لعميل ➔</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. DISTRIBUTIONS (التوزيعات العامة) -->
+            <section id="view-distributions" class="view-section">
+                <div class="chips-scroll">
+                    <span class="chip-pill active">النشطة (11)</span>
+                    <span class="chip-pill">المغلقة (10)</span>
+                    <span class="chip-pill">مقبول</span>
+                    <span class="chip-pill">قيد الانتظار</span>
+                    <span class="chip-pill">EG Bank</span>
+                </div>
+
+                <div class="feed-card" onclick="openClientProfile('محمد إسماعيل محمد', 'التجاري وفا', 'مقبول', 710)">
+                    <div class="feed-top">
+                        <div class="feed-client-info">
+                            <div class="bank-badge-round" style="color:var(--cyan)">WA</div>
+                            <span class="feed-client-name">محمد إسماعيل محمد</span>
+                        </div>
+                        <span class="bank-pill-label">التجاري وفا</span>
+                    </div>
+                    <div style="font-size:11.5px; color:var(--text-secondary); margin:6px 0;">
+                        برنامج: موظفين • الموظف: هايدي عادل • 24 أكتوبر
+                    </div>
+                    <div class="feed-bottom">
+                        <span class="status-chip status-chip-green">مقبول</span>
+                        <button class="chip-pill active" style="padding:4px 12px; font-size:11px;" onclick="event.stopPropagation(); showToast('تم التحويل لعملية بنجاح')">تحويل لعملية ➔</button>
+                    </div>
+                </div>
+
+                <div class="feed-card" onclick="openClientProfile('محسن عبد الغني', 'EG Bank', 'قيد الانتظار', 680)">
+                    <div class="feed-top">
+                        <div class="feed-client-info">
+                            <div class="bank-badge-round" style="color:var(--green)">EG</div>
+                            <span class="feed-client-name">محسن عبد الغني</span>
+                        </div>
+                        <span class="bank-pill-label">EG Bank</span>
+                    </div>
+                    <div style="font-size:11.5px; color:var(--text-secondary); margin:6px 0;">
+                        برنامج: فيزا مشتريات • الموظف: انتصار وهدان
+                    </div>
+                    <div class="feed-bottom">
+                        <span class="status-chip status-chip-amber">قيد الانتظار</span>
+                        <button class="chip-pill" style="padding:4px 12px; font-size:11px;" onclick="event.stopPropagation(); showToast('تم طلب إظهار الرقم للمدير')">طلب الرقم 🔒</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. OPERATIONS (العمليات العامة مرتبة من الأحدث) -->
+            <section id="view-operations" class="view-section">
+                <div class="chips-scroll">
+                    <span class="chip-pill active">الأحدث تحويلاً ⬇️</span>
+                    <span class="chip-pill">يتم العمل (8)</span>
+                    <span class="chip-pill">موافقة (14)</span>
+                    <span class="chip-pill">مرفوض (2)</span>
+                </div>
+
+                <div class="feed-card">
+                    <div class="feed-top">
+                        <div class="feed-client-info">
+                            <div class="bank-badge-round" style="color:var(--cyan)">FAB</div>
+                            <span class="feed-client-name">جمال عبد الناصر</span>
+                        </div>
+                        <span class="status-chip status-chip-green">موافقة نهائية</span>
+                    </div>
+                    <div class="detail-row"><span class="detail-lbl">المبلغ المطلوب:</span><span class="detail-val">150,000 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">المبلغ الموافق عليه:</span><span class="detail-val" style="color:var(--green)">130,000 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">تاريخ التحويل:</span><span class="detail-val">27 أكتوبر 2026</span></div>
+                </div>
+            </section>
+
+            <!-- 6. INVOICES (الفواتير والماليات - تبويبين مفتوح ومغلق) -->
+            <section id="view-invoices" class="view-section">
+                <div class="chips-scroll">
+                    <span class="chip-pill active" onclick="showToast('عرض الفواتير المفتوحة')">فواتير مفتوحة (18)</span>
+                    <span class="chip-pill" onclick="showToast('عرض الفواتير المغلقة المحصلة')">فواتير مغلقة (45)</span>
+                    <span class="chip-pill">المحصلة كلياً</span>
+                </div>
+                <div class="feed-card">
+                    <div class="feed-top">
+                        <span class="feed-client-name">كيرلس ماجد رمزي</span>
+                        <span class="status-chip status-chip-amber">متبقي: 2,500 ج.م</span>
+                    </div>
+                    <div class="detail-row"><span class="detail-lbl">قيمة العملية:</span><span class="detail-val">90,000 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">إجمالي الأتعاب المستحقة:</span><span class="detail-val">6,300 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">المحصل حتى الآن:</span><span class="detail-val" style="color:var(--green)">3,800 ج.م</span></div>
+                    <div class="feed-bottom">
+                        <span style="font-size:11px; color:var(--text-secondary)">بنك: EG Bank</span>
+                        <div style="display:flex; gap:6px;">
+                            <button class="chip-pill active" style="padding:4px 10px; font-size:11px;" onclick="showToast('تسجيل تحصيل دفعة جديدة')">تحصيل 💵</button>
+                            <button class="chip-pill" style="padding:4px 10px; font-size:11px;" onclick="showToast('إغلاق الفاتورة ونقلها لقسم المغلقة 🔒')">إغلاق 🔒</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. ACCOUNTS (الحسابات والميزانية) -->
+            <section id="view-accounts" class="view-section">
+                <div style="background: var(--bg-card); border-radius: 18px; padding: 14px; border: 1px solid var(--border); margin-bottom: 12px;">
+                    <div style="font-size: 12px; color: var(--text-secondary)">صافي أرباح الشهر الحالي (أكتوبر)</div>
+                    <div style="font-size: 25px; font-weight: 900; color: var(--gold);">84,600 ج.م</div>
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 11.5px;">
+                        <span>الإيرادات: <b style="color:var(--green)">125,000</b></span>
+                        <span>المصروفات: <b style="color:var(--red)">40,400</b></span>
+                    </div>
+                </div>
+
+                <div class="section-headline">بنود المصروفات الأخيرة</div>
+                <div class="feed-card">
+                    <div class="feed-top">
+                        <span class="feed-client-name" style="font-size:13.5px;">إيجار مقر الشركة الشهري</span>
+                        <span style="color:var(--red); font-weight:800">- 15,000 ج.م</span>
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-secondary)">التاريخ: 1 أكتوبر 2026 • المسدد: الإدارة العامة</div>
+                </div>
+            </section>
+
+            <!-- 8. REPORTS (التقارير والإحصائيات والتارجت) -->
+            <section id="view-reports" class="view-section">
+                <div class="chips-scroll">
+                    <span class="chip-pill active">تقارير التارجت والموظفين</span>
+                    <span class="chip-pill">مبيعات البنوك</span>
+                    <span class="chip-pill">التقارير المالية</span>
+                </div>
+
+                <div class="feed-card">
+                    <div class="feed-top">
+                        <span class="feed-client-name">هايدي عادل (مسؤول تمويل)</span>
+                        <span class="status-chip status-chip-green">112% محقق</span>
+                    </div>
+                    <div class="detail-row"><span class="detail-lbl">التارجت المطلوب:</span><span class="detail-val">400,000 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">المبيعات المنفذة (المحقق):</span><span class="detail-val" style="color:var(--green)">450,000 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">العمليات الناجحة:</span><span class="detail-val">7 عمليات (من 6 عملاء)</span></div>
+                    <div class="detail-row"><span class="detail-lbl">المحقق الكلي للمجموعة:</span><span class="detail-val" style="color:var(--gold)">1,280,000 ج.م</span></div>
+                </div>
+
+                <div class="feed-card">
+                    <div class="feed-top">
+                        <span class="feed-client-name">انتصار وهدان (مسؤول تمويل)</span>
+                        <span class="status-chip status-chip-amber">84% محقق</span>
+                    </div>
+                    <div class="detail-row"><span class="detail-lbl">التارجت:</span><span class="detail-val">350,000 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">المحقق:</span><span class="detail-val" style="color:var(--amber)">295,000 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">العمليات الناجحة:</span><span class="detail-val">4 عمليات (من 4 عملاء)</span></div>
+                </div>
+            </section>
+
+            <!-- 9. BANKS (دليل البنوك والبرامج) -->
+            <section id="view-banks" class="view-section">
+                <div class="chips-scroll">
+                    <span class="chip-pill active">كل البنوك المعتمدة</span>
+                    <span class="chip-pill">برامج موظفين</span>
+                    <span class="chip-pill">أصحاب أعمال</span>
+                </div>
+
+                <div class="feed-card">
+                    <div class="feed-top">
+                        <span class="feed-client-name" style="color:var(--cyan)">البنك التجاري الدولي (CIB)</span>
+                        <span class="status-chip status-chip-green">4 برامج</span>
+                    </div>
+                    <div class="detail-row"><span class="detail-lbl">برنامج الموظفين:</span><span class="detail-val">حد أدنى 5,000 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">برنامج أصحاب الأعمال:</span><span class="detail-val">سجل تجاري سنتين</span></div>
+                    <div class="detail-row"><span class="detail-lbl">الفائدة التناقصية:</span><span class="detail-val" style="color:var(--gold)">تبدأ من 19.5%</span></div>
+                </div>
+
+                <div class="feed-card">
+                    <div class="feed-top">
+                        <span class="feed-client-name" style="color:var(--cyan)">بنك الإمارات دبي الوطني (ENBD)</span>
+                        <span class="status-chip status-chip-green">3 برامج</span>
+                    </div>
+                    <div class="detail-row"><span class="detail-lbl">التمويل الأقصى:</span><span class="detail-val">يصل إلى 2,000,000 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">الاستعلام:</span><span class="detail-val" style="color:var(--green)">بدون مصاريف استعلام</span></div>
+                </div>
+            </section>
+
+            <!-- 10. EMPLOYEES (موظفي الشركة ومتابعة التارجت) -->
+            <section id="view-employees" class="view-section">
+                <div class="chips-scroll">
+                    <span class="chip-pill active">قائمة الموظفين</span>
+                    <span class="chip-pill">متابعة التارجت</span>
+                    <span class="chip-pill">الصلاحيات</span>
+                </div>
+
+                <div class="feed-card">
+                    <div class="feed-top">
+                        <span class="feed-client-name">هايدي عادل</span>
+                        <span class="status-chip status-chip-green">نشط 🟢</span>
+                    </div>
+                    <div class="detail-row"><span class="detail-lbl">الوظيفة:</span><span class="detail-val">مسؤول مبيعات وتمويل</span></div>
+                    <div class="detail-row"><span class="detail-lbl">البريد:</span><span class="detail-val">haidy@tfc.com</span></div>
+                    <div class="detail-row"><span class="detail-lbl">العملاء النشطين:</span><span class="detail-val">19 عميل</span></div>
+                </div>
+            </section>
+
+            <!-- 11. AI ASSISTANT (المساعد الذكي) -->
+            <section id="view-ai" class="view-section">
+                <div class="feed-card" style="border-color: var(--border-glow-gold);">
+                    <div style="font-size:14px; font-weight:800; color:var(--gold); margin-bottom:8px;">🧠 المستشار المالي الذكي (TFC AI)</div>
+                    <div style="font-size:12px; color:var(--text-secondary); line-height:1.7; margin-bottom:12px;">
+                        يقوم الذكاء الاصطناعي بفحص آي سكور العميل، الدخل، عبء الدين (DBR)، ومطابقته فورياً مع برامج البنوك المتاحة.
+                    </div>
+                    <button class="chip-pill active" style="width:100%; border-radius:12px; padding:10px; font-size:12px; font-weight:800;" onclick="showToast('جاري تشغيل محرك الفحص الذكي للعملاء')">
+                        🚀 تشغيل الفحص الذكي للعميل
+                    </button>
+                </div>
+            </section>
+
+            <!-- 12. CREDIT CALCULATOR (حاسبة التمويل) -->
+            <section id="view-calculator" class="view-section">
+                <div class="feed-card">
+                    <div style="font-size:14px; font-weight:800; color:var(--cyan); margin-bottom:10px;">🧮 حاسبة الائتمان والدخل التقديري</div>
+                    <div class="detail-row"><span class="detail-lbl">الراتب الأساسي:</span><span class="detail-val">15,000 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">الالتزامات الحالية (أقساط):</span><span class="detail-val">3,000 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">أقصى عبء دين مسموح (50% DBR):</span><span class="detail-val" style="color:var(--green)">7,500 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">القسط المتاح للتمويل الجديد:</span><span class="detail-val" style="color:var(--gold); font-size:14px;">4,500 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">مبلغ التمويل المقدر (على 5 سنوات):</span><span class="detail-val" style="color:var(--cyan); font-size:15px;">~ 185,000 ج.م</span></div>
+                </div>
+            </section>
+
+            <!-- 13. NEW CLIENT WIZARD FORM (نموذج إضافة عميل جديد بكافة الارتباطات) -->
+            <section id="view-new-client" class="view-section">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px;">
+                    <div style="cursor: pointer; color: var(--gold); font-size: 12px; font-weight: 800;" onclick="switchSection('clients', 'العملاء')">
+                        ➔ العودة للعملاء
+                    </div>
+                    <span style="font-size:13px; font-weight:800; color:#fff;">تقديم طلب تمويل جديد</span>
+                </div>
+
+                <!-- Wizard Steps Progress Bar -->
+                <div class="wizard-steps-header">
+                    <div class="wizard-step-item active" id="wiz-step-ind-1">
+                        <span class="wizard-step-badge">1</span>
+                        <span>البيانات الشخصية</span>
+                    </div>
+                    <span style="color:var(--text-secondary)">➔</span>
+                    <div class="wizard-step-item" id="wiz-step-ind-2">
+                        <span class="wizard-step-badge">2</span>
+                        <span>الالتزامات والائتمان</span>
+                    </div>
+                    <span style="color:var(--text-secondary)">➔</span>
+                    <div class="wizard-step-item" id="wiz-step-ind-3">
+                        <span class="wizard-step-badge">3</span>
+                        <span>المستندات والطلب</span>
+                    </div>
+                </div>
+
+                <!-- STEP 1: البيانات الشخصية وطبيعة العمل -->
+                <div id="wiz-pane-1">
+                    <div class="collapsible-card open">
+                        <div class="collapsible-header"><div class="collapsible-title"><span>👤</span><span>البيانات الأساسية</span></div></div>
+                        <div class="collapsible-body" style="display:block;">
+                            <div class="form-group">
+                                <label class="form-label">الاسم بالكامل (رباعي كما في البطاقة) *</label>
+                                <input type="text" class="form-input" id="nc-name" placeholder="مثال: أحمد عبد الله الشريف">
+                            </div>
+                            <div class="form-group">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+                                    <label class="form-label" style="margin:0;">أرقام الهاتف المحمول *</label>
+                                    <button class="chip-pill active" type="button" style="padding:2px 8px; font-size:10px; font-weight:800;" onclick="addPhoneNumberEntry()">
+                                        ➕ إضافة رقم آخر
+                                    </button>
+                                </div>
+                                <div id="phones-container">
+                                    <div class="phone-entry-row" style="display:flex; gap:6px; margin-bottom:6px;">
+                                        <input type="tel" class="form-input" placeholder="010XXXXXXXX (الرقم الأساسي)" dir="ltr" style="text-align:right; flex:1;">
+                                        <span style="font-size:10.5px; color:var(--gold); padding:8px 6px; font-weight:700; white-space:nowrap;">أساسي</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">الرقم القومي (14 رقم) *</label>
+                                <input type="number" class="form-input" id="nc-national-id" placeholder="290XXXXXXXXXXX" dir="ltr" style="text-align:right;">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">تاريخ الميلاد *</label>
+                                <input type="date" class="form-input" id="nc-birthdate">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">المحافظة</label>
+                                <select class="form-select" id="nc-governorate">
+                                    <option value="القاهرة">القاهرة</option>
+                                    <option value="الجيزة">الجيزة</option>
+                                    <option value="الإسكندرية">الإسكندرية</option>
+                                    <option value="الشرقية">الشرقية</option>
+                                    <option value="الدقهلية">الدقهلية</option>
+                                    <option value="أخرى">محافظة أخرى</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">العنوان بالتفصيل</label>
+                                <input type="text" class="form-input" id="nc-address" placeholder="الشارع، الحي، العمارة، رقم الشقة">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- طبيعة العمل والوظيفة (Conditional) -->
+                    <div class="collapsible-card open">
+                        <div class="collapsible-header"><div class="collapsible-title"><span>💼</span><span>جهة العمل ومصادر الدخل</span></div></div>
+                        <div class="collapsible-body" style="display:block;">
+                            <div class="form-group">
+                                <label class="form-label">نوع جهة العمل وطبيعة الوظيفة *</label>
+                                <select class="form-select" id="nc-employment-type" onchange="onEmploymentTypeChanged(this.value)">
+                                    <option value="private_sector">موظف قطاع خاص</option>
+                                    <option value="government_employee">موظف حكومي</option>
+                                    <option value="business_owner">صاحب عمل / نشاط تجاري</option>
+                                    <option value="doctor_clinic">طبيب (عيادة خاصة)</option>
+                                    <option value="doctor_hospital">طبيب (مستشفى)</option>
+                                    <option value="pharmacist_owner">صيدلي (صاحب صيدلية)</option>
+                                    <option value="faculty">هيئة تدريس جامعي</option>
+                                    <option value="teacher">مدرس</option>
+                                    <option value="freelance">أعمال حرة (فريلانس)</option>
+                                    <option value="retired">معاش</option>
+                                </select>
+                            </div>
+
+                            <!-- حقول الموظف (حكومي / خاص) -->
+                            <div id="fields-employee-block">
+                                <div class="form-group">
+                                    <label class="form-label">اسم جهة العمل / الشركة</label>
+                                    <input type="text" class="form-input" id="nc-company" placeholder="اسم الشركة أو المؤسسة">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">المسمى الوظيفي</label>
+                                    <input type="text" class="form-input" id="nc-job-title" placeholder="مثال: مهندس موقع، محاسب أول">
+                                </div>
+                                <label class="form-checkbox-row">
+                                    <input type="checkbox" id="nc-is-insured" checked>
+                                    <span>مؤمن عليه اجتماعياً (تأمينات سارية)</span>
+                                </label>
+                            </div>
+
+                            <!-- حقول صاحب العمل والأنشطة التجارية (تظهر فقط عند اختيار صاحب عمل) -->
+                            <div id="fields-business-block" style="display:none; background:rgba(212,175,55,0.06); padding:12px; border-radius:14px; border:1px solid rgba(212,175,55,0.3); margin-bottom:14px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                    <span style="font-weight:800; color:var(--gold); font-size:13px;">🏢 تفاصيل الأنشطة التجارية (#1)</span>
+                                    <button class="chip-pill active" style="padding:3px 8px; font-size:10px;" onclick="showToast('إضافة نشاط تجاري آخر')">➕ نشاط آخر</button>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">النشاط *</label>
+                                    <input type="text" class="form-input" placeholder="مثال: تجارة مواد البناء">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">تاريخ بدء النشاط *</label>
+                                    <input type="text" class="form-input" placeholder="سنة البدء أو تاريخ كامل (مثال: 2018)">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">مكان النشاط *</label>
+                                    <input type="text" class="form-input" placeholder="العنوان بالكامل أو المحافظة والحي">
+                                </div>
+                                <div style="font-size:12px; color:var(--secondary); font-weight:800; margin:10px 0 6px 0;">الأوراق المتاحة:</div>
+                                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:6px;">
+                                    <label class="form-checkbox-row"><input type="checkbox" checked> <span>سجل تجارى</span></label>
+                                    <label class="form-checkbox-row"><input type="checkbox" checked> <span>بطاقة ضربية</span></label>
+                                    <label class="form-checkbox-row"><input type="checkbox"> <span>كشف حساب</span></label>
+                                    <label class="form-checkbox-row"><input type="checkbox"> <span>ميزانيات</span></label>
+                                    <label class="form-checkbox-row"><input type="checkbox"> <span>فواتير</span></label>
+                                    <label class="form-checkbox-row"><input type="checkbox"> <span>رخصة مشروع او صناعية</span></label>
+                                    <label class="form-checkbox-row" style="grid-column: span 2;"><input type="checkbox"> <span>عقد ايجار او تمليك لمقر الشركة</span></label>
+                                </div>
+                                <div style="display:flex; gap:8px; margin-top:10px;">
+                                    <button class="chip-pill active" style="flex:1; padding:6px; font-size:11px;" onclick="showToast('رفع صور السجل والبطاقة الضريبية')">📤 رفع صور السجل/الضريبية</button>
+                                    <button class="chip-pill" style="flex:1; padding:6px; font-size:11px;" onclick="showToast('رفع مرفقات أخرى للنشاط')">📎 مرفقات أخرى للنشاط</button>
+                                </div>
+                            </div>
+
+                            <!-- حقول الأطباء والصيادلة (دكتور عيادة / دكتور مستشفى / صيدلي صاحب صيدلية) -->
+                            <div id="fields-medical-block" style="display:none; background:rgba(0,229,255,0.06); padding:12px; border-radius:14px; border:1px solid rgba(0,229,255,0.3); margin-bottom:14px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                    <span style="font-weight:800; color:var(--cyan); font-size:13px;">🩺 تفاصيل النشاط الطبي (#1)</span>
+                                    <button class="chip-pill active" style="padding:3px 8px; font-size:10px;" onclick="showToast('إضافة نشاط طبي آخر')">➕ نشاط طبي آخر</button>
+                                </div>
+                                <div class="form-group" id="med-spec-group">
+                                    <label class="form-label">التخصص *</label>
+                                    <input type="text" class="form-input" placeholder="مثال: باطنة، أسنان، جراحة...">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">تاريخ مزاولة المهنة *</label>
+                                    <input type="text" class="form-input" placeholder="مثال: 2015-05-01">
+                                </div>
+                                <div class="form-group" id="med-lic-group">
+                                    <label class="form-label">تاريخ الترخيص *</label>
+                                    <input type="text" class="form-input" placeholder="مثال: 2018-01-01">
+                                </div>
+                                <div style="font-size:12px; color:var(--secondary); font-weight:800; margin:10px 0 6px 0;">الأوراق المتاحة:</div>
+                                <div style="display:grid; grid-template-columns: 1fr; gap:6px;">
+                                    <label class="form-checkbox-row"><input type="checkbox" checked> <span>كارنيه النقابة</span></label>
+                                    <label class="form-checkbox-row"><input type="checkbox" checked> <span>ترخيص مزاولة المهنة</span></label>
+                                    <label class="form-checkbox-row" id="doc-lic-clinic-row"><input type="checkbox"> <span>صورة رخصة العيادة/الصيدلية</span></label>
+                                </div>
+                            </div>
+
+                            <!-- طريقة تحويل الراتب -->
+                            <div class="form-group" style="margin-top:10px;">
+                                <label class="form-label">طريقة تحويل الراتب *</label>
+                                <select class="form-select" id="nc-salary-transfer" onchange="onSalaryTransferChanged(this.value)">
+                                    <option value="bank_transfer">تحويل بنكي</option>
+                                    <option value="cash">كاش</option>
+                                </select>
+                            </div>
+
+                            <div id="salary-bank-row">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                    <span style="font-size:12px; font-weight:800; color:var(--cyan);">تفاصيل الحسابات البنكية المحول عليها الراتب:</span>
+                                </div>
+                                <div id="salary-banks-container">
+                                    <div class="sub-block" id="salary-bank-item-1" style="margin-bottom:8px;">
+                                        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                                            <b style="color:var(--gold); font-size:11.5px;">حساب بنكي (#1)</b>
+                                        </div>
+                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                                            <div class="form-group">
+                                                <label class="form-label">اسم البنك</label>
+                                                <input type="text" class="form-input" placeholder="مثال: البنك الأهلي، CIB">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">صافي الراتب المحول (ج.م)</label>
+                                                <input type="number" class="form-input" placeholder="0.00">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="chip-pill active" type="button" style="width:100%; border-radius:12px; padding:9px; font-size:11.5px; font-weight:800; margin-top:4px;" onclick="addSalaryBankEntry()">
+                                    ➕ إضافة حساب بنكي وراتب آخر
+                                </button>
+                            </div>
+
+                            <div id="salary-cash-row" style="display:none;">
+                                <div class="form-group">
+                                    <label class="form-label">قيمة الراتب الكاش</label>
+                                    <input type="number" class="form-input" id="nc-cash-amt" placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="chip-pill active" style="width:100%; border-radius:14px; padding:12px; font-size:13px; font-weight:800; margin-top:10px;" onclick="goToWizardStep(2)">
+                        التالي: الالتزامات والائتمان ➔
+                    </button>
+                </div>
+
+                <!-- STEP 2: الالتزامات الائتمانية والأصول (القروض، البطاقات، الكمبوند، السيارة) -->
+                <div id="wiz-pane-2" style="display:none;">
+                    <!-- قروض قائمة -->
+                    <div class="collapsible-card open">
+                        <div class="collapsible-header">
+                            <div class="collapsible-title"><span>💳</span><span>قروض قائمة لدى البنوك</span></div>
+                        </div>
+                        <div class="collapsible-body" style="display:block;">
+                            <div id="loans-entries-container">
+                                <div class="sub-block" id="loan-item-1">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                                        <b style="color:var(--cyan); font-size:12px;">قرض (#1)</b>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">اسم البنك</label>
+                                        <input type="text" class="form-input" placeholder="اسم البنك المقرض">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">قيمة القسط الشهري</label>
+                                        <input type="number" class="form-input" placeholder="0.00">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">ملاحظات إضافية</label>
+                                        <input type="text" class="form-input" placeholder="ملاحظات إضافية">
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="chip-pill active" style="width:100%; border-radius:12px; padding:10px; font-size:12px; font-weight:800; margin-top:6px;" onclick="addLoanEntry()">
+                                ➕ إضافة قرض قائم آخر
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- بطاقات ائتمان وأبلكيشن تقسيط -->
+                    <div class="collapsible-card open">
+                        <div class="collapsible-header">
+                            <div class="collapsible-title"><span>🛍️</span><span>البطاقات الائتمانية والطلبات المفتوحة</span></div>
+                        </div>
+                        <div class="collapsible-body" style="display:block;">
+                            <div id="cards-entries-container">
+                                <div class="sub-block" id="card-item-1">
+                                    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                                        <b style="color:var(--gold); font-size:12px;">بطاقة / طلب رقم 1</b>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">اسم البنك</label>
+                                        <input type="text" class="form-input" placeholder="اسم البنك المصدر">
+                                    </div>
+                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                                        <div class="form-group">
+                                            <label class="form-label">قيمة الليمت</label>
+                                            <input type="number" class="form-input" id="card-val-1" placeholder="0.00" onkeyup="calcFivePercentCard(1)">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">قيمة الـ 5%</label>
+                                            <input type="text" class="form-input" id="card-five-1" readonly value="0.00" style="color:var(--cyan); font-weight:800;">
+                                        </div>
+                                    </div>
+                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                                        <div class="form-group">
+                                            <label class="form-label">النوع</label>
+                                            <select class="form-select" id="card-type-1" onchange="onCardTypeChanged(1, this.value)">
+                                                <option value="card">بطاقة</option>
+                                                <option value="request">أبلكيشن</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">المدة</label>
+                                            <input type="text" class="form-input" placeholder="مثال: 12 شهر">
+                                        </div>
+                                    </div>
+                                    <div id="card-app-fields-1" style="display:none; margin-top:4px;">
+                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                                            <div class="form-group">
+                                                <label class="form-label">قيمة القسط</label>
+                                                <input type="number" class="form-input" id="card-inst-1" placeholder="0.00" onkeyup="calcHighestCard(1)">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">الحد الأعلى</label>
+                                                <input type="text" class="form-input" id="card-highest-1" readonly value="0.00" style="color:var(--amber); font-weight:800;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-top:6px;">
+                                        <label class="form-label">ملاحظات إضافية</label>
+                                        <input type="text" class="form-input" placeholder="تفاصيل أو ملاحظات إضافية بخصوص البطاقة أو الطلب...">
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="chip-pill active" style="width:100%; border-radius:12px; padding:10px; font-size:12px; font-weight:800; margin-top:6px;" onclick="addCardEntry()">
+                                ➕ إضافة بطاقة / طلب آخر
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- الأصول: وحدة بالكمبوند -->
+                    <div class="collapsible-card open">
+                        <div class="collapsible-header">
+                            <div class="collapsible-title"><span>🏡</span><span>امتلاك وحدة في كمبوند</span></div>
+                            <div style="display:flex; gap:12px; align-items:center;">
+                                <label style="display:flex; align-items:center; gap:4px; font-size:12px; cursor:pointer;">
+                                    <input type="radio" name="r_compound" value="yes" onchange="toggleCompoundFields(true)"> <span>نعم</span>
+                                </label>
+                                <label style="display:flex; align-items:center; gap:4px; font-size:12px; cursor:pointer;">
+                                    <input type="radio" name="r_compound" value="no" checked onchange="toggleCompoundFields(false)"> <span>لا</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="collapsible-body" style="display:block;">
+                            <div id="compound-details-fields" style="display:none;">
+                                <div id="compound-entries-container">
+                                    <div class="sub-block" id="compound-unit-item-1" style="margin-bottom:10px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                            <b style="color:var(--gold); font-size:12px;">تفاصيل الوحدة (#1)</b>
+                                        </div>
+                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                                            <div class="form-group">
+                                                <label class="form-label">اسم الكمبوند</label>
+                                                <input type="text" class="form-input" placeholder="مثال: بيفيرلي هيلز">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">اسم المطور</label>
+                                                <input type="text" class="form-input" placeholder="مثال: سوديك">
+                                            </div>
+                                        </div>
+                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                                            <div class="form-group">
+                                                <label class="form-label">تاريخ التعاقد</label>
+                                                <input type="text" class="form-input" placeholder="مثال: 2022-01-01">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">قيمة الوحدة</label>
+                                                <input type="number" class="form-input" id="nc-unit-val-1" placeholder="0.00" onkeyup="calcUnitPercent(1)">
+                                            </div>
+                                        </div>
+                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                                            <div class="form-group">
+                                                <label class="form-label">المقدم المدفوع</label>
+                                                <input type="number" class="form-input" id="nc-unit-down-1" placeholder="0.00" onkeyup="calcUnitPercent(1)">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">نسبة المقدم</label>
+                                                <input type="text" class="form-input" id="nc-unit-down-pct-1" readonly value="0.0%" style="color:var(--amber); font-weight:800;">
+                                            </div>
+                                        </div>
+                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                                            <div class="form-group">
+                                                <label class="form-label">عدد الأقساط المدفوعة</label>
+                                                <input type="number" class="form-input" placeholder="0">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">قيمة ما تم دفعه</label>
+                                                <input type="number" class="form-input" placeholder="0.00">
+                                            </div>
+                                        </div>
+                                        <div class="form-group" style="margin-top:6px;">
+                                            <label class="form-label">صورة عقد الوحدة</label>
+                                            <button class="chip-pill active" style="width:100%; padding:8px; font-size:11px;" onclick="showToast('رفع ملف العقد ✓')">📤 رفع ملف العقد</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="chip-pill active" style="width:100%; border-radius:12px; padding:10px; font-size:12px; font-weight:800; margin-top:4px;" onclick="addCompoundUnitEntry()">
+                                    ➕ إضافة وحدة أخرى بالكمبوند
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- الأصول: سيارة حديثة -->
+                    <div class="collapsible-card open">
+                        <div class="collapsible-header">
+                            <div class="collapsible-title"><span>🚗</span><span>امتلاك سيارة حديثة</span></div>
+                            <div style="display:flex; gap:12px; align-items:center;">
+                                <label style="display:flex; align-items:center; gap:4px; font-size:12px; cursor:pointer;">
+                                    <input type="radio" name="r_car" value="yes" onchange="toggleCarFields(true)"> <span>نعم</span>
+                                </label>
+                                <label style="display:flex; align-items:center; gap:4px; font-size:12px; cursor:pointer;">
+                                    <input type="radio" name="r_car" value="no" checked onchange="toggleCarFields(false)"> <span>لا</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="collapsible-body" style="display:block;">
+                            <div id="car-details-fields" style="display:none;">
+                                <div id="cars-entries-container">
+                                    <div class="sub-block" id="car-item-1" style="margin-bottom:10px;">
+                                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                                            <b style="color:var(--cyan); font-size:12px;">تفاصيل السيارة (#1)</b>
+                                        </div>
+                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                                            <div class="form-group">
+                                                <label class="form-label">نوع السيارة</label>
+                                                <input type="text" class="form-input" placeholder="مثال: هيونداي توسان">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">موديل كام</label>
+                                                <input type="text" class="form-input" placeholder="مثال: 2022">
+                                            </div>
+                                        </div>
+                                        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                                            <div class="form-group">
+                                                <label class="form-label">قيمة سعر السيارة اليوم</label>
+                                                <input type="number" class="form-input" placeholder="0.00">
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="form-label">الرخصة</label>
+                                                <select class="form-select">
+                                                    <option value="بدون حظر">بدون حظر</option>
+                                                    <option value="عليها حظر">عليها حظر</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <button class="chip-pill active" style="width:100%; border-radius:12px; padding:10px; font-size:12px; font-weight:800; margin-top:4px;" onclick="addModernCarEntry()">
+                                    ➕ إضافة سيارة أخرى
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:8px; margin-top:10px;">
+                        <button class="chip-pill" style="flex:1; border-radius:14px; padding:12px; font-size:12px;" onclick="goToWizardStep(1)">
+                            السابق ➔
+                        </button>
+                        <button class="chip-pill active" style="flex:2; border-radius:14px; padding:12px; font-size:13px; font-weight:800;" onclick="goToWizardStep(3)">
+                            التالي: المستندات وتأكيد الطلب ➔
+                        </button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: بيانات التمويل والمستندات والمندوب وتأكيد الحفظ -->
+                <div id="wiz-pane-3" style="display:none;">
+                    <div class="collapsible-card open">
+                        <div class="collapsible-header"><div class="collapsible-title"><span>💰</span><span>بيانات التمويل المطلوب</span></div></div>
+                        <div class="collapsible-body" style="display:block;">
+                            <div class="form-group">
+                                <label class="form-label">مبلغ التمويل المطلوب من البنك (ج.م) *</label>
+                                <input type="number" class="form-input" id="nc-requested-amt" placeholder="250000" style="color:var(--gold); font-size:15px; font-weight:800;">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">اسم المندوب / الموظف المسؤول *</label>
+                                <input type="text" class="form-input" id="nc-rep-name" value="وسام نادر (المدير)">
+                            </div>
+                            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                                <div class="form-group">
+                                    <label class="form-label">تاريخ الطلب (تلقائي)</label>
+                                    <input type="text" class="form-input" id="nc-req-date" readonly style="color:var(--cyan); font-weight:700; background:rgba(0,229,255,0.05); border-color:rgba(0,229,255,0.25);">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">توقيت تقديم الطلب</label>
+                                    <input type="text" class="form-input" id="nc-req-time" readonly style="color:var(--gold); font-weight:700; background:rgba(212,175,55,0.05); border-color:rgba(212,175,55,0.25);">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="collapsible-card open">
+                        <div class="collapsible-header"><div class="collapsible-title"><span>📁</span><span>المستندات والأوراق المطلوبة</span></div></div>
+                        <div class="collapsible-body" style="display:block;">
+                            <div class="sub-block" style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <b style="color:#fff; font-size:12px;">بطاقة الرقم القومي (وجه وظهر)</b>
+                                    <div style="font-size:10.5px; color:var(--text-secondary);">مطلوب أساسي</div>
+                                </div>
+                                <button class="chip-pill active" style="padding:4px 10px; font-size:11px;" onclick="showToast('تم التقاط / رفع بطاقة العميل ✓')">📤 رفع</button>
+                            </div>
+
+                            <div class="sub-block" style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <b style="color:#fff; font-size:12px;">شهادة إثبات الدخل (HR Letter / كشف حساب)</b>
+                                    <div style="font-size:10.5px; color:var(--text-secondary);">مطلوب أساسي</div>
+                                </div>
+                                <button class="chip-pill active" style="padding:4px 10px; font-size:11px;" onclick="showToast('تم رفع مفردات المرتب ✓')">📤 رفع</button>
+                            </div>
+
+                            <div class="sub-block" style="display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <b style="color:#fff; font-size:12px;">مستندات إضافية (إيصال مرافق، عقود أصول)</b>
+                                    <div style="font-size:10.5px; color:var(--text-secondary);">اختياري لتدعيم الملف</div>
+                                </div>
+                                <button class="chip-pill" style="padding:4px 10px; font-size:11px;" onclick="showToast('تم رفع المستند الإضافي ✓')">➕ إضافة</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Final Submission Button -->
+                    <div style="display:flex; gap:8px; margin-top:14px;">
+                        <button class="chip-pill" style="flex:1; border-radius:14px; padding:12px; font-size:12px;" onclick="goToWizardStep(2)">
+                            السابق ➔
+                        </button>
+                        <button class="chip-pill active" style="flex:2; border-radius:14px; padding:12px; font-size:13px; font-weight:900; background:linear-gradient(135deg, var(--gold), #ffb300); color:#000; border:none;" onclick="submitNewClientForm()">
+                            ✓ حفظ العميل وفتح الملف
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- Floating Blurred Glass Dock (Exact bottom bar) -->
+        <nav class="bottom-nav">
+            <div class="nav-button active" id="btn-dash" onclick="switchSection('dashboard', 'الرئيسية')">
+                <span class="nav-btn-icon">🏠</span>
+                <span>الرئيسية</span>
+            </div>
+            <div class="nav-button" id="btn-clients" onclick="switchSection('clients', 'العملاء')">
+                <span class="nav-btn-icon">👥</span>
+                <span>العملاء</span>
+            </div>
+            <div class="nav-button" id="btn-dist" onclick="switchSection('distributions', 'التوزيعات')">
+                <span class="nav-btn-icon">🔄</span>
+                <span>التوزيعات</span>
+            </div>
+            <div class="nav-button" onclick="openDrawer()">
+                <span class="nav-btn-icon">⋯</span>
+                <span>المزيد</span>
+            </div>
+        </nav>
+
+        <!-- Full Sections Modal Sheet -->
+        <div id="drawer-box" class="modal-drawer" onclick="closeDrawer()">
+            <div class="drawer-sheet" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+                    <span style="font-size:15px; font-weight:800; color:var(--gold);">أقسام المنظومة الكاملة (11 قسم)</span>
+                    <span style="cursor:pointer; font-size:18px; color:var(--text-secondary);" onclick="closeDrawer()">✕</span>
+                </div>
+                <div class="drawer-grid">
+                    <div class="drawer-card-item" onclick="switchSection('dashboard', 'الرئيسية')">
+                        <span style="font-size:20px;">📊</span>
+                        <span style="font-size:12px; font-weight:700;">الرئيسية</span>
+                    </div>
+                    <div class="drawer-card-item" onclick="switchSection('clients', 'دليل العملاء')">
+                        <span style="font-size:20px;">👥</span>
+                        <span style="font-size:12px; font-weight:700;">قائمة العملاء</span>
+                    </div>
+                    <div class="drawer-card-item" onclick="switchSection('profile', 'ملف العميل')">
+                        <span style="font-size:20px;">👤</span>
+                        <span style="font-size:12px; font-weight:700;">تفاصيل العميل</span>
+                    </div>
+                    <div class="drawer-card-item" onclick="switchSection('prospects', 'العملاء المحتملين')">
+                        <span style="font-size:20px;">👥</span>
+                        <span style="font-size:12px; font-weight:700;">العملاء المحتملين</span>
+                    </div>
+                    <div class="drawer-card-item" onclick="switchSection('distributions', 'التوزيعات')">
+                        <span style="font-size:20px;">🔄</span>
+                        <span style="font-size:12px; font-weight:700;">التوزيعات العامة</span>
+                    </div>
+                    <div class="drawer-card-item" onclick="switchSection('operations', 'العمليات')">
+                        <span style="font-size:20px;">⚙️</span>
+                        <span style="font-size:12px; font-weight:700;">العمليات العامة</span>
+                    </div>
+                    <div class="drawer-card-item" onclick="switchSection('invoices', 'الفواتير')">
+                        <span style="font-size:20px;">🧾</span>
+                        <span style="font-size:12px; font-weight:700;">الفواتير والماليات</span>
+                    </div>
+                    <div class="drawer-card-item" onclick="switchSection('accounts', 'الحسابات')">
+                        <span style="font-size:20px;">💰</span>
+                        <span style="font-size:12px; font-weight:700;">الحسابات والميزانية</span>
+                    </div>
+                    <div class="drawer-card-item" onclick="switchSection('reports', 'التقارير')">
+                        <span style="font-size:20px;">📈</span>
+                        <span style="font-size:12px; font-weight:700;">التقارير والتارجت</span>
+                    </div>
+                    <div class="drawer-card-item" onclick="switchSection('banks', 'البنوك')">
+                        <span style="font-size:20px;">🏦</span>
+                        <span style="font-size:12px; font-weight:700;">دليل البنوك</span>
+                    </div>
+                    <div class="drawer-card-item" onclick="switchSection('employees', 'الموظفين')">
+                        <span style="font-size:20px;">🧑‍💼</span>
+                        <span style="font-size:12px; font-weight:700;">موظفي الشركة</span>
+                    </div>
+                    <div class="drawer-card-item" onclick="switchSection('ai', 'المساعد الذكي')">
+                        <span style="font-size:20px;">🧠</span>
+                        <span style="font-size:12px; font-weight:700;">المساعد الذكي AI</span>
+                    </div>
+                    <div class="drawer-card-item" onclick="switchSection('calculator', 'حاسبة التمويل')">
+                        <span style="font-size:20px;">🧮</span>
+                        <span style="font-size:12px; font-weight:700;">حاسبة التمويل</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. POPUP MODAL: المحفظة المالية والعمولات -->
+        <div id="modal-wallet" class="modal-drawer" onclick="closeDashModal('modal-wallet')">
+            <div class="drawer-sheet" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:24px;">💰</span>
+                        <span style="font-size:16px; font-weight:800; color:#fff;">المحفظة المالية والعمولات</span>
+                    </div>
+                    <button class="chip-pill" onclick="closeDashModal('modal-wallet')">✕ إغلاق</button>
+                </div>
+                
+                <div class="feed-card" style="background: linear-gradient(145deg, #182236, #0e1422); border-color:var(--border-glow-gold);">
+                    <div style="font-size:12px; color:var(--text-secondary);">إجمالي العمولات المستحقة (الشهر الحالي)</div>
+                    <div style="font-size:28px; font-weight:900; color:var(--gold); margin:4px 0;">48,500 ج.م</div>
+                    <div style="display:flex; gap:10px; margin-top:8px;">
+                        <div style="flex:1; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); padding:8px; border-radius:10px;">
+                            <span style="font-size:10.5px; color:var(--green); display:block;">المحصل الفعلي:</span>
+                            <b style="color:#fff; font-size:13px;">32,000 ج.م</b>
+                        </div>
+                        <div style="flex:1; background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); padding:8px; border-radius:10px;">
+                            <span style="font-size:10.5px; color:var(--red); display:block;">قيد التحصيل:</span>
+                            <b style="color:#fff; font-size:13px;">16,500 ج.م</b>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="font-size:13px; font-weight:800; color:#fff; margin:14px 0 8px 0;">آخر العمولات المضافة للمحفظة:</div>
+                <div class="sub-block">
+                    <div class="detail-row"><span class="detail-lbl">محمد إسماعيل القرشي (CIB):</span><span class="detail-val" style="color:var(--green)">+12,500 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">تاريخ الاستحقاق:</span><span class="detail-val">28/03/2026</span></div>
+                </div>
+                <div class="sub-block">
+                    <div class="detail-row"><span class="detail-lbl">أحمد سعيد مرعي (EG Bank):</span><span class="detail-val" style="color:var(--green)">+8,000 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">تاريخ الاستحقاق:</span><span class="detail-val">22/03/2026</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. POPUP MODAL: تارجت المبيعات والتحقيق -->
+        <div id="modal-target" class="modal-drawer" onclick="closeDashModal('modal-target')">
+            <div class="drawer-sheet" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:24px;">🎯</span>
+                        <span style="font-size:16px; font-weight:800; color:#fff;">تارجت المبيعات الشهري</span>
+                    </div>
+                    <button class="chip-pill" onclick="closeDashModal('modal-target')">✕ إغلاق</button>
+                </div>
+
+                <div class="feed-card" style="border-color:var(--border-glow-cyan);">
+                    <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                        <span style="font-size:12px; color:var(--text-secondary);">نسبة الإنجاز المحققة:</span>
+                        <span style="font-size:22px; font-weight:900; color:var(--cyan);">72.5%</span>
+                    </div>
+                    <div style="height:10px; background:rgba(255,255,255,0.08); border-radius:10px; margin:10px 0; overflow:hidden;">
+                        <div style="width:72.5%; height:100%; background:linear-gradient(90deg, var(--cyan), var(--green)); border-radius:10px;"></div>
+                    </div>
+                    <div class="detail-row"><span class="detail-lbl">التارجت المستهدف:</span><span class="detail-val" style="color:var(--gold);">2,000,000 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">التمويلات المنفذة فعلياً:</span><span class="detail-val" style="color:var(--green);">1,450,000 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">المتبقي لتحقيق التارجت:</span><span class="detail-val" style="color:var(--amber);">550,000 ج.م</span></div>
+                    <div class="detail-row"><span class="detail-lbl">أيام العمل المتبقية:</span><span class="detail-val">6 أيام</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. POPUP MODAL: جدول ومواعيد المتابعات -->
+        <div id="modal-followups" class="modal-drawer" onclick="closeDashModal('modal-followups')">
+            <div class="drawer-sheet" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:24px;">📅</span>
+                        <span style="font-size:16px; font-weight:800; color:#fff;">جدول متابعات اليوم والعملاء</span>
+                    </div>
+                    <button class="chip-pill" onclick="closeDashModal('modal-followups')">✕ إغلاق</button>
+                </div>
+
+                <div class="sub-block" style="border-right:3px solid var(--gold); margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <b style="color:#fff; font-size:13px;">محمد إسماعيل القرشي</b>
+                        <span class="status-chip status-chip-amber" style="font-size:10px;">اليوم 16:00</span>
+                    </div>
+                    <p style="font-size:11.5px; color:var(--text-secondary); margin-top:4px;">الاتصال بالعميل لتأكيد توقيع إيصالات الأمانة وشيكات التمويل بالفرع الرئيسي CIB.</p>
+                    <div style="margin-top:8px; display:flex; gap:6px;">
+                        <button class="chip-pill active" style="flex:1; padding:4px; font-size:10.5px;" onclick="showToast('اتصال بالعميل')">📞 اتصال</button>
+                        <button class="chip-pill" style="flex:1; padding:4px; font-size:10.5px;" onclick="showToast('تمت المتابعة ✓')">✓ تم الإنجاز</button>
+                    </div>
+                </div>
+
+                <div class="sub-block" style="border-right:3px solid var(--cyan); margin-bottom:10px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <b style="color:#fff; font-size:13px;">كريم عادل عبد الفتاح</b>
+                        <span class="status-chip status-chip-cyan" style="font-size:10px;">غداً 11:30</span>
+                    </div>
+                    <p style="font-size:11.5px; color:var(--text-secondary); margin-top:4px;">استلام أصل شهادة مفردات المرتب المعتمدة من شركة البترول ورفعها للنظام.</p>
+                </div>
+
+                <div class="sub-block" style="border-right:3px solid var(--green);">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <b style="color:#fff; font-size:13px;">طارق مصطفى فهمي</b>
+                        <span class="status-chip status-chip-green" style="font-size:10px;">تمت</span>
+                    </div>
+                    <p style="font-size:11.5px; color:var(--text-secondary); margin-top:4px;">تم إرسال الملف للبنك الأهلي المصري واستلام الموافقة المبدئية.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. POPUP MODAL: توزيع حالات الطلبات -->
+        <div id="modal-status" class="modal-drawer" onclick="closeDashModal('modal-status')">
+            <div class="drawer-sheet" onclick="event.stopPropagation()">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <span style="font-size:24px;">📊</span>
+                        <span style="font-size:16px; font-weight:800; color:#fff;">توزيع حالات طلبات التمويل</span>
+                    </div>
+                    <button class="chip-pill" onclick="closeDashModal('modal-status')">✕ إغلاق</button>
+                </div>
+
+                <div class="feed-card">
+                    <div class="detail-row">
+                        <span style="display:flex; align-items:center; gap:6px;">
+                            <span style="width:10px; height:10px; border-radius:50%; background:var(--green); display:inline-block;"></span>
+                            <span class="detail-lbl">تمت الموافقة والصرف:</span>
+                        </span>
+                        <span class="detail-val" style="color:var(--green); font-size:13px;">84 طلب (33.8%)</span>
+                    </div>
+                    <div class="detail-row">
+                        <span style="display:flex; align-items:center; gap:6px;">
+                            <span style="width:10px; height:10px; border-radius:50%; background:var(--cyan); display:inline-block;"></span>
+                            <span class="detail-lbl">بالبنك قيد المراجعة:</span>
+                        </span>
+                        <span class="detail-val" style="color:var(--cyan); font-size:13px;">42 طلب (16.9%)</span>
+                    </div>
+                    <div class="detail-row">
+                        <span style="display:flex; align-items:center; gap:6px;">
+                            <span style="width:10px; height:10px; border-radius:50%; background:var(--amber); display:inline-block;"></span>
+                            <span class="detail-lbl">فحص الآي سكور والأوراق:</span>
+                        </span>
+                        <span class="detail-val" style="color:var(--amber); font-size:13px;">68 طلب (27.4%)</span>
+                    </div>
+                    <div class="detail-row">
+                        <span style="display:flex; align-items:center; gap:6px;">
+                            <span style="width:10px; height:10px; border-radius:50%; background:var(--gold); display:inline-block;"></span>
+                            <span class="detail-lbl">طلبات جديدة معلقة:</span>
+                        </span>
+                        <span class="detail-val" style="color:var(--gold); font-size:13px;">35 طلب (14.1%)</span>
+                    </div>
+                    <div class="detail-row">
+                        <span style="display:flex; align-items:center; gap:6px;">
+                            <span style="width:10px; height:10px; border-radius:50%; background:var(--red); display:inline-block;"></span>
+                            <span class="detail-lbl">مرفوض لعدم استيفاء الشروط:</span>
+                        </span>
+                        <span class="detail-val" style="color:var(--red); font-size:13px;">19 طلب (7.6%)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function switchSection(secId, title) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            const target = document.getElementById('view-' + secId);
+            if (target) target.classList.add('active');
+
+            document.querySelectorAll('.nav-button').forEach(el => el.classList.remove('active'));
+            if (secId === 'dashboard') document.getElementById('btn-dash').classList.add('active');
+            if (secId === 'clients') document.getElementById('btn-clients').classList.add('active');
+            if (secId === 'distributions') document.getElementById('btn-dist').classList.add('active');
+
+            closeDrawer();
+        }
+
+        // Dual Tab Switcher: دليل العملاء (0) vs قسم المتابعات (1)
+        function switchMainClientsTab(tabIndex) {
+            const btn0 = document.getElementById('main-client-tab-0');
+            const btn1 = document.getElementById('main-client-tab-1');
+            const view0 = document.getElementById('subview-clients-directory');
+            const view1 = document.getElementById('subview-clients-followups');
+
+            if (tabIndex === 0) {
+                if (btn0) btn0.classList.add('active');
+                if (btn1) btn1.classList.remove('active');
+                if (view0) view0.style.display = 'block';
+                if (view1) view1.style.display = 'none';
+            } else {
+                if (btn1) btn1.classList.add('active');
+                if (btn0) btn0.classList.remove('active');
+                if (view1) view1.style.display = 'block';
+                if (view0) view0.style.display = 'none';
+            }
+        }
+
+        function filterFollowUpsList() {
+            const query = (document.getElementById('followup-search-input')?.value || '').toLowerCase().trim();
+            const statusFilter = document.getElementById('followup-filter-status')?.value || 'all';
+            const repFilter = document.getElementById('followup-filter-rep')?.value || 'all';
+
+            const cards = document.querySelectorAll('.followup-card-item');
+            cards.forEach(card => {
+                const status = card.getAttribute('data-status');
+                const rep = card.getAttribute('data-rep');
+                const searchStr = (card.getAttribute('data-search') || '').toLowerCase();
+
+                let matchStatus = true;
+                if (statusFilter === 'pending') matchStatus = (status !== 'completed');
+                else if (statusFilter === 'urgent') matchStatus = (status === 'urgent');
+                else if (statusFilter === 'tomorrow') matchStatus = (status === 'tomorrow');
+                else if (statusFilter === 'completed') matchStatus = (status === 'completed');
+
+                let matchRep = (repFilter === 'all') || (rep === repFilter);
+                let matchQuery = !query || searchStr.includes(query);
+
+                if (matchStatus && matchRep && matchQuery) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        function markFollowUpDone(btn) {
+            const card = btn.closest('.followup-card-item');
+            if (card) {
+                card.setAttribute('data-status', 'completed');
+                btn.innerText = '✅ تم الإنجاز';
+                btn.style.borderColor = 'var(--green)';
+                btn.disabled = true;
+                showToast('تم تسجيل إتمام المتابعة بنجاح ✓');
+            }
+        }
+
+        let currentStageFilter = 'all';
+
+        function filterByStage(stage, chipElem) {
+            currentStageFilter = stage;
+            document.querySelectorAll('#client-stage-chips .chip-pill').forEach(el => el.classList.remove('active'));
+            if (chipElem) chipElem.classList.add('active');
+            applyClientFilters();
+        }
+
+        function filterClientsList() {
+            applyClientFilters();
+        }
+
+        function applyClientFilters() {
+            const query = (document.getElementById('client-search-input')?.value || '').toLowerCase().trim();
+            const cards = document.querySelectorAll('.client-list-item');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const stage = card.getAttribute('data-stage');
+                const name = (card.getAttribute('data-name') || '').toLowerCase();
+                const bank = (card.getAttribute('data-bank') || '').toLowerCase();
+                const phone = (card.getAttribute('data-phone') || '').toLowerCase();
+
+                const matchStage = (currentStageFilter === 'all') || (stage === currentStageFilter);
+                const matchQuery = !query || name.includes(query) || bank.includes(query) || phone.includes(query);
+
+                if (matchStage && matchQuery) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            const counter = document.getElementById('clients-counter-text');
+            if (counter) counter.innerText = 'عرض ' + visibleCount + ' عميل';
+        }
+
+        const TRANSACTION_STEPS = [
+            { key: 'pending', label: 'قيد الانتظار', icon: '⏳' },
+            { key: 'iscore_inquiry', label: 'استعلام ايسكور', icon: '🔍' },
+            { key: 'preparing_documents', label: 'تحضير الاوراق', icon: '📄' },
+            { key: 'under_review', label: 'قيد الدراسة', icon: '📝' },
+            { key: 'at_bank', label: 'فى البنك', icon: '🏛️' },
+            { key: 'approved', label: 'مقبول', icon: '✅' },
+            { key: 'rejected', label: 'مرفوض', icon: '❌' }
+        ];
+
+        function updateTransactionStatus(statusKey) {
+            const isRejected = (statusKey === 'rejected');
+            const rejNode = document.getElementById('step-node-rejected');
+            if (rejNode) rejNode.style.display = isRejected ? 'flex' : 'none';
+
+            const activeIndex = TRANSACTION_STEPS.findIndex(s => s.key === statusKey);
+            const badge = document.getElementById('prof-current-status-badge');
+            const select = document.getElementById('profile-status-select');
+            if (select) select.value = statusKey;
+
+            const currentObj = TRANSACTION_STEPS.find(s => s.key === statusKey);
+            if (badge && currentObj) {
+                badge.innerText = currentObj.label;
+                badge.style.color = isRejected ? 'var(--red)' : (statusKey === 'approved' ? 'var(--green)' : 'var(--cyan)');
+            }
+
+            TRANSACTION_STEPS.forEach((step, idx) => {
+                const node = document.getElementById('step-node-' + step.key);
+                if (!node) return;
+                node.classList.remove('completed', 'active', 'rejected');
+
+                if (isRejected) {
+                    if (step.key === 'rejected') {
+                        node.classList.add('active', 'rejected');
+                    }
+                } else {
+                    if (idx < activeIndex) {
+                        node.classList.add('completed');
+                    } else if (idx === activeIndex) {
+                        node.classList.add('active');
+                    }
+                }
+            });
+
+            showToast('تم تحديث حالة المعاملة إلى: ' + (currentObj?.label || statusKey));
+        }
+
+        function openClientProfile(name, bank, status, score, requestedAmt, job, salary) {
+            if (name) document.getElementById('prof-name').innerText = name;
+            if (score) document.getElementById('prof-score').innerText = 'الآي سكور: ' + score;
+            
+            // Map incoming status string to valid step key
+            let mappedStatus = 'at_bank';
+            if (status) {
+                const s = status.toLowerCase();
+                if (s.includes('مرفوض') || s.includes('rejected')) mappedStatus = 'rejected';
+                else if (s.includes('موافق') || s.includes('صرف') || s.includes('approved')) mappedStatus = 'approved';
+                else if (s.includes('بنك') || s.includes('at_bank')) mappedStatus = 'at_bank';
+                else if (s.includes('دراسة') || s.includes('مراجعة') || s.includes('review')) mappedStatus = 'under_review';
+                else if (s.includes('أوراق') || s.includes('اوراق') || s.includes('preparing')) mappedStatus = 'preparing_documents';
+                else if (s.includes('ايسكور') || s.includes('iscore')) mappedStatus = 'iscore_inquiry';
+                else if (s.includes('معلق') || s.includes('انتظار') || s.includes('pending')) mappedStatus = 'pending';
+            }
+            updateTransactionStatus(mappedStatus);
+
+            switchSection('profile', 'ملف العميل');
+            switchClientTab('data');
+        }
+
+        function switchClientTab(tabKey) {
+            document.querySelectorAll('.client-tab-pane').forEach(el => el.classList.remove('active'));
+            const pane = document.getElementById('pane-' + tabKey);
+            if (pane) pane.classList.add('active');
+
+            document.querySelectorAll('.client-tab-btn').forEach(el => el.classList.remove('active'));
+            const btn = document.getElementById('tab-btn-' + tabKey);
+            if (btn) btn.classList.add('active');
+        }
+
+        function toggleCard(id) {
+            document.getElementById(id).classList.toggle('open');
+        }
+
+        function openDrawer() {
+            document.getElementById('drawer-box').classList.add('open');
+        }
+        function closeDrawer() {
+            document.getElementById('drawer-box').classList.remove('open');
+        }
+
+        function openDashModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('open');
+        }
+        function closeDashModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('open');
+        }
+
+        // Wizard Logic for New Client
+        function goToWizardStep(stepNum) {
+            document.getElementById('wiz-pane-1').style.display = (stepNum === 1) ? 'block' : 'none';
+            document.getElementById('wiz-pane-2').style.display = (stepNum === 2) ? 'block' : 'none';
+            document.getElementById('wiz-pane-3').style.display = (stepNum === 3) ? 'block' : 'none';
+
+            for (let i = 1; i <= 3; i++) {
+                const ind = document.getElementById('wiz-step-ind-' + i);
+                if (i === stepNum) {
+                    ind.className = 'wizard-step-item active';
+                } else if (i < stepNum) {
+                    ind.className = 'wizard-step-item done';
+                } else {
+                    ind.className = 'wizard-step-item';
+                }
+            }
+            if (stepNum === 3) initRequestDateTime();
+        }
+
+        function onEmploymentTypeChanged(val) {
+            const empBlock = document.getElementById('fields-employee-block');
+            const bizBlock = document.getElementById('fields-business-block');
+            const medBlock = document.getElementById('fields-medical-block');
+
+            if (val === 'business_owner') {
+                bizBlock.style.display = 'block';
+                empBlock.style.display = 'none';
+                medBlock.style.display = 'none';
+            } else if (val === 'doctor_clinic' || val === 'doctor_hospital' || val === 'pharmacist_owner') {
+                medBlock.style.display = 'block';
+                bizBlock.style.display = 'none';
+                empBlock.style.display = (val === 'doctor_hospital') ? 'block' : 'none';
+            } else {
+                empBlock.style.display = 'block';
+                bizBlock.style.display = 'none';
+                medBlock.style.display = 'none';
+            }
+        }
+
+        function onSalaryTransferChanged(val) {
+            document.getElementById('salary-bank-row').style.display = (val === 'bank_transfer') ? 'block' : 'none';
+            document.getElementById('salary-cash-row').style.display = (val === 'cash') ? 'block' : 'none';
+        }
+
+        let phoneCounter = 1;
+        function addPhoneNumberEntry() {
+            phoneCounter++;
+            const idx = phoneCounter;
+            const container = document.getElementById('phones-container');
+            const row = document.createElement('div');
+            row.className = 'phone-entry-row';
+            row.style.cssText = 'display:flex; gap:6px; margin-bottom:6px;';
+            row.innerHTML = `
+                <input type="tel" class="form-input" placeholder="01XXXXXXXX (رقم إضافي #${idx})" dir="ltr" style="text-align:right; flex:1;">
+                <button type="button" class="chip-pill" style="padding:6px 10px; font-size:11px; color:var(--red); border-color:var(--red);" onclick="this.parentElement.remove()">
+                    ✕ إزالة
+                </button>
+            `;
+            container.appendChild(row);
+        }
+
+        let salaryBankCounter = 1;
+        function addSalaryBankEntry() {
+            salaryBankCounter++;
+            const idx = salaryBankCounter;
+            const container = document.getElementById('salary-banks-container');
+            const block = document.createElement('div');
+            block.className = 'sub-block';
+            block.style.marginBottom = '8px';
+            block.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                    <b style="color:var(--gold); font-size:11.5px;">حساب بنكي (#${idx})</b>
+                    <span style="color:var(--red); font-size:11px; cursor:pointer;" onclick="this.parentElement.parentElement.remove()">✕ إزالة</span>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <div class="form-group">
+                        <label class="form-label">اسم البنك</label>
+                        <input type="text" class="form-input" placeholder="مثال: بنك مصر، QNB">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">صافي الراتب المحول (ج.م)</label>
+                        <input type="number" class="form-input" placeholder="0.00">
+                    </div>
+                </div>
+            `;
+            container.appendChild(block);
+        }
+
+        function toggleCompoundFields(checked) {
+            document.getElementById('compound-details-fields').style.display = checked ? 'block' : 'none';
+        }
+
+        function toggleCarFields(checked) {
+            document.getElementById('car-details-fields').style.display = checked ? 'block' : 'none';
+        }
+
+        let loanCounter = 1;
+        function addLoanEntry() {
+            loanCounter++;
+            const container = document.getElementById('loans-entries-container');
+            const newBlock = document.createElement('div');
+            newBlock.className = 'sub-block';
+            newBlock.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                    <b style="color:var(--cyan); font-size:12px;">قرض (#${loanCounter})</b>
+                    <span style="color:var(--red); font-size:11px; cursor:pointer;" onclick="this.parentElement.parentElement.remove()">✕ إزالة</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">اسم البنك</label>
+                    <input type="text" class="form-input" placeholder="اسم البنك المقرض">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">قيمة القسط الشهري</label>
+                    <input type="number" class="form-input" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ملاحظات إضافية</label>
+                    <input type="text" class="form-input" placeholder="ملاحظات إضافية">
+                </div>
+            `;
+            container.appendChild(newBlock);
+        }
+
+        let cardCounter = 1;
+        function addCardEntry() {
+            cardCounter++;
+            const idx = cardCounter;
+            const container = document.getElementById('cards-entries-container');
+            const newBlock = document.createElement('div');
+            newBlock.className = 'sub-block';
+            newBlock.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                    <b style="color:var(--gold); font-size:12px;">بطاقة / طلب رقم ${idx}</b>
+                    <span style="color:var(--red); font-size:11px; cursor:pointer;" onclick="this.parentElement.parentElement.remove()">✕ إزالة</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">اسم البنك</label>
+                    <input type="text" class="form-input" placeholder="اسم البنك المصدر">
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <div class="form-group">
+                        <label class="form-label">قيمة الليمت</label>
+                        <input type="number" class="form-input" id="card-val-${idx}" placeholder="0.00" onkeyup="calcFivePercentCard(${idx})">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">قيمة الـ 5%</label>
+                        <input type="text" class="form-input" id="card-five-${idx}" readonly value="0.00" style="color:var(--cyan); font-weight:800;">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <div class="form-group">
+                        <label class="form-label">النوع</label>
+                        <select class="form-select" id="card-type-${idx}" onchange="onCardTypeChanged(${idx}, this.value)">
+                            <option value="card">بطاقة</option>
+                            <option value="request">أبلكيشن</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">المدة</label>
+                        <input type="text" class="form-input" placeholder="مثال: 12 شهر">
+                    </div>
+                </div>
+                <div id="card-app-fields-${idx}" style="display:none; margin-top:4px;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                        <div class="form-group">
+                            <label class="form-label">قيمة القسط</label>
+                            <input type="number" class="form-input" id="card-inst-${idx}" placeholder="0.00" onkeyup="calcHighestCard(${idx})">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">الحد الأعلى</label>
+                            <input type="text" class="form-input" id="card-highest-${idx}" readonly value="0.00" style="color:var(--amber); font-weight:800;">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:6px;">
+                    <label class="form-label">ملاحظات إضافية</label>
+                    <input type="text" class="form-input" placeholder="تفاصيل أو ملاحظات إضافية بخصوص البطاقة أو الطلب...">
+                </div>
+            `;
+            container.appendChild(newBlock);
+        }
+
+        function calcFivePercentCard(idx) {
+            const val = parseFloat(document.getElementById('card-val-' + idx)?.value) || 0;
+            const five = val * 0.05;
+            const target = document.getElementById('card-five-' + idx);
+            if (target) target.value = five > 0 ? five.toFixed(2) : '0.00';
+            calcHighestCard(idx);
+        }
+
+        function onCardTypeChanged(idx, typeVal) {
+            const appFields = document.getElementById('card-app-fields-' + idx);
+            if (appFields) appFields.style.display = (typeVal === 'request') ? 'block' : 'none';
+            calcHighestCard(idx);
+        }
+
+        function calcHighestCard(idx) {
+            const val = parseFloat(document.getElementById('card-val-' + idx)?.value) || 0;
+            const five = val * 0.05;
+            const type = document.getElementById('card-type-' + idx)?.value || 'card';
+            let highest = five;
+            if (type === 'request') {
+                const inst = parseFloat(document.getElementById('card-inst-' + idx)?.value) || 0;
+                highest = (inst > five) ? inst : five;
+            }
+            const target = document.getElementById('card-highest-' + idx);
+            if (target) target.value = highest > 0 ? highest.toFixed(2) : '0.00';
+        }
+
+        function calcUnitPercent(idx) {
+            const id = idx ? ('-' + idx) : '';
+            const val = parseFloat(document.getElementById('nc-unit-val' + id)?.value) || 0;
+            const down = parseFloat(document.getElementById('nc-unit-down' + id)?.value) || 0;
+            const target = document.getElementById('nc-unit-down-pct' + id);
+            if (target) {
+                if (val > 0) {
+                    const pct = ((down / val) * 100).toFixed(1);
+                    target.value = pct + '%';
+                } else {
+                    target.value = '0.0%';
+                }
+            }
+        }
+
+        let compoundCounter = 1;
+        function addCompoundUnitEntry() {
+            compoundCounter++;
+            const idx = compoundCounter;
+            const container = document.getElementById('compound-entries-container');
+            const newBlock = document.createElement('div');
+            newBlock.className = 'sub-block';
+            newBlock.style.marginBottom = '10px';
+            newBlock.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <b style="color:var(--gold); font-size:12px;">تفاصيل الوحدة (#${idx})</b>
+                    <span style="color:var(--red); font-size:11px; cursor:pointer;" onclick="this.parentElement.parentElement.remove()">✕ إزالة</span>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <div class="form-group">
+                        <label class="form-label">اسم الكمبوند</label>
+                        <input type="text" class="form-input" placeholder="مثال: بيفيرلي هيلز">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">اسم المطور</label>
+                        <input type="text" class="form-input" placeholder="مثال: سوديك">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <div class="form-group">
+                        <label class="form-label">تاريخ التعاقد</label>
+                        <input type="text" class="form-input" placeholder="مثال: 2022-01-01">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">قيمة الوحدة</label>
+                        <input type="number" class="form-input" id="nc-unit-val-${idx}" placeholder="0.00" onkeyup="calcUnitPercent(${idx})">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <div class="form-group">
+                        <label class="form-label">المقدم المدفوع</label>
+                        <input type="number" class="form-input" id="nc-unit-down-${idx}" placeholder="0.00" onkeyup="calcUnitPercent(${idx})">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">نسبة المقدم</label>
+                        <input type="text" class="form-input" id="nc-unit-down-pct-${idx}" readonly value="0.0%" style="color:var(--amber); font-weight:800;">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <div class="form-group">
+                        <label class="form-label">عدد الأقساط المدفوعة</label>
+                        <input type="number" class="form-input" placeholder="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">قيمة ما تم دفعه</label>
+                        <input type="number" class="form-input" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-top:6px;">
+                    <label class="form-label">صورة عقد الوحدة</label>
+                    <button class="chip-pill active" style="width:100%; padding:8px; font-size:11px;" onclick="showToast('رفع ملف العقد ✓')">📤 رفع ملف العقد</button>
+                </div>
+            `;
+            container.appendChild(newBlock);
+        }
+
+        let carCounter = 1;
+        function addModernCarEntry() {
+            carCounter++;
+            const idx = carCounter;
+            const container = document.getElementById('cars-entries-container');
+            const newBlock = document.createElement('div');
+            newBlock.className = 'sub-block';
+            newBlock.style.marginBottom = '10px';
+            newBlock.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <b style="color:var(--cyan); font-size:12px;">تفاصيل السيارة (#${idx})</b>
+                    <span style="color:var(--red); font-size:11px; cursor:pointer;" onclick="this.parentElement.parentElement.remove()">✕ إزالة</span>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <div class="form-group">
+                        <label class="form-label">نوع السيارة</label>
+                        <input type="text" class="form-input" placeholder="مثال: هيونداي توسان">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">موديل كام</label>
+                        <input type="text" class="form-input" placeholder="مثال: 2022">
+                    </div>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                    <div class="form-group">
+                        <label class="form-label">قيمة سعر السيارة اليوم</label>
+                        <input type="number" class="form-input" placeholder="0.00">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">الرخصة</label>
+                        <select class="form-select">
+                            <option value="بدون حظر">بدون حظر</option>
+                            <option value="عليها حظر">عليها حظر</option>
+                        </select>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newBlock);
+        }
+
+        function initRequestDateTime() {
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            const dateField = document.getElementById('nc-req-date');
+            const timeField = document.getElementById('nc-req-time');
+            if (dateField) dateField.value = dateStr;
+            if (timeField) timeField.value = timeStr;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            initRequestDateTime();
+        });
+
+        function submitNewClientForm() {
+            const name = document.getElementById('nc-name')?.value.trim() || 'عميل تجريبي جديد';
+            const reqAmt = document.getElementById('nc-requested-amt')?.value.trim() || '200,000';
+            showToast('تم حفظ ملف العميل بنجاح ✓ جاري فتح الملف...');
+            setTimeout(() => {
+                openClientProfile(name, 'CIB', 'جديد معلق', 680, reqAmt + ' ج.م');
+                goToWizardStep(1);
+            }, 1200);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+    </script>
+</body>
+</html>
