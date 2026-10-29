@@ -12,9 +12,9 @@ import '../../models/profile.dart';
 import '../accounts/accounts_screen.dart';
 import '../employees/employee_targets_panel.dart';
 import '../../core/widgets/interactive_hover_card.dart';
-import '../client/credit_calculator_screen.dart';
 import '../../core/utils/client_visibility_helper.dart';
 import '../../models/client_model.dart';
+import '../../providers/theme_provider.dart';
 
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -94,6 +94,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
       averageCreditScore = totalCredit / visibleClients.length;
     }
 
+    final themeMode = ref.watch(themeProvider);
+    final isModern = themeMode == AppThemeMode.modernTheme;
+
+    // Preserved existing widgets
+    final targetWidget = const _DashboardTargetPerformanceWidget();
+    final walletWidget = const _DashboardWalletWidget();
+    final statusBreakdownWidget = _DashboardStatusBreakdownWidget(
+      visibleClients: visibleClients,
+      onViewClient: widget.onViewClient,
+    );
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: LayoutBuilder(
@@ -118,18 +129,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            "لوحة التحكم المالية",
+                            isModern ? "لوحة التحكم المالية (مودرن) ✨" : "لوحة التحكم المالية",
                             style: TextStyle(
                               fontSize: isMobile ? 16 : 20,
                               fontWeight: FontWeight.bold,
-                              color: TfcColors.primary,
+                              color: isModern ? const Color(0xFFD4AF37) : TfcColors.primary,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             "مرحباً بك، ${authState.fullName} - تابع طلبات التمويل والقروض",
                             style: TextStyle(
-                              color: TfcColors.outline,
+                              color: isModern ? const Color(0xFF94A3B8) : TfcColors.outline,
                               fontSize: isMobile ? 10 : 12,
                             ),
                             maxLines: 1,
@@ -139,7 +150,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.refresh, color: TfcColors.primary),
+                      icon: Icon(
+                        Icons.refresh,
+                        color: isModern ? const Color(0xFF00E5FF) : TfcColors.primary,
+                      ),
                       tooltip: "تحديث",
                       onPressed: () =>
                           ref.read(clientProvider.notifier).fetchClients(bankEmployeeId: ref.read(authProvider).bankEmployeeId),
@@ -150,50 +164,136 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
             // 1. KPI Financial cards (visible conditionally if user can view analytics)
             if (permissions.canViewAnalytics) ...[
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final isMobile = constraints.maxWidth < 600;
-                  final isTablet = constraints.maxWidth >= 600 &&
-                      constraints.maxWidth < 1100;
-
-                  return GridView.count(
-                    crossAxisCount: isMobile ? 2 : (isTablet ? 2 : 4),
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisSpacing: isMobile ? 10 : 16,
-                    mainAxisSpacing: isMobile ? 10 : 16,
-                    childAspectRatio: isMobile ? 1.6 : 2.2,
+              if (isModern && isMobile) ...[
+                // ─── MODERN MOBILE KPI CAROUSEL ───
+                SizedBox(
+                  height: 105,
+                  child: ListView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
                     children: [
-                      _buildKpiCard(
+                      _buildModernKpiBox(
                         title: "إجمالي التمويل المطلوب",
                         value: "${_formatMoney(totalRequestedAmount)} ج.م",
-                        icon: Icons.payments,
-                        color: TfcColors.primary,
+                        icon: Icons.account_balance_wallet_rounded,
+                        accentColor: const Color(0xFF00E5FF),
+                        badge: "نشط ⚡",
                       ),
-                      _buildKpiCard(
+                      const SizedBox(width: 8),
+                      _buildModernKpiBox(
                         title: "التمويلات المعتمدة",
-                        value: "${_formatMoney(approvedAmount)} ج.m",
-                        icon: Icons.check_circle,
-                        color: TfcColors.success,
+                        value: "${_formatMoney(approvedAmount)} ج.م",
+                        icon: Icons.check_circle_rounded,
+                        accentColor: const Color(0xFF10B981),
+                        badge: "معتمد ✓",
                       ),
-                      _buildKpiCard(
-                        title: "متوسط التقييم الائتماني",
-                        value: averageCreditScore.toStringAsFixed(0),
-                        icon: Icons.speed,
-                        color: TfcColors.secondary,
-                        subText: "/ 850 درجة",
+                      const SizedBox(width: 8),
+                      _buildModernKpiBox(
+                        title: "متوسط الآي سكور",
+                        value: "${averageCreditScore.toStringAsFixed(0)} / 850",
+                        icon: Icons.speed_rounded,
+                        accentColor: const Color(0xFFD4AF37),
+                        badge: "ائتمان",
                       ),
-                      _buildKpiCard(
+                      const SizedBox(width: 8),
+                      _buildModernKpiBox(
                         title: "الطلبات المعلقة",
-                        value: pendingCount.toString(),
-                        icon: Icons.hourglass_empty,
-                        color: Colors.amber,
+                        value: "$pendingCount طلب",
+                        icon: Icons.hourglass_top_rounded,
+                        accentColor: const Color(0xFFF59E0B),
+                        badge: "انتظار ⏳",
                       ),
                     ],
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                // ─── MODERN 4 QUICK ACTION ICONS (المحفظة، التارجت، المتابعات، الحالات) ───
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _buildModernQuickActionIcon(
+                        label: "المحفظة",
+                        icon: Icons.account_balance_wallet_outlined,
+                        color: const Color(0xFFD4AF37),
+                        onTap: () => _openDashboardModal(context, "المحفظة والعمولات الشخصية", walletWidget),
+                      ),
+                      _buildModernQuickActionIcon(
+                        label: "التارجت",
+                        icon: Icons.track_changes_rounded,
+                        color: const Color(0xFF00E5FF),
+                        onTap: () => _openDashboardModal(context, "متابعة أداء التارجت", targetWidget),
+                      ),
+                      _buildModernQuickActionIcon(
+                        label: "المتابعات",
+                        icon: Icons.calendar_month_outlined,
+                        color: const Color(0xFF10B981),
+                        onTap: () => _openFollowUpsModal(context, visibleClients),
+                      ),
+                      _buildModernQuickActionIcon(
+                        label: "توزيع الحالات",
+                        icon: Icons.pie_chart_outline_rounded,
+                        color: const Color(0xFFA855F7),
+                        onTap: () => _openDashboardModal(context, "توزيع حالات الطلبات", statusBreakdownWidget),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ] else ...[
+                // CLASSIC KPI GRID
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isMob = constraints.maxWidth < 600;
+                    final isTab = constraints.maxWidth >= 600 &&
+                        constraints.maxWidth < 1100;
+
+                    return GridView.count(
+                      crossAxisCount: isMob ? 2 : (isTab ? 2 : 4),
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: isMob ? 10 : 16,
+                      mainAxisSpacing: isMob ? 10 : 16,
+                      childAspectRatio: isMob ? 1.6 : 2.2,
+                      children: [
+                        _buildKpiCard(
+                          title: "إجمالي التمويل المطلوب",
+                          value: "${_formatMoney(totalRequestedAmount)} ج.م",
+                          icon: Icons.payments,
+                          color: isModern ? const Color(0xFF00E5FF) : TfcColors.primary,
+                        ),
+                        _buildKpiCard(
+                          title: "التمويلات المعتمدة",
+                          value: "${_formatMoney(approvedAmount)} ج.m",
+                          icon: Icons.check_circle,
+                          color: isModern ? const Color(0xFF10B981) : TfcColors.success,
+                        ),
+                        _buildKpiCard(
+                          title: "متوسط التقييم الائتماني",
+                          value: averageCreditScore.toStringAsFixed(0),
+                          icon: Icons.speed,
+                          color: isModern ? const Color(0xFFD4AF37) : TfcColors.secondary,
+                          subText: "/ 850 درجة",
+                        ),
+                        _buildKpiCard(
+                          title: "الطلبات المعلقة",
+                          value: pendingCount.toString(),
+                          icon: Icons.hourglass_empty,
+                          color: isModern ? const Color(0xFFF59E0B) : Colors.amber,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 20),
+              ],
             ] else ...[
               // Locked Analytics placeholder
               const GlassCard(
@@ -213,20 +313,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               const SizedBox(height: 32),
             ],
 
-            // Target Performance Widget - visible for ALL employees
-            const _DashboardTargetPerformanceWidget(),
-            const SizedBox(height: 12),
+            if (!isModern || !isMobile) ...[
+              // Target Performance Widget - visible for ALL employees
+              targetWidget,
+              const SizedBox(height: 12),
 
-            // Wallet Widget - Shows personal commission details
-            const _DashboardWalletWidget(),
-            const SizedBox(height: 12),
+              // Wallet Widget - Shows personal commission details
+              walletWidget,
+              const SizedBox(height: 12),
 
-            // 2. Comprehensive Status Breakdown Widget (توزيع حالات الطلبات)
-            _DashboardStatusBreakdownWidget(
-              visibleClients: visibleClients,
-              onViewClient: widget.onViewClient,
-            ),
-            const SizedBox(height: 24),
+              // 2. Comprehensive Status Breakdown Widget (توزيع حالات الطلبات)
+              statusBreakdownWidget,
+              const SizedBox(height: 24),
+            ],
 
             // 3. Follow-ups Table (جدول المتابعات)
             Builder(
@@ -505,6 +604,230 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   ),
 );
 }
+
+  // ─── MODERN DASHBOARD HELPER METHODS ───
+  Widget _buildModernKpiBox({
+    required String title,
+    required String value,
+    required IconData icon,
+    required Color accentColor,
+    required String badge,
+  }) {
+    return Container(
+      width: 175,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: accentColor.withValues(alpha: 0.25)),
+        boxShadow: [
+          BoxShadow(
+            color: accentColor.withValues(alpha: 0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  badge,
+                  style: TextStyle(
+                    color: accentColor,
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              Icon(icon, color: accentColor, size: 20),
+            ],
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernQuickActionIcon({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+                border: Border.all(color: color.withValues(alpha: 0.35)),
+              ),
+              child: Icon(icon, color: color, size: 22),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openDashboardModal(BuildContext context, String title, Widget content) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: const Color(0xFF0F172A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (_, scrollController) => Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 10),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                textDirection: TextDirection.rtl,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFD4AF37),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white70),
+                    onPressed: () => Navigator.pop(ctx),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(color: Colors.white10, height: 1),
+            Expanded(
+              child: SingleChildScrollView(
+                controller: scrollController,
+                padding: const EdgeInsets.all(16),
+                child: content,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openFollowUpsModal(BuildContext context, List<ClientModel> visibleClients) {
+    _openDashboardModal(
+      context,
+      "جدول المتابعات",
+      Column(
+        children: visibleClients
+            .expand((client) => client.history.where((h) => h.logType == 'follow_up').map((log) => Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            client.fullName,
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                          Text(
+                            log.followUpStatus == 'completed' ? "تمت ✓" : "معلقة ⏳",
+                            style: TextStyle(
+                              color: log.followUpStatus == 'completed' ? const Color(0xFF10B981) : const Color(0xFFF59E0B),
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        log.notes,
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                )))
+            .toList(),
+      ),
+    );
+  }
 
   Widget _buildStatusDropdown() {
     return Container(

@@ -21,6 +21,7 @@ import '../../core/widgets/toggleable_filter_panel.dart';
 import '../../core/widgets/phone_action_widget.dart';
 import '../../core/utils/client_visibility_helper.dart';
 import '../../core/tfc_assets.dart';
+import '../../providers/theme_provider.dart';
 
 
 class ClientDetailsScreen extends ConsumerStatefulWidget {
@@ -303,6 +304,12 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     required Widget child,
   }) {
     final isExpanded = _expandedSections[key] ?? false;
+    final isModern = ref.watch(themeProvider) == AppThemeMode.modernTheme;
+    final activeColor = isModern ? const Color(0xFF00E5FF) : const Color(0xFF00CEC9);
+    final baseBg = isModern
+        ? const Color(0xFF0B1021).withValues(alpha: 0.85)
+        : const Color(0xFF1E1E38).withValues(alpha: 0.8);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -317,14 +324,14 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 ref.read(clientProvider.notifier).fetchDocumentsForClient(widget.clientId!);
               }
             },
-            glowColor: isExpanded ? const Color(0xFF6C5CE7) : Colors.cyan,
-            backgroundColor: const Color(0xFF1E1E38).withValues(alpha: 0.8),
+            glowColor: isExpanded ? (isModern ? const Color(0xFF00E5FF) : const Color(0xFF6C5CE7)) : (isModern ? const Color(0xFFD4AF37) : Colors.cyan),
+            backgroundColor: baseBg,
             borderRadius: BorderRadius.circular(16),
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             child: Row(
               textDirection: TextDirection.rtl,
               children: [
-                Icon(icon, color: isExpanded ? const Color(0xFF00CEC9) : TfcColors.primary, size: 22),
+                Icon(icon, color: isExpanded ? activeColor : (isModern ? const Color(0xFF00E5FF) : TfcColors.primary), size: 22),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -339,7 +346,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 ),
                 Icon(
                   isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                  color: isExpanded ? const Color(0xFF00CEC9) : Colors.white70,
+                  color: isExpanded ? activeColor : Colors.white70,
                   size: 24,
                 ),
               ],
@@ -1279,13 +1286,19 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
 
   Widget _buildClientListTile(ClientModel item, bool isSelected) {
     final isBankEmp = ref.read(authProvider).role == 'bank_employee' || widget.bankEmployeeMode;
+    final isModern = ref.watch(themeProvider) == AppThemeMode.modernTheme;
+    final primaryColor = isModern ? const Color(0xFF00E5FF) : TfcColors.primary;
+    final cardGlow = isModern
+        ? (isSelected ? const Color(0xFF00E5FF) : const Color(0xFFD4AF37))
+        : (isSelected ? const Color(0xFF6C5CE7) : Colors.cyan);
+
     return InteractiveHoverCard(
       margin: const EdgeInsets.only(bottom: 8),
       onTap: () => widget.onClientSelected?.call(item.id),
-      glowColor: isSelected ? const Color(0xFF6C5CE7) : Colors.cyan,
+      glowColor: cardGlow,
       backgroundColor: isSelected
-          ? TfcColors.primary.withValues(alpha: 0.15)
-          : Colors.white.withValues(alpha: 0.02),
+          ? primaryColor.withValues(alpha: 0.15)
+          : (isModern ? const Color(0xFF0B1021).withValues(alpha: 0.6) : Colors.white.withValues(alpha: 0.02)),
       borderRadius: BorderRadius.circular(12),
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       child: Row(
@@ -1295,13 +1308,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? TfcColors.primary.withValues(alpha: 0.1)
+                    ? primaryColor.withValues(alpha: 0.12)
                     : Colors.white.withValues(alpha: 0.04),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
                 Icons.person,
-                color: isSelected ? TfcColors.primary : TfcColors.outline,
+                color: isSelected ? primaryColor : TfcColors.outline,
                 size: 20,
               ),
             ),
@@ -4521,19 +4534,19 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     }
   }
 
-  Color _getStepColor(int stepIndex, int currentIndex, String currentStatus) {
+  Color _getStepColor(int stepIndex, int currentIndex, String currentStatus, {bool isModern = false}) {
     if (currentStatus == 'rejected') {
       // If rejected, only the rejected step (last) is red, everything before current is dimmed
       if (stepIndex == 6) {
-        return Colors.redAccent;
+        return const Color(0xFFEF4444);
       }
       if (stepIndex <= currentIndex) {
-        return Colors.redAccent.withValues(alpha: 0.4);
+        return const Color(0xFFEF4444).withValues(alpha: 0.4);
       }
       return Colors.white.withValues(alpha: 0.1);
     }
-    if (stepIndex < currentIndex) return TfcColors.success; // completed
-    if (stepIndex == currentIndex) return TfcColors.primary; // current
+    if (stepIndex < currentIndex) return const Color(0xFF10B981); // completed green
+    if (stepIndex == currentIndex) return isModern ? const Color(0xFFD4AF37) : TfcColors.primary; // current gold / primary
     return Colors.white.withValues(alpha: 0.15); // future
   }
 
@@ -4568,6 +4581,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         // Visual Stepper Bar
         LayoutBuilder(
           builder: (context, constraints) {
+            final isModern = ref.watch(themeProvider) == AppThemeMode.modernTheme;
             // Steps to display: if rejected, show the 6 normal steps + rejected
             // Otherwise show only 6 (excluding rejected)
             final displaySteps = isRejected
@@ -4592,7 +4606,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                         final originalIdx = _transactionSteps
                             .indexWhere((s) => s['key'] == step['key']);
                         final color = _getStepColor(
-                            originalIdx, currentIndex, currentStatus);
+                            originalIdx, currentIndex, currentStatus, isModern: isModern);
                         final isActive = originalIdx <= currentIndex;
                         final isCurrent = originalIdx == currentIndex;
 
@@ -4653,9 +4667,11 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                   ? LinearGradient(
                                       colors: [
                                         _getStepColor(beforeOriginal,
-                                            currentIndex, currentStatus),
+                                            currentIndex, currentStatus,
+                                            isModern: isModern),
                                         _getStepColor(afterOriginal,
-                                            currentIndex, currentStatus),
+                                            currentIndex, currentStatus,
+                                            isModern: isModern),
                                       ],
                                     )
                                   : null,
@@ -4682,7 +4698,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       final isCurrent = originalIdx == currentIndex;
                       final isActive = originalIdx <= currentIndex;
                       final color = _getStepColor(
-                          originalIdx, currentIndex, currentStatus);
+                          originalIdx, currentIndex, currentStatus,
+                          isModern: isModern);
 
                       return SizedBox(
                         width: 50,

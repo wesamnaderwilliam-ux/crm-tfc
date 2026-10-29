@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/client_provider.dart';
 import '../../providers/employees_provider.dart';
 import 'document_upload_helper.dart';
+import '../../providers/theme_provider.dart';
 
 class NewClientScreen extends ConsumerStatefulWidget {
   final VoidCallback onComplete;
@@ -644,6 +645,9 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final activeTheme = ref.watch(themeProvider);
+    final isModern = activeTheme == AppThemeMode.modernTheme;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
@@ -654,12 +658,12 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Wizard Header Title
-              const Text(
+              Text(
                 "تقديم ملف تمويل جديد",
                 style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
-                    color: TfcColors.primary),
+                    color: isModern ? const Color(0xFF00E5FF) : TfcColors.primary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
@@ -669,11 +673,11 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 textDirection: TextDirection.rtl,
                 children: [
-                  _buildStepIndicator(0, "البيانات الشخصية"),
-                  _buildStepLine(0),
-                  _buildStepIndicator(1, "البيانات الائتمانية"),
-                  _buildStepLine(1),
-                  _buildStepIndicator(2, "المستندات والطلب"),
+                  _buildStepIndicator(0, "البيانات الشخصية", isModern: isModern),
+                  _buildStepLine(0, isModern: isModern),
+                  _buildStepIndicator(1, "البيانات الائتمانية", isModern: isModern),
+                  _buildStepLine(1, isModern: isModern),
+                  _buildStepIndicator(2, "المستندات والطلب", isModern: isModern),
                 ],
               ),
               const SizedBox(height: 36),
@@ -783,9 +787,10 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
     );
   }
 
-  Widget _buildStepIndicator(int stepIndex, String label) {
+  Widget _buildStepIndicator(int stepIndex, String label, {bool isModern = false}) {
     final isActive = _activeStep == stepIndex;
     final isDone = _activeStep > stepIndex;
+    final activeColor = isModern ? const Color(0xFF00E5FF) : TfcColors.primary;
 
     return Column(
       children: [
@@ -794,26 +799,34 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
           height: 40,
           decoration: BoxDecoration(
             color: isActive
-                // ignore: deprecated_member_use
-                ? TfcColors.primary.withValues(alpha: 0.2)
-                : (isDone ? TfcColors.primary : Colors.transparent),
+                ? activeColor.withValues(alpha: 0.2)
+                : (isDone ? (isModern ? const Color(0xFF00E5FF) : TfcColors.primary) : Colors.transparent),
             shape: BoxShape.circle,
             border: Border.all(
               color: (isActive || isDone)
-                  ? TfcColors.primary
+                  ? activeColor
                   : Colors.white.withAlpha((0.2 * 255).toInt()),
               width: 1.5,
             ),
+            boxShadow: isModern && isActive
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF00E5FF).withValues(alpha: 0.4),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                    )
+                  ]
+                : null,
           ),
           child: Center(
             child: isDone
-                ? const Icon(Icons.check, color: TfcColors.onPrimary, size: 20)
+                ? const Icon(Icons.check, color: Colors.black, size: 20)
                 : Text(
                     (stepIndex + 1).toString(),
                     style: TextStyle(
                       color: isActive
-                          ? TfcColors.primary
-                          : (isDone ? TfcColors.onPrimary : Colors.white60),
+                          ? activeColor
+                          : (isDone ? Colors.black : Colors.white60),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -823,7 +836,7 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
         Text(
           label,
           style: TextStyle(
-            color: isActive ? TfcColors.primary : TfcColors.outline,
+            color: isActive ? activeColor : TfcColors.outline,
             fontSize: 12,
             fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
           ),
@@ -832,14 +845,15 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
     );
   }
 
-  Widget _buildStepLine(int index) {
+  Widget _buildStepLine(int index, {bool isModern = false}) {
     final isDone = _activeStep > index;
+    final activeColor = isModern ? const Color(0xFF00E5FF) : TfcColors.primary;
     return Container(
       width: 48,
       height: 1,
       margin: const EdgeInsets.only(bottom: 24, left: 8, right: 8),
       color: isDone
-          ? TfcColors.primary
+          ? activeColor
           : Colors.white.withAlpha((0.1 * 255).toInt()),
     );
   }
