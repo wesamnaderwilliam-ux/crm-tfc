@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -324,6 +325,58 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
         }
       }
     }
+  }
+
+  Widget _buildPillNavBtn({
+    required IconData icon,
+    required String label,
+    required bool isActive,
+    required Color activeColor,
+    required VoidCallback onTap,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: isActive ? activeColor.withValues(alpha: 0.15) : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                size: 22,
+                color: isActive ? activeColor : Colors.white38,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 9,
+                color: isActive ? activeColor : Colors.white38,
+                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+            if (isActive)
+              Container(
+                margin: const EdgeInsets.only(top: 2),
+                width: 4,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: activeColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
   }
 
   // Popover Main Menu Modal
@@ -782,133 +835,186 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
           return Scaffold(
             backgroundColor: Colors.transparent,
             bottomNavigationBar: isMobile
-                ? Container(
-                    decoration: BoxDecoration(
-                      color: isModern
-                          ? const Color(0xFF0F172A).withValues(alpha: 0.95)
-                          : const Color(0xFF16162A).withValues(alpha: 0.96),
-                      border: Border(
-                        top: BorderSide(
-                          color: isModern
-                              ? const Color(0xFFD4AF37).withValues(alpha: 0.25)
-                              : Colors.white10,
-                          width: isModern ? 1.5 : 1.0,
-                        ),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: isModern ? 0.6 : 0.4),
-                          blurRadius: isModern ? 16 : 10,
-                          offset: const Offset(0, -2),
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    child: SafeArea(
-                      top: false,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          // Home Button
-                          IconButton(
-                            icon: const Icon(Icons.home_rounded),
-                            color: _selectedIndex == 0
-                                ? (isModern ? const Color(0xFFD4AF37) : const Color(0xFF00CEC9))
-                                : Colors.white60,
-                            tooltip: "الرئيسية",
-                            onPressed: _goHome,
-                          ),
-                          // Back Button
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back_rounded),
-                            color: isModern ? const Color(0xFF00E5FF) : Colors.amberAccent,
-                            tooltip: "رجوع",
-                            onPressed: _goBack,
-                          ),
-                          // Quick Main Menu Button (Elevated)
-                          InkWell(
-                            onTap: () => _openMainMenuModal(context, navItems),
-                            borderRadius: BorderRadius.circular(14),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                              decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: isModern
-                                      ? [const Color(0xFFD4AF37), const Color(0xFFB8860B)]
-                                      : [const Color(0xFF6C5CE7), const Color(0xFFA29BFE)],
-                                ),
-                                borderRadius: BorderRadius.circular(14),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: (isModern ? const Color(0xFFD4AF37) : const Color(0xFF6C5CE7))
-                                        .withValues(alpha: 0.4),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
+                ? (isModern
+                    // Modern Floating Glass Pill Dock
+                    ? SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(26),
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+                              child: Container(
+                                height: 62,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF0F1420).withValues(alpha: 0.85),
+                                  borderRadius: BorderRadius.circular(26),
+                                  border: Border.all(
+                                    color: const Color(0xFFD4AF37).withValues(alpha: 0.20),
+                                    width: 1.2,
                                   ),
-                                ],
-                              ),
-                              child: const Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.menu_rounded, color: Colors.white, size: 20),
-                                  SizedBox(width: 6),
-                                  Text(
-                                    "الأقسام",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 13,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.50),
+                                      blurRadius: 24,
+                                      offset: const Offset(0, 8),
                                     ),
-                                  ),
-                                ],
+                                    BoxShadow(
+                                      color: const Color(0xFFD4AF37).withValues(alpha: 0.06),
+                                      blurRadius: 16,
+                                      spreadRadius: -2,
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    _buildPillNavBtn(
+                                      icon: Icons.home_rounded,
+                                      label: "الرئيسية",
+                                      isActive: _selectedIndex == 0,
+                                      activeColor: const Color(0xFFD4AF37),
+                                      onTap: _goHome,
+                                    ),
+                                    _buildPillNavBtn(
+                                      icon: Icons.people_rounded,
+                                      label: "العملاء",
+                                      isActive: _selectedIndex == 1,
+                                      activeColor: const Color(0xFF00E5FF),
+                                      onTap: () => navigateToTab(1),
+                                    ),
+                                    _buildPillNavBtn(
+                                      icon: Icons.swap_horiz_rounded,
+                                      label: "التوزيعات",
+                                      isActive: _selectedIndex == 2,
+                                      activeColor: const Color(0xFF10B981),
+                                      onTap: () => navigateToTab(2),
+                                    ),
+                                    _buildPillNavBtn(
+                                      icon: Icons.apps_rounded,
+                                      label: "المزيد",
+                                      isActive: false,
+                                      activeColor: const Color(0xFFD4AF37),
+                                      onTap: () => _openMainMenuModal(context, navItems),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                          // Calculator Button
-                          IconButton(
-                            icon: const Icon(Icons.calculate_rounded),
-                            color: Colors.amberAccent,
-                            tooltip: "حاسبة الائتمان",
-                            onPressed: () {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: const Color(0xFF16162A),
-                                shape: const RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                                ),
-                                builder: (ctx) => DraggableScrollableSheet(
-                                  initialChildSize: 0.85,
-                                  minChildSize: 0.5,
-                                  maxChildSize: 0.95,
-                                  expand: false,
-                                  builder: (_, scrollController) => SingleChildScrollView(
-                                    controller: scrollController,
-                                    padding: const EdgeInsets.all(16),
-                                    child: const CreditCalculatorScreen(),
+                        ),
+                      )
+                    // Classic Bottom Bar
+                    : Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF16162A).withValues(alpha: 0.96),
+                          border: const Border(
+                            top: BorderSide(color: Colors.white10),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.4),
+                              blurRadius: 10,
+                              offset: const Offset(0, -2),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        child: SafeArea(
+                          top: false,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.home_rounded),
+                                color: _selectedIndex == 0 ? const Color(0xFF00CEC9) : Colors.white60,
+                                tooltip: "الرئيسية",
+                                onPressed: _goHome,
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.arrow_back_rounded),
+                                color: Colors.amberAccent,
+                                tooltip: "رجوع",
+                                onPressed: _goBack,
+                              ),
+                              InkWell(
+                                onTap: () => _openMainMenuModal(context, navItems),
+                                borderRadius: BorderRadius.circular(14),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [Color(0xFF6C5CE7), Color(0xFFA29BFE)],
+                                    ),
+                                    borderRadius: BorderRadius.circular(14),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF6C5CE7).withValues(alpha: 0.4),
+                                        blurRadius: 8,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.menu_rounded, color: Colors.white, size: 20),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        "الأقسام",
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                              );
-                            },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.calculate_rounded),
+                                color: Colors.amberAccent,
+                                tooltip: "حاسبة الائتمان",
+                                onPressed: () {
+                                  showModalBottomSheet(
+                                    context: context,
+                                    isScrollControlled: true,
+                                    backgroundColor: const Color(0xFF16162A),
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                                    ),
+                                    builder: (ctx) => DraggableScrollableSheet(
+                                      initialChildSize: 0.85,
+                                      minChildSize: 0.5,
+                                      maxChildSize: 0.95,
+                                      expand: false,
+                                      builder: (_, scrollController) => SingleChildScrollView(
+                                        controller: scrollController,
+                                        padding: const EdgeInsets.all(16),
+                                        child: const CreditCalculatorScreen(),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.refresh_rounded),
+                                color: Colors.greenAccent,
+                                tooltip: "تحديث",
+                                onPressed: () {
+                                  final authState = ref.read(authProvider);
+                                  ref.read(clientProvider.notifier).fetchClients(bankEmployeeId: authState.bankEmployeeId);
+                                  ref.read(prospectsProvider.notifier).fetchProspects();
+                                  ref.read(employeesProvider.notifier).fetchEmployees();
+                                  ref.invalidate(allBanksProvider);
+                                  ref.invalidate(coreProgramsProvider);
+                                },
+                              ),
+                            ],
                           ),
-                          // Refresh Button
-                          IconButton(
-                            icon: const Icon(Icons.refresh_rounded),
-                            color: Colors.greenAccent,
-                            tooltip: "تحديث",
-                            onPressed: () {
-                              final authState = ref.read(authProvider);
-                              ref.read(clientProvider.notifier).fetchClients(bankEmployeeId: authState.bankEmployeeId);
-                              ref.read(prospectsProvider.notifier).fetchProspects();
-                              ref.read(employeesProvider.notifier).fetchEmployees();
-                              ref.invalidate(allBanksProvider);
-                              ref.invalidate(coreProgramsProvider);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
+                        ),
+                      ))
                 : null,
             body: SafeArea(
               child: Column(

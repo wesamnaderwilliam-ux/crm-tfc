@@ -1,6 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../providers/theme_provider.dart';
 
 class TfcColors {
   static const Color background = Color(0xFF030406); // Darker base background
@@ -197,23 +199,107 @@ class TfcTheme {
 // GLOBAL GLASS BACKGROUND
 // =============================================================================
 
-class TfcGlassBackground extends StatelessWidget {
+class TfcGlassBackground extends ConsumerWidget {
   final Widget child;
 
   const TfcGlassBackground({super.key, required this.child});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeProvider);
+    final isModern = themeMode.isModern;
+    final screenW = MediaQuery.sizeOf(context).width;
+    final screenH = MediaQuery.sizeOf(context).height;
+
+    // ─── MODERN BACKGROUND (matches HTML prototype --bg-base: #06080e) ───
+    if (isModern) {
+      return Container(
+        decoration: const BoxDecoration(color: Color(0xFF06080E)),
+        child: Stack(
+          children: [
+            // Gold radial glow — top right (like prototype)
+            Positioned(
+              top: -screenH * 0.15,
+              right: -screenW * 0.1,
+              child: Container(
+                width: screenW * 0.7,
+                height: screenH * 0.45,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFFD4AF37).withValues(alpha: 0.07),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Cyan radial glow — bottom left (like prototype)
+            Positioned(
+              bottom: -screenH * 0.15,
+              left: -screenW * 0.1,
+              child: Container(
+                width: screenW * 0.7,
+                height: screenH * 0.45,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFF00E5FF).withValues(alpha: 0.05),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Subtle center glow
+            Positioned(
+              top: screenH * 0.3,
+              left: screenW * 0.2,
+              child: Container(
+                width: screenW * 0.6,
+                height: screenH * 0.4,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFFD4AF37).withValues(alpha: 0.03),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            // Central Watermark Logo
+            Center(
+              child: IgnorePointer(
+                child: Opacity(
+                  opacity: 0.05,
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    width: screenW > 800 ? screenW * 0.45 : screenW * 0.75,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                  ),
+                ),
+              ),
+            ),
+            Positioned.fill(child: child),
+          ],
+        ),
+      );
+    }
+
+    // ─── CLASSIC BACKGROUND ───
     return Container(
-      decoration: const BoxDecoration(
-        color: TfcColors.background,
-      ),
+      decoration: const BoxDecoration(color: TfcColors.background),
       child: Stack(
         children: [
           // Radial Top Glow
           Positioned(
             top: -150,
-            left: MediaQuery.sizeOf(context).width * 0.25,
+            left: screenW * 0.25,
             child: Container(
               width: 600,
               height: 400,
@@ -228,16 +314,14 @@ class TfcGlassBackground extends StatelessWidget {
               ),
             ),
           ),
-          // Clear Central Watermark Logo (visible across all sections)
+          // Clear Central Watermark Logo
           Center(
             child: IgnorePointer(
               child: Opacity(
                 opacity: 0.12,
                 child: Image.asset(
                   'assets/images/logo.png',
-                  width: MediaQuery.sizeOf(context).width > 800
-                      ? MediaQuery.sizeOf(context).width * 0.50
-                      : MediaQuery.sizeOf(context).width * 0.85,
+                  width: screenW > 800 ? screenW * 0.50 : screenW * 0.85,
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
                 ),

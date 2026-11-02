@@ -420,181 +420,387 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                     style: TextStyle(color: TfcColors.outline)),
                               ),
                             )
-                          : SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: DataTable(
-                                headingRowColor: WidgetStateProperty.all(
-                                    // ignore: deprecated_member_use
-                                    Colors.white.withOpacity(0.02)),
-                                dataRowMinHeight: 64,
-                                dataRowMaxHeight: 80,
-                                dividerThickness: 0.5,
-                                columns: const [
-                                  DataColumn(
-                                      label: Text("اسم العميل",
-                                          style: TextStyle(color: TfcColors.primary))),
-                                  DataColumn(
-                                      label: Text("تاريخ المتابعة",
-                                          style: TextStyle(color: TfcColors.primary))),
-                                  DataColumn(
-                                      label: Text("الحالة",
-                                          style: TextStyle(color: TfcColors.primary))),
-                                  DataColumn(
-                                      label: Text("الملاحظات",
-                                          style: TextStyle(color: TfcColors.primary))),
-                                  DataColumn(
-                                      label: Text("بواسطة",
-                                          style: TextStyle(color: TfcColors.primary))),
-                                  DataColumn(
-                                      label: Text("المندوب",
-                                          style: TextStyle(color: TfcColors.primary))),
-                                  DataColumn(
-                                      label: Text("الإجراءات",
-                                          style: TextStyle(color: TfcColors.primary))),
-                                ],
-                                rows: sortedFollowUps.map((item) {
-                                  final client = item['client'] as ClientModel;
-                                  final log = item['log'] as InteractionLogModel;
-                                  final isPending = log.followUpStatus != 'completed';
-                                  final isOverdue = isPending && log.followUpDate != null && log.followUpDate!.isBefore(DateTime.now());
-
-                                  String followUpDateStr = '-';
-                                  if (log.followUpDate != null) {
-                                    followUpDateStr = "${log.followUpDate!.day}/${log.followUpDate!.month}/${log.followUpDate!.year}";
-                                  }
-
-                                  return DataRow(
-                                    // ignore: deprecated_member_use
-                                    color: WidgetStateProperty.all(
-                                      isOverdue
-                                          // ignore: deprecated_member_use
-                                          ? Colors.redAccent.withOpacity(0.04)
-                                          : Colors.transparent,
-                                    ),
-                                    cells: [
-                                      DataCell(InkWell(
-                                        onTap: () => widget.onViewClient(client.id),
-                                        child: Text(client.fullName,
-                                            style: const TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                decoration: TextDecoration.underline)),
-                                      )),
-                                      DataCell(Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          if (isOverdue)
-                                            const Padding(
-                                              padding: EdgeInsets.only(left: 4),
-                                              child: Icon(Icons.warning_amber, size: 14, color: Colors.redAccent),
-                                            ),
-                                          Text(
-                                            followUpDateStr,
-                                            style: TextStyle(
-                                              color: isOverdue ? Colors.redAccent : null,
-                                              fontWeight: isOverdue ? FontWeight.bold : null,
+                          : (isModern && isMobile)
+                              // ─── MODERN FEED CARDS (matches prototype .feed-card) ───
+                              ? Column(
+                                  children: sortedFollowUps.map((item) {
+                                    final client = item['client'] as ClientModel;
+                                    final log = item['log'] as InteractionLogModel;
+                                    final isPending = log.followUpStatus != 'completed';
+                                    final isOverdue = isPending &&
+                                        log.followUpDate != null &&
+                                        log.followUpDate!.isBefore(DateTime.now());
+                                    final followUpDateStr = log.followUpDate != null
+                                        ? "${log.followUpDate!.day}/${log.followUpDate!.month}/${log.followUpDate!.year}"
+                                        : '-';
+                                    // Bank badge — first 2 chars of bank name or client initials
+                                    final badgeText = (client.fullName.isNotEmpty
+                                            ? client.fullName.substring(0, client.fullName.length > 2 ? 2 : client.fullName.length)
+                                            : "?")
+                                        .trim();
+                                    return InkWell(
+                                      onTap: () => widget.onViewClient(client.id),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                                        decoration: BoxDecoration(
+                                          border: Border(
+                                            bottom: BorderSide(
+                                              color: Colors.white.withValues(alpha: 0.05),
                                             ),
                                           ),
-                                        ],
-                                      )),
-                                      DataCell(
-                                        PopupMenuButton<String>(
-                                          tooltip: "تغيير حالة المتابعة",
-                                          onSelected: (newStatus) {
-                                            ref.read(clientProvider.notifier).updateFollowUpStatus(
-                                                  client.id,
-                                                  log.id,
-                                                  newStatus,
-                                                  ref.read(authProvider).fullName,
-                                                );
-                                          },
-                                          itemBuilder: (ctx) => [
-                                            const PopupMenuItem(
-                                              value: 'pending',
-                                              child: Text("قيد المتابعة ⏳", textDirection: TextDirection.rtl),
-                                            ),
-                                            const PopupMenuItem(
-                                              value: 'completed',
-                                              child: Text("تمت المتابعة ✅", textDirection: TextDirection.rtl),
-                                            ),
-                                          ],
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                            decoration: BoxDecoration(
-                                              color: isPending
-                                                  // ignore: deprecated_member_use
-                                                  ? Colors.orangeAccent.withOpacity(0.1)
-                                                  // ignore: deprecated_member_use
-                                                  : TfcColors.success.withOpacity(0.1),
-                                              borderRadius: BorderRadius.circular(6),
-                                              border: Border.all(
-                                                color: isPending
-                                                    // ignore: deprecated_member_use
-                                                    ? Colors.orangeAccent.withOpacity(0.3)
-                                                    // ignore: deprecated_member_use
-                                                    : TfcColors.success.withOpacity(0.3),
+                                          color: isOverdue
+                                              ? Colors.redAccent.withValues(alpha: 0.04)
+                                              : Colors.transparent,
+                                        ),
+                                        child: Row(
+                                          textDirection: TextDirection.rtl,
+                                          children: [
+                                            // Bank Badge Circle
+                                            Container(
+                                              width: 40,
+                                              height: 40,
+                                              decoration: BoxDecoration(
+                                                shape: BoxShape.circle,
+                                                gradient: LinearGradient(
+                                                  colors: isOverdue
+                                                      ? [
+                                                          const Color(0xFFEF4444).withValues(alpha: 0.3),
+                                                          const Color(0xFFEF4444).withValues(alpha: 0.1),
+                                                        ]
+                                                      : [
+                                                          const Color(0xFFD4AF37).withValues(alpha: 0.25),
+                                                          const Color(0xFF00E5FF).withValues(alpha: 0.10),
+                                                        ],
+                                                ),
+                                                border: Border.all(
+                                                  color: isOverdue
+                                                      ? const Color(0xFFEF4444).withValues(alpha: 0.4)
+                                                      : const Color(0xFFD4AF37).withValues(alpha: 0.35),
+                                                  width: 1,
+                                                ),
                                               ),
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  isPending ? "قيد المتابعة" : "تمت المتابعة",
+                                              child: Center(
+                                                child: Text(
+                                                  badgeText,
                                                   style: TextStyle(
-                                                    color: isPending ? Colors.orangeAccent : TfcColors.success,
-                                                    fontWeight: FontWeight.bold,
                                                     fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: isOverdue ? Colors.redAccent : const Color(0xFFD4AF37),
                                                   ),
                                                 ),
-                                                const Icon(Icons.arrow_drop_down, size: 14, color: Colors.white60),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            // Client name + date + notes
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.end,
+                                                children: [
+                                                  Text(
+                                                    client.fullName,
+                                                    style: const TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Color(0xFFF8FAFC),
+                                                    ),
+                                                    overflow: TextOverflow.ellipsis,
+                                                    textDirection: TextDirection.rtl,
+                                                  ),
+                                                  const SizedBox(height: 3),
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment.end,
+                                                    children: [
+                                                      // Status chip
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                                        decoration: BoxDecoration(
+                                                          color: isPending
+                                                              ? (isOverdue
+                                                                  ? Colors.redAccent.withValues(alpha: 0.15)
+                                                                  : Colors.orangeAccent.withValues(alpha: 0.12))
+                                                              : const Color(0xFF10B981).withValues(alpha: 0.12),
+                                                          borderRadius: BorderRadius.circular(10),
+                                                          border: Border.all(
+                                                            color: isPending
+                                                                ? (isOverdue
+                                                                    ? Colors.redAccent.withValues(alpha: 0.5)
+                                                                    : Colors.orangeAccent.withValues(alpha: 0.4))
+                                                                : const Color(0xFF10B981).withValues(alpha: 0.4),
+                                                            width: 0.8,
+                                                          ),
+                                                        ),
+                                                        child: Text(
+                                                          isPending
+                                                              ? (isOverdue ? "⚠ متأخرة" : "⏳ معلقة")
+                                                              : "✓ منجزة",
+                                                          style: TextStyle(
+                                                            fontSize: 10,
+                                                            fontWeight: FontWeight.bold,
+                                                            color: isPending
+                                                                ? (isOverdue ? Colors.redAccent : Colors.orangeAccent)
+                                                                : const Color(0xFF10B981),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                      const SizedBox(width: 6),
+                                                      // Date
+                                                      Text(
+                                                        followUpDateStr,
+                                                        style: TextStyle(
+                                                          fontSize: 10,
+                                                          color: isOverdue ? Colors.redAccent : const Color(0xFF94A3B8),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  if (log.notes.isNotEmpty) ...[
+                                                    const SizedBox(height: 3),
+                                                    Text(
+                                                      log.notes,
+                                                      style: const TextStyle(
+                                                        fontSize: 10,
+                                                        color: Color(0xFF64748B),
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      textDirection: TextDirection.rtl,
+                                                    ),
+                                                  ],
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            // Arrow + Complete button
+                                            Column(
+                                              children: [
+                                                if (isPending)
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      ref.read(clientProvider.notifier).updateFollowUpStatus(
+                                                            client.id,
+                                                            log.id,
+                                                            'completed',
+                                                            ref.read(authProvider).fullName,
+                                                          );
+                                                    },
+                                                    child: Container(
+                                                      width: 28,
+                                                      height: 28,
+                                                      decoration: BoxDecoration(
+                                                        shape: BoxShape.circle,
+                                                        color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                                                        border: Border.all(
+                                                          color: const Color(0xFF10B981).withValues(alpha: 0.4),
+                                                        ),
+                                                      ),
+                                                      child: const Icon(
+                                                        Icons.check,
+                                                        size: 14,
+                                                        color: Color(0xFF10B981),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                const SizedBox(height: 4),
+                                                Container(
+                                                  width: 28,
+                                                  height: 28,
+                                                  decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: const Color(0xFF00E5FF).withValues(alpha: 0.10),
+                                                    border: Border.all(
+                                                      color: const Color(0xFF00E5FF).withValues(alpha: 0.3),
+                                                    ),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.arrow_forward_ios,
+                                                    size: 12,
+                                                    color: Color(0xFF00E5FF),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                )
+                              // ─── CLASSIC / DESKTOP: DataTable ───
+                              : SingleChildScrollView(
+                                  scrollDirection: Axis.horizontal,
+                                  child: DataTable(
+                                    headingRowColor: WidgetStateProperty.all(
+                                        // ignore: deprecated_member_use
+                                        Colors.white.withOpacity(0.02)),
+                                    dataRowMinHeight: 64,
+                                    dataRowMaxHeight: 80,
+                                    dividerThickness: 0.5,
+                                    columns: const [
+                                      DataColumn(
+                                          label: Text("اسم العميل",
+                                              style: TextStyle(color: TfcColors.primary))),
+                                      DataColumn(
+                                          label: Text("تاريخ المتابعة",
+                                              style: TextStyle(color: TfcColors.primary))),
+                                      DataColumn(
+                                          label: Text("الحالة",
+                                              style: TextStyle(color: TfcColors.primary))),
+                                      DataColumn(
+                                          label: Text("الملاحظات",
+                                              style: TextStyle(color: TfcColors.primary))),
+                                      DataColumn(
+                                          label: Text("بواسطة",
+                                              style: TextStyle(color: TfcColors.primary))),
+                                      DataColumn(
+                                          label: Text("المندوب",
+                                              style: TextStyle(color: TfcColors.primary))),
+                                      DataColumn(
+                                          label: Text("الإجراءات",
+                                              style: TextStyle(color: TfcColors.primary))),
+                                    ],
+                                    rows: sortedFollowUps.map((item) {
+                                      final client = item['client'] as ClientModel;
+                                      final log = item['log'] as InteractionLogModel;
+                                      final isPending = log.followUpStatus != 'completed';
+                                      final isOverdue = isPending && log.followUpDate != null && log.followUpDate!.isBefore(DateTime.now());
+
+                                      String followUpDateStr = '-';
+                                      if (log.followUpDate != null) {
+                                        followUpDateStr = "${log.followUpDate!.day}/${log.followUpDate!.month}/${log.followUpDate!.year}";
+                                      }
+
+                                      return DataRow(
+                                        // ignore: deprecated_member_use
+                                        color: WidgetStateProperty.all(
+                                          isOverdue
+                                              // ignore: deprecated_member_use
+                                              ? Colors.redAccent.withOpacity(0.04)
+                                              : Colors.transparent,
+                                        ),
+                                        cells: [
+                                          DataCell(InkWell(
+                                            onTap: () => widget.onViewClient(client.id),
+                                            child: Text(client.fullName,
+                                                style: const TextStyle(
+                                                    fontWeight: FontWeight.bold,
+                                                    decoration: TextDecoration.underline)),
+                                          )),
+                                          DataCell(Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              if (isOverdue)
+                                                const Padding(
+                                                  padding: EdgeInsets.only(left: 4),
+                                                  child: Icon(Icons.warning_amber, size: 14, color: Colors.redAccent),
+                                                ),
+                                              Text(
+                                                followUpDateStr,
+                                                style: TextStyle(
+                                                  color: isOverdue ? Colors.redAccent : null,
+                                                  fontWeight: isOverdue ? FontWeight.bold : null,
+                                                ),
+                                              ),
+                                            ],
+                                          )),
+                                          DataCell(
+                                            PopupMenuButton<String>(
+                                              tooltip: "تغيير حالة المتابعة",
+                                              onSelected: (newStatus) {
+                                                ref.read(clientProvider.notifier).updateFollowUpStatus(
+                                                      client.id,
+                                                      log.id,
+                                                      newStatus,
+                                                      ref.read(authProvider).fullName,
+                                                    );
+                                              },
+                                              itemBuilder: (ctx) => [
+                                                const PopupMenuItem(
+                                                  value: 'pending',
+                                                  child: Text("قيد المتابعة ⏳", textDirection: TextDirection.rtl),
+                                                ),
+                                                const PopupMenuItem(
+                                                  value: 'completed',
+                                                  child: Text("تمت المتابعة ✅", textDirection: TextDirection.rtl),
+                                                ),
+                                              ],
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: isPending
+                                                      // ignore: deprecated_member_use
+                                                      ? Colors.orangeAccent.withOpacity(0.1)
+                                                      // ignore: deprecated_member_use
+                                                      : TfcColors.success.withOpacity(0.1),
+                                                  borderRadius: BorderRadius.circular(6),
+                                                  border: Border.all(
+                                                    color: isPending
+                                                        // ignore: deprecated_member_use
+                                                        ? Colors.orangeAccent.withOpacity(0.3)
+                                                        // ignore: deprecated_member_use
+                                                        : TfcColors.success.withOpacity(0.3),
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      isPending ? "قيد المتابعة" : "تمت المتابعة",
+                                                      style: TextStyle(
+                                                        color: isPending ? Colors.orangeAccent : TfcColors.success,
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 12,
+                                                      ),
+                                                    ),
+                                                    const Icon(Icons.arrow_drop_down, size: 14, color: Colors.white60),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          DataCell(
+                                            SizedBox(
+                                              width: 200,
+                                              child: Text(
+                                                log.notes.isNotEmpty ? log.notes : "-",
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 2,
+                                                style: const TextStyle(fontSize: 12),
+                                              ),
+                                            ),
+                                          ),
+                                          DataCell(Text(log.createdBy, style: const TextStyle(fontSize: 12))),
+                                          DataCell(Text(client.representativeName ?? "-", style: const TextStyle(fontSize: 12))),
+                                          DataCell(
+                                            Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                if (isPending)
+                                                  IconButton(
+                                                    icon: const Icon(Icons.check, color: TfcColors.success, size: 16),
+                                                    tooltip: "إكمال المتابعة",
+                                                    onPressed: () {
+                                                      ref.read(clientProvider.notifier).updateFollowUpStatus(
+                                                            client.id,
+                                                            log.id,
+                                                            'completed',
+                                                            ref.read(authProvider).fullName,
+                                                          );
+                                                    },
+                                                  ),
+                                                IconButton(
+                                                  icon: const Icon(Icons.arrow_forward_ios,
+                                                      color: TfcColors.primary, size: 14),
+                                                  tooltip: "فتح ملف العميل",
+                                                  onPressed: () => widget.onViewClient(client.id),
+                                                ),
                                               ],
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        SizedBox(
-                                          width: 200,
-                                          child: Text(
-                                            log.notes.isNotEmpty ? log.notes : "-",
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                            style: const TextStyle(fontSize: 12),
-                                          ),
-                                        ),
-                                      ),
-                                      DataCell(Text(log.createdBy, style: const TextStyle(fontSize: 12))),
-                                      DataCell(Text(client.representativeName ?? "-", style: const TextStyle(fontSize: 12))),
-                                      DataCell(
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            if (isPending)
-                                              IconButton(
-                                                icon: const Icon(Icons.check, color: TfcColors.success, size: 16),
-                                                tooltip: "إكمال المتابعة",
-                                                onPressed: () {
-                                                  ref.read(clientProvider.notifier).updateFollowUpStatus(
-                                                        client.id,
-                                                        log.id,
-                                                        'completed',
-                                                        ref.read(authProvider).fullName,
-                                                      );
-                                                },
-                                              ),
-                                            IconButton(
-                                              icon: const Icon(Icons.arrow_forward_ios,
-                                                  color: TfcColors.primary, size: 14),
-                                              tooltip: "فتح ملف العميل",
-                                              onPressed: () => widget.onViewClient(client.id),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                }).toList(),
-                              ),
-                            ),
+                                        ],
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
                     ),
                   ],
                 );

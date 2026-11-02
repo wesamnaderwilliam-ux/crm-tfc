@@ -304,7 +304,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     required Widget child,
   }) {
     final isExpanded = _expandedSections[key] ?? false;
-    final isModern = ref.watch(themeProvider) == AppThemeMode.modernTheme;
+    final isModern = ref.watch(themeProvider).isModern;
     final activeColor = isModern ? const Color(0xFF00E5FF) : const Color(0xFF00CEC9);
     final baseBg = isModern
         ? const Color(0xFF0B1021).withValues(alpha: 0.85)
