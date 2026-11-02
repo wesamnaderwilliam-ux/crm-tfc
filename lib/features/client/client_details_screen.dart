@@ -732,7 +732,40 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                                         ),
                                       ),
                                       const SizedBox(height: 8),
-
+                                      if (ref.watch(themeProvider).isModern) ...[
+                                        SizedBox(
+                                          height: 38,
+                                          child: ListView(
+                                            scrollDirection: Axis.horizontal,
+                                            physics: const BouncingScrollPhysics(),
+                                            children: [
+                                              _buildModernFilterChip('all', '🌐 الكل', count: visibleClients.length),
+                                              const SizedBox(width: 6),
+                                              _buildModernFilterChip('pending', '⏳ قيد الانتظار',
+                                                  count: visibleClients.where((c) => c.status == 'pending').length),
+                                              const SizedBox(width: 6),
+                                              _buildModernFilterChip('iscore_inquiry', '🔍 استعلام ايسكور',
+                                                  count: visibleClients.where((c) => c.status == 'iscore_inquiry').length),
+                                              const SizedBox(width: 6),
+                                              _buildModernFilterChip('preparing_documents', '📄 تحضير الاوراق',
+                                                  count: visibleClients.where((c) => c.status == 'preparing_documents').length),
+                                              const SizedBox(width: 6),
+                                              _buildModernFilterChip('under_review', '📝 قيد الدراسة',
+                                                  count: visibleClients.where((c) => c.status == 'under_review').length),
+                                              const SizedBox(width: 6),
+                                              _buildModernFilterChip('at_bank', '🏛️ فى البنك',
+                                                  count: visibleClients.where((c) => c.status == 'at_bank').length),
+                                              const SizedBox(width: 6),
+                                              _buildModernFilterChip('approved', '✅ مقبول',
+                                                  count: visibleClients.where((c) => c.status == 'approved').length),
+                                              const SizedBox(width: 6),
+                                              _buildModernFilterChip('rejected', '❌ مرفوض',
+                                                  count: visibleClients.where((c) => c.status == 'rejected').length),
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                      ],
                                       // ── Toggleable Filters ──
                                       InkWell(
                                         borderRadius: BorderRadius.circular(8),
