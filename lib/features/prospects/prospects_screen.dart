@@ -30,6 +30,8 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
   String _searchQuery = "";
   String _selectedStatusFilter = 'all';
   String _selectedEmployeeFilter = 'all';
+  DateTime? _startDateFilter;
+  DateTime? _endDateFilter;
 
   @override
   Widget build(BuildContext context) {
@@ -185,12 +187,15 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                       title: "تصفية وتصفح العملاء المحتملين 🔍",
                       activeFilterCount: (_searchQuery.isNotEmpty ? 1 : 0) +
                           (_selectedStatusFilter != 'all' ? 1 : 0) +
-                          (_selectedEmployeeFilter != 'all' ? 1 : 0),
+                          (_selectedEmployeeFilter != 'all' ? 1 : 0) +
+                          ((_startDateFilter != null || _endDateFilter != null) ? 1 : 0),
                       onResetFilter: () {
                         setState(() {
                           _searchQuery = '';
                           _selectedStatusFilter = 'all';
                           _selectedEmployeeFilter = 'all';
+                          _startDateFilter = null;
+                          _endDateFilter = null;
                         });
                       },
                       filterContent: LayoutBuilder(
@@ -290,9 +295,136 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                               ),
                           ];
 
-                          return isWide
-                              ? Row(children: children)
-                              : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              isWide ? Row(children: children) : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
+                              const SizedBox(height: 10),
+                              // Date Range Filter Row
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                                ),
+                                child: Row(
+                                  textDirection: TextDirection.rtl,
+                                  children: [
+                                    const Icon(Icons.date_range, color: TfcColors.primary, size: 18),
+                                    const SizedBox(width: 8),
+                                    const Text('تصفية بالتاريخ:', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
+                                    const SizedBox(width: 12),
+                                    // Start Date Button
+                                    InkWell(
+                                      onTap: () async {
+                                        final picked = await showDatePicker(
+                                          context: context,
+                                          initialDate: _startDateFilter ?? DateTime.now(),
+                                          firstDate: DateTime(2020),
+                                          lastDate: DateTime(2035),
+                                        );
+                                        if (picked != null) {
+                                          setState(() => _startDateFilter = picked);
+                                        }
+                                      },
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: _startDateFilter != null ? TfcColors.primary.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color: _startDateFilter != null ? TfcColors.primary : Colors.white24,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              _startDateFilter != null
+                                                  ? 'من: \-\-'
+                                                  : 'من تاريخ: غير محدد',
+                                              style: TextStyle(
+                                                color: _startDateFilter != null ? TfcColors.primary : Colors.white70,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            if (_startDateFilter != null) ...[
+                                              const SizedBox(width: 4),
+                                              GestureDetector(
+                                                onTap: () => setState(() => _startDateFilter = null),
+                                                child: const Icon(Icons.close, size: 14, color: Colors.white70),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    // End Date Button
+                                    InkWell(
+                                      onTap: () async {
+                                        final picked = await showDatePicker(
+                                          context: context,
+                                          initialDate: _endDateFilter ?? (_startDateFilter ?? DateTime.now()),
+                                          firstDate: _startDateFilter ?? DateTime(2020),
+                                          lastDate: DateTime(2035),
+                                        );
+                                        if (picked != null) {
+                                          setState(() => _endDateFilter = picked);
+                                        }
+                                      },
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                        decoration: BoxDecoration(
+                                          color: _endDateFilter != null ? TfcColors.primary.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.05),
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color: _endDateFilter != null ? TfcColors.primary : Colors.white24,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              _endDateFilter != null
+                                                  ? 'إلى: \-\-'
+                                                  : 'إلى تاريخ: غير محدد',
+                                              style: TextStyle(
+                                                color: _endDateFilter != null ? TfcColors.primary : Colors.white70,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            if (_endDateFilter != null) ...[
+                                              const SizedBox(width: 4),
+                                              GestureDetector(
+                                                onTap: () => setState(() => _endDateFilter = null),
+                                                child: const Icon(Icons.close, size: 14, color: Colors.white70),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    if (_startDateFilter != null || _endDateFilter != null) ...[
+                                      const SizedBox(width: 8),
+                                      TextButton(
+                                        onPressed: () => setState(() {
+                                          _startDateFilter = null;
+                                          _endDateFilter = null;
+                                        }),
+                                        child: const Text('إلغاء تصفية التاريخ', style: TextStyle(color: Colors.amberAccent, fontSize: 11)),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
                         },
                       ),
                     ),
@@ -370,7 +502,21 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                         }
                       }
 
-                      // 2. Status Filter
+                      // 2. Date Range Filter
+                      if (_startDateFilter != null) {
+                        final startOfDay = DateTime(_startDateFilter!.year, _startDateFilter!.month, _startDateFilter!.day);
+                        if (p.createdAt.isBefore(startOfDay)) {
+                          return false;
+                        }
+                      }
+                      if (_endDateFilter != null) {
+                        final endOfDay = DateTime(_endDateFilter!.year, _endDateFilter!.month, _endDateFilter!.day, 23, 59, 59, 999);
+                        if (p.createdAt.isAfter(endOfDay)) {
+                          return false;
+                        }
+                      }
+
+                      // 3. Status Filter
                       if (_selectedStatusFilter != 'all' && p.status != _selectedStatusFilter) {
                         return false;
                       }
@@ -445,6 +591,7 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                 const DataColumn(label: Text('رقم الهاتف', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
                                 const DataColumn(label: Text('الشركة / الوظيفة', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
                                 const DataColumn(label: Text('المحافظة', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
+                                const DataColumn(label: Text('تاريخ الإضافة', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
                                 const DataColumn(label: Text('الموظف المسند إليه', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
                                 const DataColumn(label: Text('الحالة', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
                                 const DataColumn(label: Text('التحويل', style: TextStyle(color: TfcColors.primary, fontWeight: FontWeight.bold))),
@@ -570,6 +717,23 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                                         fontWeight: FontWeight.w600,
                                       ),
                                     )),
+                                    DataCell(
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(alpha: 0.05),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          '${prospect.createdAt.year}-${prospect.createdAt.month.toString().padLeft(2, '0')}-${prospect.createdAt.day.toString().padLeft(2, '0')}',
+                                          style: TextStyle(
+                                            color: statusVal == 'yes' && !isConverted ? Colors.black87 : Colors.white70,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                     DataCell(
                                       isAdmin
                                           ? DropdownButtonHideUnderline(
@@ -1096,6 +1260,7 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                           _buildDetailInfoTile('🏢 جهة العمل / الشركة', currentProspect.companyName ?? 'غير محدد'),
                           _buildDetailInfoTile('💼 المسمى الوظيفي', currentProspect.jobTitle ?? 'غير محدد'),
                           _buildDetailInfoTile('📍 المحافظة', currentProspect.governorate ?? 'غير محدد'),
+                          _buildDetailInfoTile('📅 تاريخ الإضافة', '${currentProspect.createdAt.year}-${currentProspect.createdAt.month.toString().padLeft(2, '0')}-${currentProspect.createdAt.day.toString().padLeft(2, '0')}'),
                           if (currentProspect.salaryAmount != null)
                             _buildDetailInfoTile('💰 صافي الدخل الشهري', '${currentProspect.salaryAmount} ج.م'),
                         ],
@@ -1770,6 +1935,25 @@ class _ProspectsScreenState extends ConsumerState<ProspectsScreen> {
                         },
                       ),
                     if (isAdmin) const SizedBox(height: 10),
+
+                    // تاريخ الإضافة (تلقائي بيوم الإضافة)
+                    TextFormField(
+                      readOnly: true,
+                      initialValue: isEdit
+                          ? '\-\-'
+                          : '\-\-',
+                      style: const TextStyle(color: Colors.white70, fontSize: 13),
+                      textAlign: TextAlign.right,
+                      decoration: InputDecoration(
+                        labelText: 'تاريخ الإضافة (تلقائي)',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        prefixIcon: const Icon(Icons.calendar_today_outlined, color: TfcColors.primary, size: 18),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.03),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
 
                     // الحالة
                     DropdownButtonFormField<String>(
