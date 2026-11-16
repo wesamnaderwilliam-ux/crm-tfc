@@ -38984,12 +38984,11 @@ arz:function arz(a){this.a=a},
 arA:function arA(a,b,c){this.a=a
 this.b=b
 this.c=c},
-G0:function G0(a,b,c,d,e){var _=this
+G0:function G0(a,b,c,d){var _=this
 _.d=a
 _.e=b
-_.f=c
-_.r=d
-_.a=e},
+_.r=c
+_.a=d},
 aex:function aex(a,b){var _=this
 _.w=$
 _.eM$=a
@@ -145763,18 +145762,16 @@ A.aJ6.prototype={
 $0(){return this.a.a0(0,$.bM().gb2(),t.MP).lw()},
 $S:0}
 A.Yh.prototype={
-kh(a,b){var s,r,q,p,o,n,m=null,l=b.bJ($.lO(),t.Fu),k=b.bJ($.I5(),t.v),j=t.N,i=b.bJ($.aqk(),j),h=b.bJ($.bM(),t.D),g=b.bJ($.wL(),t.XB),f=h.a,e=f==null,d=e?m:f.a
-if(d==null)d=""
-s=h.b
+kh(a,b){var s,r,q,p,o=null,n=b.bJ($.lO(),t.Fu),m=b.bJ($.I5(),t.v),l=t.N,k=b.bJ($.aqk(),l),j=b.bJ($.bM(),t.D),i=b.bJ($.wL(),t.XB),h=j.a,g=h==null,f=g?o:h.a
+if(f==null)f=""
+s=j.b
 r=s!=="admin"
-if(!r||s==="manager")q=A.uj("admin")
-else{p=J.e(g,d)
-q=A.a1b(s,p==null?A.B(j,t.y):p)}if(r){if(e)j=m
-else{j=f.z
-j=j==null?m:j.toLowerCase()}o=j==="wezonader@gmail.com"}else o=!0
-if(!o){j=q.h(0,"manageBanks")
-n=j===!0}else n=!0
-return A.iU(m,B.a4,A.tT(l,new A.arV(this,s==="bank_employee",h.d,i,o,k,b,n),new A.arW(),new A.arX(),t.b5,t.jK),m)},
+if(!r||s==="manager")A.uj("admin")
+else{q=J.e(i,f)
+A.a1b(s,q==null?A.B(l,t.y):q)}if(r){if(g)l=o
+else{l=h.z
+l=l==null?o:l.toLowerCase()}p=l==="wezonader@gmail.com"}else p=!0
+return A.iU(o,B.a4,A.tT(n,new A.arV(this,s==="bank_employee",j.d,k,p,m,b,p),new A.arW(),new A.arX(),t.b5,t.jK),o)},
 a3y(a,b,c,d,e,f){var s,r,q,p=null,o=e?B.v.n(0.1):B.w.n(0.02),n=A.z(12)
 o=A.fA(p,p,o,p,p,p,p,p,p,p,p,p,B.cF,p,new A.bm(n,new A.as(e?B.v.n(0.3):B.w.n(0.04),1,B.C,-1)),p,p,p,p,p)
 n=e?B.v.n(0.1):B.w.n(0.04)
@@ -145940,7 +145937,7 @@ l=B.v.n(0.2)
 l=new A.ar(B.ahL,A.dh(B.hF,B.bQD,new A.arK(k.a,a,k.b),A.by(j,j,m,j,j,j,j,j,j,B.v,j,j,B.i7,j,new A.bm(A.z(8),B.S),new A.as(l,1,B.C,-1),j,j,j,j)),j)
 m=l}else m=B.bG
 r=A.cq(A.cm(s,12,A.D(A.a([p,B.R,B.C3,B.ac,B.c9,B.R,o,m],q),B.T,B.q,B.p,j),r,B.eR),j,320)
-return new A.ar(B.bw,A.F(A.a([r,B.AF,A.a7(k.d!=null&&J.hg(k.f)?new A.G0(k.f,n,k.r,k.w,j):B.a9v,1)],q),B.T,B.q,B.p,0,j,B.t),j)}s=t.p
+return new A.ar(B.bw,A.F(A.a([r,B.AF,A.a7(k.d!=null&&J.hg(k.f)?new A.G0(k.f,n,k.w,j):B.a9v,1)],q),B.T,B.q,B.p,0,j,B.t),j)}s=t.p
 r=A.F(A.a([B.bTl],s),B.u,B.a3,B.p,0,j,B.t)
 q=k.c
 p=q.length
@@ -146106,8 +146103,7 @@ B.f.C(o,A.a([A.bB7(n,B.v,B.a2L,!1,B.v,B.oj,B.b3w,B.aj),A.a7(A.bB8(A.a([k.a3M(r),
 return A.cm(s,12,A.D(o,B.T,B.q,B.p,j),p,B.aC)},
 a3M(a){var s,r,q=null,p=J.a0(a)
 p=A.a([A.a7(p.gac(a)?B.a9z:A.eX(new A.aYR(this,a),p.gq(a),B.aL,q,B.a9,!1),1)],t.p)
-s=this.a
-if(s.e||s.f){s=B.v.n(0.1)
+if(this.a.e){s=B.v.n(0.1)
 r=B.v.n(0.2)
 p.push(new A.ar(B.aL,A.dh(B.q4,B.bKU,new A.aYS(this),A.by(q,q,s,q,q,q,q,q,q,B.v,q,q,B.i7,q,new A.bm(A.z(8),B.S),new A.as(r,1,B.C,-1),q,q,q,q)),q))}return A.D(p,B.T,B.q,B.p,q)},
 ava(a){var s,r,q=null,p=J.a0(a)
@@ -146165,18 +146161,18 @@ aOh(a,b){return this.aaV(a,b,null)},
 axf(a,b,c){var s=null
 A.di(s,s,!0,s,new A.aYV(c,b),a,s,!0,t.z)}}
 A.aYR.prototype={
-$2(a,b){var s,r,q=null,p=J.e(this.b,b),o=J.a0(p),n=t.nA.a(o.h(p,"core_programs")),m=n!=null?J.e(n,"program_name"):"\u0628\u0631\u0646\u0627\u0645\u062c \u0627\u0626\u062a\u0645\u0627\u0646\u064a \u0639\u0627\u0645",l=B.w.n(0.01),k=A.a7(A.i(m,q,q,q,q,B.fi,q,B.t,q),1),j=t.p,i=A.a([],j),h=this.a,g=h.a
-if(g.e||g.f){g=A.a([A.b5(q,q,q,B.qa,q,q,new A.aYP(h,a,p),q,q,q,"\u062a\u0639\u062f\u064a\u0644 \u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u0628\u0631\u0646\u0627\u0645\u062c",q)],j)
-if(h.a.e)g.push(A.b5(q,q,q,B.ic,q,q,new A.aYQ(h,a,p),q,q,q,"\u062d\u0630\u0641 \u0627\u0644\u0628\u0631\u0646\u0627\u0645\u062c",q))
-g.push(B.a0)
-B.f.C(i,g)}g=B.v.n(0.1)
-s=A.z(8)
-r=A.an(B.v.n(0.2),B.C,1)
-i.push(A.P(q,A.i("\u0641\u0627\u0626\u062f\u0629 "+A.h(o.h(p,"interest_rate"))+"%",q,q,q,q,B.fl,q,q,q),B.z,q,q,new A.N(g,q,r,s,q,q,B.D),q,q,q,B.dk,q,q,q))
-i=A.F(A.a([k,A.F(i,B.u,B.q,B.p,0,q,q)],j),B.u,B.a3,B.p,0,q,B.t)
-h=A.F(A.a([B.apw,B.a0,B.bP0,A.i(h.aAF(o.h(p,"max_loan_amount"))+" \u062c.\u0645",q,q,q,q,B.hV,q,B.t,q)],j),B.u,B.q,B.p,0,q,B.t)
-o=o.h(p,"description")
-return A.P(q,A.cm(B.bh,12,A.D(A.a([i,B.W,B.c9,B.W,h,B.W,A.i(o==null?"\u0644\u0627 \u064a\u0648\u062c\u062f \u062a\u0641\u0627\u0635\u064a\u0644 \u0623\u0648 \u0645\u0645\u064a\u0632\u0627\u062a \u0645\u0633\u062c\u0644\u0629 \u0644\u0647\u0630\u0627 \u0627\u0644\u0628\u0631\u0646\u0627\u0645\u062c.":o,q,q,q,q,B.bK0,q,B.t,q)],j),B.T,B.q,B.p,q),l,B.aL),B.z,q,q,q,q,q,B.eg,q,q,q,q)},
+$2(a,b){var s,r,q,p=null,o=J.e(this.b,b),n=J.a0(o),m=t.nA.a(n.h(o,"core_programs")),l=m!=null?J.e(m,"program_name"):"\u0628\u0631\u0646\u0627\u0645\u062c \u0627\u0626\u062a\u0645\u0627\u0646\u064a \u0639\u0627\u0645",k=B.w.n(0.01),j=A.a7(A.i(l,p,p,p,p,B.fi,p,B.t,p),1),i=t.p,h=A.a([],i),g=this.a
+if(g.a.e){s=A.a([A.b5(p,p,p,B.qa,p,p,new A.aYP(g,a,o),p,p,p,"\u062a\u0639\u062f\u064a\u0644 \u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u0628\u0631\u0646\u0627\u0645\u062c",p)],i)
+if(g.a.e)s.push(A.b5(p,p,p,B.ic,p,p,new A.aYQ(g,a,o),p,p,p,"\u062d\u0630\u0641 \u0627\u0644\u0628\u0631\u0646\u0627\u0645\u062c",p))
+s.push(B.a0)
+B.f.C(h,s)}s=B.v.n(0.1)
+r=A.z(8)
+q=A.an(B.v.n(0.2),B.C,1)
+h.push(A.P(p,A.i("\u0641\u0627\u0626\u062f\u0629 "+A.h(n.h(o,"interest_rate"))+"%",p,p,p,p,B.fl,p,p,p),B.z,p,p,new A.N(s,p,q,r,p,p,B.D),p,p,p,B.dk,p,p,p))
+h=A.F(A.a([j,A.F(h,B.u,B.q,B.p,0,p,p)],i),B.u,B.a3,B.p,0,p,B.t)
+g=A.F(A.a([B.apw,B.a0,B.bP0,A.i(g.aAF(n.h(o,"max_loan_amount"))+" \u062c.\u0645",p,p,p,p,B.hV,p,B.t,p)],i),B.u,B.q,B.p,0,p,B.t)
+n=n.h(o,"description")
+return A.P(p,A.cm(B.bh,12,A.D(A.a([h,B.W,B.c9,B.W,g,B.W,A.i(n==null?"\u0644\u0627 \u064a\u0648\u062c\u062f \u062a\u0641\u0627\u0635\u064a\u0644 \u0623\u0648 \u0645\u0645\u064a\u0632\u0627\u062a \u0645\u0633\u062c\u0644\u0629 \u0644\u0647\u0630\u0627 \u0627\u0644\u0628\u0631\u0646\u0627\u0645\u062c.":n,p,p,p,p,B.bK0,p,B.t,p)],i),B.T,B.q,B.p,p),k,B.aL),B.z,p,p,p,p,p,B.eg,p,p,p,p)},
 $S:27}
 A.aYP.prototype={
 $0(){var s=this.a
@@ -146696,7 +146692,7 @@ $S:184}
 A.bgP.prototype={
 $1(a){var s=this.a,r=J.Br(a,new A.bgI(s),new A.bgJ())
 if(J.jF(r))return B.a9u
-return new A.G0(r,s.f,this.b,s.r,null)},
+return new A.G0(r,s.f,s.r,null)},
 $S:232}
 A.bgI.prototype={
 $1(a){return J.d(J.e(a,"id"),this.a.e)},
