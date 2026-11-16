@@ -230,7 +230,6 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       _selectedClientId = id.isEmpty ? null : id;
       _showNewClientForm = false;
       _aiClientId = null;
-      _pushHistory(_selectedIndex, clientId: _selectedClientId);
     });
     _syncStateToStorageAndUrl();
   }
@@ -240,7 +239,6 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       _selectedClientId = null;
       _aiClientId = id.isEmpty ? null : id;
       _showNewClientForm = false;
-      _pushHistory(_selectedIndex, aiClientId: _aiClientId);
     });
     _syncStateToStorageAndUrl();
   }
@@ -250,7 +248,6 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       _showNewClientForm = true;
       _selectedClientId = null;
       _aiClientId = null;
-      _pushHistory(_selectedIndex, showNew: true);
     });
     _syncStateToStorageAndUrl();
   }
@@ -266,6 +263,13 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       }
     });
     _syncStateToStorageAndUrl();
+  }
+
+  void navigateToLabel(List<_NavItem> items, String label) {
+    final idx = items.indexWhere((it) => it.label == label);
+    if (idx != -1) {
+      navigateToTab(idx);
+    }
   }
 
   void _goBack() {
@@ -803,6 +807,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       final detailsIdx = navItems.indexWhere((item) => item.label == 'تفاصيل وإدارة العملاء');
       if (detailsIdx != -1 && _selectedIndex != detailsIdx) {
         _selectedIndex = detailsIdx;
+        _pushHistory(_selectedIndex, clientId: _selectedClientId, showNew: _showNewClientForm);
       }
     }
 
@@ -811,6 +816,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       final aiIdx = navItems.indexWhere((item) => item.label == 'المساعد الذكي (AI)');
       if (aiIdx != -1 && _selectedIndex != aiIdx) {
         _selectedIndex = aiIdx;
+        _pushHistory(_selectedIndex, aiClientId: _aiClientId);
       }
     }
 
@@ -879,16 +885,16 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                                     _buildPillNavBtn(
                                       icon: Icons.people_rounded,
                                       label: "العملاء",
-                                      isActive: _selectedIndex == 1,
+                                      isActive: currentNavItem?.label == 'تفاصيل وإدارة العملاء' || currentNavItem?.label == 'العملاء المحتملين',
                                       activeColor: const Color(0xFF00E5FF),
-                                      onTap: () => navigateToTab(1),
+                                      onTap: () => navigateToLabel(navItems, 'تفاصيل وإدارة العملاء'),
                                     ),
                                     _buildPillNavBtn(
                                       icon: Icons.swap_horiz_rounded,
                                       label: "التوزيعات",
-                                      isActive: _selectedIndex == 2,
+                                      isActive: currentNavItem?.label == 'التوزيعات العامة',
                                       activeColor: const Color(0xFF10B981),
-                                      onTap: () => navigateToTab(2),
+                                      onTap: () => navigateToLabel(navItems, 'التوزيعات العامة'),
                                     ),
                                     _buildPillNavBtn(
                                       icon: Icons.apps_rounded,
