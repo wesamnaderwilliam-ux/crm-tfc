@@ -1,0 +1,1247 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TFC CRM - Obsidian Gold Next-Gen Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --bg-main: #0A0B0E;
+    --bg-surface: #111317;
+    --bg-card: #16181F;
+    --bg-card-inner: #1C1F28;
+    --bg-card-hover: #222530;
+    
+    --border-subtle: rgba(255, 255, 255, 0.07);
+    --border-gold: rgba(229, 184, 66, 0.3);
+    
+    --gold: #E5B842;
+    --gold-glow: rgba(229, 184, 66, 0.18);
+    --emerald: #10B981;
+    --emerald-glow: rgba(16, 185, 129, 0.15);
+    --cyan: #06B6D4;
+    --cyan-glow: rgba(6, 182, 212, 0.15);
+    --purple: #8B5CF6;
+    --rose: #F43F5E;
+    
+    --text-primary: #FFFFFF;
+    --text-secondary: #94A3B8;
+    --text-muted: #64748B;
+    
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-full: 9999px;
+  }
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Cairo', 'Plus Jakarta Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background: var(--bg-main);
+    color: var(--text-primary);
+    min-height: 100vh;
+    display: flex;
+    overflow-x: hidden;
+  }
+
+  /* SIDEBAR NAVIGATION - ICON BASED LIKE IMAGE */
+  .sidebar {
+    width: 90px;
+    background: var(--bg-surface);
+    border-left: 1px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 0;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    z-index: 100;
+    flex-shrink: 0;
+  }
+
+  .logo-disc {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #F5D77F, #D4AF37 40%, #15130D 85%);
+    border: 2px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 24px rgba(229, 184, 66, 0.4);
+    cursor: pointer;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .logo-disc span {
+    font-weight: 900;
+    color: #FFF;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+  }
+
+  .nav-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+  }
+  .nav-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--border-subtle);
+    transform: scale(1.05);
+  }
+  .nav-btn.active {
+    background: var(--bg-card);
+    color: var(--gold);
+    border-color: var(--gold);
+    box-shadow: 0 0 20px var(--gold-glow);
+  }
+  .nav-btn .badge-dot {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 8px;
+    height: 8px;
+    background: var(--rose);
+    border-radius: 50%;
+    border: 2px solid var(--bg-surface);
+  }
+
+  .sidebar-bottom {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* MAIN CONTENT AREA */
+  .main-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  /* TOP HEADER BAR */
+  .top-header {
+    padding: 20px 36px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    border-bottom: 1px solid var(--border-subtle);
+    background: rgba(17, 19, 23, 0.7);
+    backdrop-filter: blur(20px);
+    position: sticky;
+    top: 0;
+    z-index: 90;
+  }
+
+  .header-left-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .date-weather-pill {
+    font-size: 12px;
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+  }
+  .date-weather-pill i {
+    color: var(--gold);
+  }
+  .welcome-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #FFF;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .welcome-title span.role-tag {
+    font-size: 12px;
+    color: var(--gold);
+    background: var(--gold-glow);
+    border: 1px solid var(--border-gold);
+    padding: 3px 10px;
+    border-radius: var(--radius-full);
+    font-weight: 700;
+  }
+
+  .header-search-bar {
+    flex: 1;
+    max-width: 440px;
+    position: relative;
+  }
+  .header-search-bar input {
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-full);
+    padding: 12px 46px 12px 20px;
+    color: #FFF;
+    font-size: 13px;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+  .header-search-bar input:focus {
+    border-color: var(--gold);
+    box-shadow: 0 0 20px var(--gold-glow);
+    background: var(--bg-card);
+  }
+  .header-search-bar i {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  .header-team-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .team-avatar-stack {
+    display: flex;
+    align-items: center;
+    background: var(--bg-surface);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--border-subtle);
+    gap: 8px;
+  }
+  .avatars-group {
+    display: flex;
+    flex-direction: row-reverse;
+  }
+  .avatars-group img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--bg-surface);
+    margin-right: -8px;
+    object-fit: cover;
+  }
+  .btn-gold-action {
+    background: linear-gradient(135deg, #E5B842, #C59828);
+    color: #0A0B0E;
+    border: none;
+    padding: 10px 18px;
+    border-radius: var(--radius-full);
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 15px rgba(229, 184, 66, 0.35);
+    transition: all 0.2s;
+  }
+  .btn-gold-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(229, 184, 66, 0.5);
+  }
+
+  /* CONTENT PANELS CONTAINER */
+  .content-body {
+    padding: 30px 36px 60px 36px;
+    flex: 1;
+  }
+
+  /* SECTION TOGGLE LOGIC */
+  .app-section {
+    display: none;
+    animation: fadeIn 0.3s ease;
+  }
+  .app-section.active {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* DASHBOARD 3-COLUMN OBSIDIAN GRID (INSPIRED BY REFERENCE) */
+  .obsidian-dash-grid {
+    display: grid;
+    grid-template-columns: 340px 1.4fr 1.05fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  /* OBSIDIAN CARD STYLING */
+  .obsidian-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    position: relative;
+    box-shadow: 0 12px 36px rgba(0,0,0,0.45);
+    backdrop-filter: blur(20px);
+    transition: all 0.3s ease;
+  }
+  .obsidian-card:hover {
+    border-color: var(--border-gold);
+  }
+
+  /* 1. HERO PROFILE CARD (COLUMN 1) */
+  .hero-profile-col {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .client-photo-cover {
+    width: 100%;
+    height: 240px;
+    border-radius: var(--radius-md);
+    position: relative;
+    overflow: hidden;
+    background: #1C1F28;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  }
+  .client-photo-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .client-photo-cover .gradient-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(10,11,14,0.95) 100%);
+  }
+  .status-chip-top {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: rgba(16, 185, 129, 0.2);
+    border: 1px solid var(--emerald);
+    color: var(--emerald);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 800;
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .time-badge-top {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(0, 0, 0, 0.65);
+    color: #FFF;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .client-meta-bottom {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    left: 16px;
+  }
+  .client-meta-bottom h3 {
+    font-size: 21px;
+    font-weight: 900;
+    color: #FFF;
+  }
+  .client-meta-bottom p {
+    font-size: 13px;
+    color: var(--gold);
+    font-weight: 600;
+  }
+
+  .stats-duo-boxes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .stat-small-box {
+    background: var(--bg-card-inner);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-small-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 2px;
+    background: var(--gold);
+    opacity: 0.7;
+  }
+  .stat-small-box .val {
+    font-size: 26px;
+    font-weight: 900;
+    color: #FFF;
+    line-height: 1.2;
+  }
+  .stat-small-box .lbl {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 600;
+    margin-top: 4px;
+  }
+
+  .tag-cloud-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .profile-tag-pill {
+    background: var(--bg-card-inner);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .profile-tag-pill:hover, .profile-tag-pill.active {
+    background: var(--gold-glow);
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+
+  /* 2. PIPELINE & DONUT SECTION (COLUMN 2) */
+  .section-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .section-header-row h2 {
+    font-size: 18px;
+    font-weight: 800;
+    color: #FFF;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .progress-tasks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .task-row-card {
+    background: var(--bg-card-inner);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: all 0.25s ease;
+  }
+  .task-row-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--border-gold);
+    transform: translateX(-4px);
+  }
+  .task-left-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .task-icon-circle {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: var(--gold);
+  }
+  .task-titles h4 {
+    font-size: 14px;
+    font-weight: 800;
+    color: #FFF;
+  }
+  .task-titles p {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .task-amount-col {
+    text-align: left;
+  }
+  .task-amount-col .amount {
+    font-size: 16px;
+    font-weight: 900;
+    color: var(--emerald);
+  }
+  .task-amount-col .status-lbl {
+    font-size: 11px;
+    color: var(--gold);
+    font-weight: 700;
+  }
+
+  /* WORKING FORMAT DONUT */
+  .working-format-box {
+    margin-top: 24px;
+    background: var(--bg-card-inner);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .donut-legend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    margin-left: 20px;
+  }
+  .donut-legend-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 13px;
+  }
+  .donut-color-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-left: 8px;
+    display: inline-block;
+  }
+  .donut-svg-wrap {
+    position: relative;
+    width: 130px;
+    height: 130px;
+  }
+  .donut-svg {
+    transform: rotate(-90deg);
+  }
+  .donut-center-badge {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  .donut-center-badge .count {
+    font-size: 22px;
+    font-weight: 900;
+    color: #FFF;
+    line-height: 1;
+  }
+  .donut-center-badge .label {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* 3. ANALYTICS & CHECKLIST (COLUMN 3) */
+  .analytics-col-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .spark-stat-card {
+    background: var(--bg-card-inner);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .spark-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .spark-header-flex .title {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 700;
+  }
+  .spark-header-flex .delta {
+    font-size: 11px;
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--emerald);
+    padding: 3px 8px;
+    border-radius: var(--radius-full);
+    font-weight: 800;
+  }
+  .spark-number-hero {
+    font-size: 28px;
+    font-weight: 900;
+    color: #FFF;
+  }
+
+  /* STAGE PROGRESS CIRCLE */
+  .stage-progress-card {
+    background: var(--bg-card-inner);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .stage-donut-circle {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: conic-gradient(var(--gold) 75%, rgba(255,255,255,0.08) 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .stage-donut-circle::after {
+    content: '75%';
+    position: absolute;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--bg-card-inner);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 900;
+    color: #FFF;
+  }
+  .stage-meta-info h4 {
+    font-size: 14px;
+    font-weight: 800;
+    color: #FFF;
+  }
+  .stage-meta-info p {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* CHECKLIST */
+  .action-checklist-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .checklist-item {
+    background: var(--bg-card-inner);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .checklist-item:hover {
+    background: var(--bg-card-hover);
+  }
+  .check-round-icon {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    flex-shrink: 0;
+  }
+  .checklist-item.done .check-round-icon {
+    background: var(--emerald);
+    border-color: var(--emerald);
+    color: #000;
+  }
+  .checklist-item.active .check-round-icon {
+    border-color: var(--gold);
+    color: var(--gold);
+  }
+  .checklist-txt {
+    flex: 1;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+  .checklist-item.done .checklist-txt {
+    text-decoration: line-through;
+    color: var(--text-muted);
+  }
+  .checklist-time {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  /* FULL TABLES FOR OTHER SECTIONS (CLIENTS, DISTRIBUTIONS, ETC.) */
+  .data-table-container {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    overflow-x: auto;
+  }
+  .obsidian-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: right;
+  }
+  .obsidian-table th {
+    padding: 14px 16px;
+    font-size: 13px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-subtle);
+    font-weight: 700;
+  }
+  .obsidian-table td {
+    padding: 16px;
+    font-size: 13px;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    color: var(--text-secondary);
+  }
+  .obsidian-table tr:hover td {
+    background: var(--bg-card-inner);
+    color: #FFF;
+  }
+  .badge-tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: var(--radius-full);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .badge-gold { background: var(--gold-glow); color: var(--gold); border: 1px solid var(--border-gold); }
+  .badge-emerald { background: var(--emerald-glow); color: var(--emerald); border: 1px solid rgba(16,185,129,0.3); }
+  .badge-cyan { background: var(--cyan-glow); color: var(--cyan); border: 1px solid rgba(6,182,212,0.3); }
+
+  /* RESPONSIVE DESIGN */
+  @media (max-width: 1250px) {
+    .obsidian-dash-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .hero-profile-col {
+      grid-column: span 2;
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 20px;
+    }
+  }
+
+  @media (max-width: 860px) {
+    body {
+      flex-direction: column;
+    }
+    .sidebar {
+      width: 100%;
+      height: 70px;
+      flex-direction: row;
+      justify-content: space-around;
+      padding: 0 16px;
+      position: fixed;
+      bottom: 0;
+      top: auto;
+      border-left: none;
+      border-top: 1px solid var(--border-subtle);
+      background: rgba(17, 19, 23, 0.95);
+      backdrop-filter: blur(20px);
+    }
+    .logo-disc, .sidebar-bottom {
+      display: none;
+    }
+    .main-wrapper {
+      height: auto;
+      padding-bottom: 80px;
+    }
+    .top-header {
+      padding: 16px;
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .content-body {
+      padding: 20px 16px;
+    }
+    .obsidian-dash-grid {
+      grid-template-columns: 1fr;
+    }
+    .hero-profile-col {
+      grid-column: span 1;
+      display: flex;
+      flex-direction: column;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <!-- 1. ICON-BASED CIRCULAR SIDEBAR (AS IN REFERENCE) -->
+  <aside class="sidebar">
+    <div class="logo-disc" onclick="navTo('dashboard')" title="TFC Financial Hub">
+      <span>TFC</span>
+    </div>
+
+    <button class="nav-btn active" id="nav-btn-dashboard" onclick="navTo('dashboard')" title="لوحة التحكم الرئيسية">
+      <i class="fa-solid fa-house"></i>
+    </button>
+    <button class="nav-btn" id="nav-btn-clients" onclick="navTo('clients')" title="إدارة وملفات العملاء">
+      <i class="fa-solid fa-user-group"></i>
+      <span class="badge-dot"></span>
+    </button>
+    <button class="nav-btn" id="nav-btn-dist" onclick="navTo('dist')" title="التوزيعات البنكية">
+      <i class="fa-solid fa-building-columns"></i>
+    </button>
+    <button class="nav-btn" id="nav-btn-operations" onclick="navTo('operations')" title="متابعة العمليات والمراحل">
+      <i class="fa-solid fa-chart-pie"></i>
+    </button>
+    <button class="nav-btn" id="nav-btn-invoices" onclick="navTo('invoices')" title="الفواتير والماليات">
+      <i class="fa-solid fa-receipt"></i>
+    </button>
+    <button class="nav-btn" id="nav-btn-banks" onclick="navTo('banks')" title="دليل البنوك والبرامج">
+      <i class="fa-solid fa-landmark"></i>
+    </button>
+    <button class="nav-btn" id="nav-btn-ai" onclick="navTo('ai')" title="المساعد الذكي TFC AI">
+      <i class="fa-solid fa-robot"></i>
+    </button>
+
+    <div class="sidebar-bottom">
+      <button class="nav-btn" onclick="navTo('settings')" title="الإعدادات">
+        <i class="fa-solid fa-sliders"></i>
+      </button>
+      <button class="nav-btn" onclick="alert('تسجيل الخروج الآمن')" title="تسجيل الخروج">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+      </button>
+    </div>
+  </aside>
+
+  <!-- 2. MAIN APP CONTAINER -->
+  <div class="main-wrapper">
+    
+    <!-- TOP HEADER -->
+    <header class="top-header">
+      <div class="header-left-info">
+        <div class="date-weather-pill">
+          <i class="fa-solid fa-cloud-sun"></i>
+          <span>الأربعاء، 16 نوفمبر 2026 • الرياض 27°C</span>
+        </div>
+        <div class="welcome-title">
+          <span>أهلاً وسام كمال</span>
+          <span class="role-tag">مدير الحسابات والتمويل</span>
+        </div>
+      </div>
+
+      <!-- SEARCH BAR -->
+      <div class="header-search-bar">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" placeholder="بحث باسم العميل، رقم الهوية، البنك، أو رقم المعاملة...">
+      </div>
+
+      <!-- TEAM STRIP & ACTION -->
+      <div class="header-team-actions">
+        <div class="team-avatar-stack">
+          <div class="avatars-group">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop" alt="User">
+            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop" alt="User">
+            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop" alt="User">
+          </div>
+          <span style="font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-right: 6px;">3 مستشارين نشطين</span>
+        </div>
+        <button class="btn-gold-action" onclick="navTo('new-client')">
+          <i class="fa-solid fa-user-plus"></i>
+          إضافة عميل جديد
+        </button>
+      </div>
+    </header>
+
+    <!-- CONTENT BODY (ACTIVE VIEWS) -->
+    <main class="content-body">
+      
+      <!-- ================= SECTION 1: DASHBOARD ================= -->
+      <section class="app-section active" id="sec-dashboard">
+        
+        <div class="obsidian-dash-grid">
+          
+          <!-- COLUMN 1: CLIENT HERO PROFILE CARD -->
+          <div class="obsidian-card hero-profile-col">
+            <div class="client-photo-cover">
+              <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=600&auto=format&fit=crop" alt="Client">
+              <div class="gradient-overlay"></div>
+              <span class="status-chip-top"><i class="fa-solid fa-circle-check"></i> عميل نشط</span>
+              <span class="time-badge-top">تمويل عقاري شخصي</span>
+              <div class="client-meta-bottom">
+                <h3>م. أحمد عبد الرحمن الخالدي</h3>
+                <p>أرامكو السعودية • الظهران</p>
+              </div>
+            </div>
+
+            <!-- STATS DUO BOXES -->
+            <div class="stats-duo-boxes">
+              <div class="stat-small-box">
+                <div class="val">450,000</div>
+                <div class="lbl">مبلغ التمويل (ر.س)</div>
+              </div>
+              <div class="stat-small-box">
+                <div class="val">4 / 6</div>
+                <div class="lbl">عروض البنوك الجاهزة</div>
+              </div>
+            </div>
+
+            <!-- TAG CLOUD OF FINANCIAL ATTRIBUTES -->
+            <div>
+              <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">خصائص الملف المالي:</span>
+              <div class="tag-cloud-wrap">
+                <span class="profile-tag-pill active">تحويل راتب مباشر</span>
+                <span class="profile-tag-pill">سجل سِمة ممتاز (785)</span>
+                <span class="profile-tag-pill">نسبة الالتزام 18%</span>
+                <span class="profile-tag-pill active">مدعوم صندوق عقاري</span>
+                <span class="profile-tag-pill">قطاع شبه حكومي</span>
+              </div>
+            </div>
+
+            <!-- QUICK DTI SUMMARY -->
+            <div style="background: var(--bg-card-inner); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle);">
+              <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                <span style="font-size:12px; color:var(--text-muted);">صافي الراتب الشهري:</span>
+                <span style="font-size:14px; font-weight:800; color:var(--gold);">34,500 ر.س</span>
+              </div>
+              <div style="display:flex; justify-content:space-between;">
+                <span style="font-size:12px; color:var(--text-muted);">أقصى قسط شهري مسموح:</span>
+                <span style="font-size:14px; font-weight:800; color:var(--emerald);">11,385 ر.س</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUMN 2: PIPELINE & WORKING FORMAT DONUT -->
+          <div class="obsidian-card">
+            <div class="section-header-row">
+              <h2>مسار المعاملات المفتوحة (Pipeline)</h2>
+              <i class="fa-solid fa-ellipsis-vertical" style="color:var(--text-muted); cursor:pointer;"></i>
+            </div>
+
+            <div class="progress-tasks-list">
+              
+              <div class="task-row-card" onclick="navTo('dist')">
+                <div class="task-left-info">
+                  <div class="task-icon-circle"><i class="fa-solid fa-building-columns"></i></div>
+                  <div class="task-titles">
+                    <h4>مصرف الراجحي - تمويل مرابحة</h4>
+                    <p>موافقة أولية • هامش ربح 2.15%</p>
+                  </div>
+                </div>
+                <div class="task-amount-col">
+                  <div class="amount">280,000 ر.س</div>
+                  <div class="status-lbl">بانتظار توقيع العقد</div>
+                </div>
+              </div>
+
+              <div class="task-row-card" onclick="navTo('dist')">
+                <div class="task-left-info">
+                  <div class="task-icon-circle" style="color:var(--cyan);"><i class="fa-solid fa-shield-halved"></i></div>
+                  <div class="task-titles">
+                    <h4>البنك الأهلي السعودي (SNB)</h4>
+                    <p>شراء مديونية + تمويل إضافي</p>
+                  </div>
+                </div>
+                <div class="task-amount-col">
+                  <div class="amount">170,000 ر.س</div>
+                  <div class="status-lbl" style="color:var(--cyan);">مرحلة الفرز والتدقيق</div>
+                </div>
+              </div>
+
+              <div class="task-row-card" onclick="navTo('dist')">
+                <div class="task-left-info">
+                  <div class="task-icon-circle" style="color:var(--purple);"><i class="fa-solid fa-landmark"></i></div>
+                  <div class="task-titles">
+                    <h4>بنك الرياض - عرض عقاري</h4>
+                    <p>تم تقييم العقار واعتماده رسمياً</p>
+                  </div>
+                </div>
+                <div class="task-amount-col">
+                  <div class="amount">1,250,000 ر.س</div>
+                  <div class="status-lbl" style="color:var(--purple);">إصدار خطاب التغطية</div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- WORKING FORMAT DONUT SECTION -->
+            <div class="working-format-box">
+              <div class="donut-legend-list">
+                <span style="font-size:14px; font-weight:800; color:#FFF; margin-bottom:6px;">توزيع محافظ البنوك</span>
+                <div class="donut-legend-item">
+                  <div><span class="donut-color-dot" style="background:var(--gold);"></span>مصرف الراجحي</div>
+                  <strong style="color:#FFF;">48%</strong>
+                </div>
+                <div class="donut-legend-item">
+                  <div><span class="donut-color-dot" style="background:var(--emerald);"></span>البنك الأهلي</div>
+                  <strong style="color:#FFF;">32%</strong>
+                </div>
+                <div class="donut-legend-item">
+                  <div><span class="donut-color-dot" style="background:var(--cyan);"></span>بنوك أخرى</div>
+                  <strong style="color:#FFF;">20%</strong>
+                </div>
+              </div>
+
+              <div class="donut-svg-wrap">
+                <svg class="donut-svg" width="130" height="130" viewBox="0 0 42 42">
+                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#1F232D" stroke-width="4.5"></circle>
+                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#E5B842" stroke-width="4.5" stroke-dasharray="48 52" stroke-dashoffset="25"></circle>
+                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#10B981" stroke-width="4.5" stroke-dasharray="32 68" stroke-dashoffset="-23"></circle>
+                  <circle cx="21" cy="21" r="15.915" fill="transparent" stroke="#06B6D4" stroke-width="4.5" stroke-dasharray="20 80" stroke-dashoffset="-55"></circle>
+                </svg>
+                <div class="donut-center-badge">
+                  <div class="count">12</div>
+                  <div class="label">معاملة نشطة</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- COLUMN 3: PERFORMANCE ANALYTICS & CHECKLIST -->
+          <div class="obsidian-card analytics-col-stack">
+            
+            <div class="spark-stat-card">
+              <div class="spark-header-flex">
+                <span class="title">إجمالي التمويلات المنجزة (الشهر)</span>
+                <span class="delta">+18.4% ▲</span>
+              </div>
+              <div class="spark-number-hero">3,480,000 <span style="font-size:14px; color:var(--text-muted); font-weight:600;">ر.س</span></div>
+              
+              <!-- SPARKLINES -->
+              <svg style="width:100%; height:60px;" viewBox="0 0 200 60">
+                <defs>
+                  <linearGradient id="goldSpark" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#E5B842" stop-opacity="0.35"/>
+                    <stop offset="100%" stop-color="#E5B842" stop-opacity="0.0"/>
+                  </linearGradient>
+                </defs>
+                <path fill="url(#goldSpark)" d="M 0,50 Q 30,15 60,35 T 120,20 T 160,35 T 200,10 L 200,60 L 0,60 Z"></path>
+                <path fill="none" stroke="#E5B842" stroke-width="2.5" stroke-linecap="round" d="M 0,50 Q 30,15 60,35 T 120,20 T 160,35 T 200,10"></path>
+              </svg>
+            </div>
+
+            <!-- STAGE CARD -->
+            <div class="stage-progress-card">
+              <div class="stage-donut-circle"></div>
+              <div class="stage-meta-info">
+                <h4>المرحلة 3: الاعتماد النهائي والصرف</h4>
+                <p>مكتمل 18 من أصل 24 بند تدقيق نظامي</p>
+              </div>
+            </div>
+
+            <!-- CHECKLIST -->
+            <div>
+              <div style="font-size:14px; font-weight:800; color:#FFF; margin-bottom:10px;">المهام الفورية المتبقية</div>
+              <div class="action-checklist-wrap">
+                
+                <div class="checklist-item done">
+                  <div class="check-round-icon"><i class="fa-solid fa-check"></i></div>
+                  <div class="checklist-txt">التحقق من تقرير سِمة الائتماني</div>
+                  <div class="checklist-time">10:15 ص</div>
+                </div>
+
+                <div class="checklist-item done">
+                  <div class="check-round-icon"><i class="fa-solid fa-check"></i></div>
+                  <div class="checklist-txt">رفع شهادة تعريف بالراتب مصدقة</div>
+                  <div class="checklist-time">11:30 ص</div>
+                </div>
+
+                <div class="checklist-item active">
+                  <div class="check-round-icon"><i class="fa-solid fa-hourglass-half"></i></div>
+                  <div class="checklist-txt" style="color:#FFF;">تأكيد توقيع سند لأمر إلكترونياً (نافذ)</div>
+                  <div class="checklist-time" style="color:var(--gold);">جاري الآن</div>
+                </div>
+
+                <div class="checklist-item">
+                  <div class="check-round-icon"></div>
+                  <div class="checklist-txt">إيداع الدفعة الأولى بحساب العميل</div>
+                  <div class="checklist-time">غداً 09:00 ص</div>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ================= SECTION 2: CLIENTS DIRECTORY ================= -->
+      <section class="app-section" id="sec-clients">
+        <div class="section-header-row">
+          <h2>قائمة العملاء والطلبات الجارية</h2>
+          <button class="btn-gold-action" onclick="navTo('new-client')"><i class="fa-solid fa-plus"></i> إضافة عميل</button>
+        </div>
+
+        <div class="data-table-container">
+          <table class="obsidian-table">
+            <thead>
+              <tr>
+                <th>اسم العميل</th>
+                <th>رقم الهوية / الإقامة</th>
+                <th>جهة العمل</th>
+                <th>مبلغ التمويل المطلوب</th>
+                <th>البنك الموزع</th>
+                <th>المرحلة الحالية</th>
+                <th>الإجراء</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="font-weight:800; color:#FFF;">م. أحمد عبد الرحمن الخالدي</td>
+                <td>1088492014</td>
+                <td>أرامكو السعودية</td>
+                <td style="color:var(--emerald); font-weight:800;">450,000 ر.س</td>
+                <td><span class="badge-tag badge-gold">مصرف الراجحي</span></td>
+                <td><span class="badge-tag badge-cyan">إصدار العقود</span></td>
+                <td><button class="profile-tag-pill" onclick="navTo('dashboard')">عرض الملف</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:800; color:#FFF;">أ/ سارة محمد الغامدي</td>
+                <td>1049281720</td>
+                <td>وزارة الصحة</td>
+                <td style="color:var(--emerald); font-weight:800;">680,000 ر.س</td>
+                <td><span class="badge-tag badge-emerald">البنك الأهلي</span></td>
+                <td><span class="badge-tag badge-gold">موافقة مبدئية</span></td>
+                <td><button class="profile-tag-pill" onclick="navTo('dashboard')">عرض الملف</button></td>
+              </tr>
+              <tr>
+                <td style="font-weight:800; color:#FFF;">د/ فهد عبد العزيز القحطاني</td>
+                <td>1029481744</td>
+                <td>جامعة الملك سعود</td>
+                <td style="color:var(--emerald); font-weight:800;">1,200,000 ر.س</td>
+                <td><span class="badge-tag badge-gold">بنك الرياض</span></td>
+                <td><span class="badge-tag badge-emerald">معتمد بالكامل</span></td>
+                <td><button class="profile-tag-pill" onclick="navTo('dashboard')">عرض الملف</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 3: BANK DISTRIBUTIONS ================= -->
+      <section class="app-section" id="sec-dist">
+        <div class="section-header-row">
+          <h2>التوزيعات البنكية ومتابعة العروض</h2>
+        </div>
+        <div class="obsidian-card">
+          <p style="color:var(--text-secondary); margin-bottom:20px;">توزيع الطلبات الآلي واليدوي على شبكة البنوك المعتمدة:</p>
+          <div class="stats-duo-boxes" style="margin-bottom:20px;">
+            <div class="stat-small-box">
+              <div class="val" style="color:var(--gold);">18</div>
+              <div class="lbl">توزيع نشط اليوم</div>
+            </div>
+            <div class="stat-small-box">
+              <div class="val" style="color:var(--emerald);">4.2M</div>
+              <div class="lbl">إجمالي مبالغ العروض (ر.س)</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION 4: OPERATIONS & INVOICES ================= -->
+      <section class="app-section" id="sec-operations">
+        <div class="section-header-row"><h2>مراحل العمليات والتدقيق المالي</h2></div>
+        <div class="obsidian-card"><p style="color:var(--text-secondary);">شاشة العمليات التفصيلية وسجل المتابعات وتواريخ الاستحقاق.</p></div>
+      </section>
+
+      <section class="app-section" id="sec-invoices">
+        <div class="section-header-row"><h2>الفواتير والعمولات والماليات</h2></div>
+        <div class="obsidian-card"><p style="color:var(--text-secondary);">إدارة عمولات الوسطاء وإيصالات السداد وضريبة القيمة المضافة.</p></div>
+      </section>
+
+      <section class="app-section" id="sec-banks">
+        <div class="section-header-row"><h2>دليل برامج البنوك التمويلية</h2></div>
+        <div class="obsidian-card"><p style="color:var(--text-secondary);">حاسبة النسب وهوامش الربح وشروط الدعم السكني لكل بنك.</p></div>
+      </section>
+
+      <section class="app-section" id="sec-ai">
+        <div class="section-header-row"><h2>المساعد المالي الذكي (TFC AI Advisor)</h2></div>
+        <div class="obsidian-card"><p style="color:var(--text-secondary);">تحليل أهلية العملاء تلقائياً وتوليد التوصيات البنكية الأفضل بناءً على سِمة ونسب الاستقطاع.</p></div>
+      </section>
+
+      <section class="app-section" id="sec-new-client">
+        <div class="section-header-row"><h2>تسجيل عميل جديد وطلب تمويل</h2></div>
+        <div class="obsidian-card">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <input type="text" placeholder="الاسم الرباعي للعميل" style="padding:14px; background:var(--bg-card-inner); border:1px solid var(--border-subtle); border-radius:12px; color:#FFF; outline:none;">
+            <input type="text" placeholder="رقم الهوية الوطنية / الإقامة" style="padding:14px; background:var(--bg-card-inner); border:1px solid var(--border-subtle); border-radius:12px; color:#FFF; outline:none;">
+            <input type="text" placeholder="الراتب الأساسي وبدلات السكن" style="padding:14px; background:var(--bg-card-inner); border:1px solid var(--border-subtle); border-radius:12px; color:#FFF; outline:none;">
+            <input type="text" placeholder="الالتزامات البنكية القائمة" style="padding:14px; background:var(--bg-card-inner); border:1px solid var(--border-subtle); border-radius:12px; color:#FFF; outline:none;">
+          </div>
+          <button class="btn-gold-action" style="margin-top:20px;" onclick="alert('تم حفظ العميل وتحويله للتوزيع البنكي بنجاح!'); navTo('dashboard');">حفظ وتوزيع الطلب</button>
+        </div>
+      </section>
+
+      <section class="app-section" id="sec-settings">
+        <div class="section-header-row"><h2>الإعدادات والمظهر العام</h2></div>
+        <div class="obsidian-card"><p style="color:var(--text-secondary);">تخصيص الصلاحيات، الثيمات، ومفاتيح الربط البنكي و Supabase.</p></div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <script>
+    function navTo(sectionId) {
+      document.querySelectorAll('.app-section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
+      const targetSection = document.getElementById('sec-' + sectionId);
+      if (targetSection) targetSection.classList.add('active');
+
+      const targetBtn = document.getElementById('nav-btn-' + sectionId);
+      if (targetBtn) targetBtn.classList.add('active');
+    }
+  </script>
+
+</body>
+</html>

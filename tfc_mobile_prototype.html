@@ -830,9 +830,150 @@
             opacity: 1;
             transform: translateX(-50%) translateY(0);
         }
+
+        /* Obsidian Theme Variables */
+        body[data-theme="obsidian"] {
+            --bg-base: #0B0C0E;
+            --bg-card: #14161D;
+            --bg-card-inner: #1C1F28;
+            --gold: #E5B842;
+            --cyan: #38BDF8;
+            --cyan-glow: rgba(56, 189, 248, 0.2);
+            --green: #10B981;
+            --green-glow: rgba(16, 185, 129, 0.2);
+            --amber: #F59E0B;
+            --red: #F43F5E;
+            --text-primary: #FFFFFF;
+            --text-secondary: #94A3B8;
+            --border: rgba(229, 184, 66, 0.18);
+            --border-glow-gold: rgba(229, 184, 66, 0.5);
+            --border-glow-cyan: rgba(56, 189, 248, 0.4);
+        }
+
+        body[data-theme="obsidian"] .phone-container {
+            border: 1px solid rgba(229, 184, 66, 0.3);
+            box-shadow: 0 0 40px rgba(0,0,0,0.9), 0 0 20px rgba(229, 184, 66, 0.15);
+        }
+
+        body[data-theme="obsidian"] .brand-monogram {
+            background: radial-gradient(circle, #E5B842 0%, #1A1813 90%);
+            border: 1.5px solid #E5B842;
+            color: #FFF;
+            box-shadow: 0 0 12px rgba(229, 184, 66, 0.4);
+        }
+
+        /* Obsidian Hero Profile Banner */
+        .obsidian-hero-card {
+            background: linear-gradient(180deg, #181A22 0%, #111318 100%);
+            border: 1px solid rgba(229, 184, 66, 0.25);
+            border-radius: 20px;
+            padding: 16px;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        .obsidian-hero-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+        .obsidian-avatar {
+            width: 58px;
+            height: 58px;
+            border-radius: 50%;
+            border: 2px solid var(--gold);
+            object-fit: cover;
+            box-shadow: 0 0 12px rgba(229, 184, 66, 0.3);
+        }
+        .obsidian-hero-info {
+            flex: 1;
+        }
+        .obsidian-hero-name {
+            font-size: 16px;
+            font-weight: 800;
+            color: #FFF;
+        }
+        .obsidian-hero-role {
+            font-size: 12px;
+            color: var(--gold);
+            font-weight: 600;
+        }
+        .obsidian-badge-online {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--green);
+            color: var(--green);
+            padding: 3px 8px;
+            border-radius: 99px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        .obsidian-metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+        .obsidian-metric-box {
+            background: var(--bg-card-inner);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px 12px;
+            text-align: center;
+        }
+        .obsidian-metric-num {
+            font-size: 20px;
+            font-weight: 900;
+            color: #FFF;
+        }
+        .obsidian-metric-label {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .obsidian-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .obsidian-tag {
+            background: rgba(229, 184, 66, 0.1);
+            border: 1px solid rgba(229, 184, 66, 0.25);
+            color: var(--gold);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 4px 9px;
+            border-radius: 99px;
+        }
+        .theme-pill-selector {
+            display: flex;
+            align-items: center;
+            background: var(--bg-card-inner);
+            border: 1px solid var(--border);
+            border-radius: 99px;
+            padding: 3px;
+            margin: 0 12px 14px 12px;
+        }
+        .theme-pill-btn {
+            flex: 1;
+            text-align: center;
+            padding: 6px 4px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 99px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+        .theme-pill-btn.active {
+            background: var(--gold);
+            color: #000;
+            box-shadow: 0 0 10px rgba(229, 184, 66, 0.4);
+        }
+
     </style>
 </head>
-<body>
+<body data-theme="obsidian">
 
     <div class="phone-container">
         <div class="phone-notch"></div>
@@ -856,6 +997,37 @@
 
             <!-- 1. DASHBOARD (الرئيسية) -->
             <section id="view-dashboard" class="view-section active">
+
+                <!-- 🌟 OBSIDIAN LUXURY PROFILE HERO (من وحي التصميم المرفق) -->
+                <div class="obsidian-hero-card" style="background: linear-gradient(180deg, #181A22 0%, #111318 100%); border: 1px solid rgba(229, 184, 66, 0.3); border-radius: 20px; padding: 16px; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);">
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:14px;">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=120&h=120&fit=crop" style="width:58px; height:58px; border-radius:50%; border:2px solid #E5B842; object-fit:cover; box-shadow:0 0 12px rgba(229,184,66,0.35);" alt="User">
+                        <div style="flex:1;">
+                            <div style="font-size:16px; font-weight:800; color:#FFF;">وسام كمال • استشاري تمويل أول</div>
+                            <div style="font-size:12px; color:#E5B842; font-weight:700;">إدارة التوزيعات البنكية المباشرة</div>
+                        </div>
+                        <span style="background:rgba(16,185,129,0.15); border:1px solid #10B981; color:#10B981; padding:3px 8px; border-radius:99px; font-size:10px; font-weight:700;">متصل الآن 🟢</span>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+                        <div style="background:#1C1F28; border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:10px 12px; text-align:center;">
+                            <div style="font-size:22px; font-weight:900; color:#E5B842;">456</div>
+                            <div style="font-size:11px; color:#94A3B8;">يوم في شركة TFC</div>
+                        </div>
+                        <div style="background:#1C1F28; border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:10px 12px; text-align:center;">
+                            <div style="font-size:22px; font-weight:900; color:#10B981;">11</div>
+                            <div style="font-size:11px; color:#94A3B8;">معاملة معتمدة شهرياً</div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                        <span style="background:rgba(229,184,66,0.1); border:1px solid rgba(229,184,66,0.25); color:#E5B842; font-size:10px; font-weight:700; padding:4px 9px; border-radius:99px;">⚡ تمويل عقاري</span>
+                        <span style="background:rgba(229,184,66,0.1); border:1px solid rgba(229,184,66,0.25); color:#E5B842; font-size:10px; font-weight:700; padding:4px 9px; border-radius:99px;">💼 شراء مديونيات</span>
+                        <span style="background:rgba(229,184,66,0.1); border:1px solid rgba(229,184,66,0.25); color:#E5B842; font-size:10px; font-weight:700; padding:4px 9px; border-radius:99px;">🏦 الراجحي & الأهلي</span>
+                        <span style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); color:#10B981; font-size:10px; font-weight:700; padding:4px 9px; border-radius:99px;">📈 نسبة إغلاق 94%</span>
+                    </div>
+                </div>
+
                 <!-- KPI Carousel Row -->
                 <div class="kpi-carousel">
                     <div class="kpi-card-box kpi-gold" onclick="switchSection('profile', 'ملف العميل')">
@@ -2745,6 +2917,15 @@
     </div>
 
     <script>
+        
+        function setAppTheme(themeName) {
+            document.body.setAttribute('data-theme', themeName);
+            document.querySelectorAll('.theme-pill-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById('pill-' + themeName);
+            if (activeBtn) activeBtn.classList.add('active');
+            showToast('تم تفعيل مظهر: ' + (themeName === 'obsidian' ? 'Obsidian Gold الفاخر 👑' : (themeName === 'modern' ? 'Dark Modern ✨' : 'Classic 🏛️')));
+        }
+
         function switchSection(secId, title) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             const target = document.getElementById('view-' + secId);

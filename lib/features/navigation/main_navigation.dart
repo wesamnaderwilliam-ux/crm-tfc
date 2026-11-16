@@ -458,7 +458,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
               ),
               const Divider(color: Colors.white12, height: 1),
 
-              // Theme Quick Switcher Row inside Drawer (1. Classic / 2. Modern / 3. Theme 3)
+              // Theme Quick Switcher Row inside Drawer (1. Classic / 2. Modern / 3. Theme 3 / 4. Theme 4)
               Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 padding: const EdgeInsets.all(6),
@@ -474,38 +474,38 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                         onTap: () {
                           ref.read(themeProvider.notifier).setTheme(AppThemeMode.defaultTheme);
                         },
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 7),
                           decoration: BoxDecoration(
                             color: ref.watch(themeProvider) == AppThemeMode.defaultTheme
                                 ? const Color(0xFF6C5CE7)
                                 : Colors.transparent,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           alignment: Alignment.center,
                           child: const Text(
-                            "1. كلاسيك 🏛️",
+                            "1 🏛️",
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 11,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 3),
                     Expanded(
                       child: InkWell(
                         onTap: () {
                           ref.read(themeProvider.notifier).setTheme(AppThemeMode.modernTheme);
                         },
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 7),
                           decoration: BoxDecoration(
                             color: ref.watch(themeProvider) == AppThemeMode.modernTheme
                                 ? const Color(0xFF00E5FF).withValues(alpha: 0.3)
@@ -513,45 +513,76 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                             border: ref.watch(themeProvider) == AppThemeMode.modernTheme
                                 ? Border.all(color: const Color(0xFF00E5FF))
                                 : null,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           alignment: Alignment.center,
                           child: const Text(
-                            "2. مودرن ✨",
+                            "2 ✨",
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 11,
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 4),
+                    const SizedBox(width: 3),
                     Expanded(
                       child: InkWell(
                         onTap: () {
                           ref.read(themeProvider.notifier).setTheme(AppThemeMode.prototypeTheme);
                         },
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 7),
                           decoration: BoxDecoration(
                             color: ref.watch(themeProvider) == AppThemeMode.prototypeTheme
-                                ? const Color(0xFFD4AF37).withValues(alpha: 0.35)
+                                ? const Color(0xFF10B981).withValues(alpha: 0.35)
                                 : Colors.transparent,
                             border: ref.watch(themeProvider) == AppThemeMode.prototypeTheme
-                                ? Border.all(color: const Color(0xFFD4AF37))
+                                ? Border.all(color: const Color(0xFF10B981))
                                 : null,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(10),
                           ),
                           alignment: Alignment.center,
                           child: const Text(
-                            "3. ثيم 3 💎",
+                            "3 💎",
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 11,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 3),
+                    Expanded(
+                      child: InkWell(
+                        onTap: () {
+                          ref.read(themeProvider.notifier).setTheme(AppThemeMode.obsidianTheme);
+                        },
+                        borderRadius: BorderRadius.circular(10),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(vertical: 7),
+                          decoration: BoxDecoration(
+                            color: ref.watch(themeProvider) == AppThemeMode.obsidianTheme
+                                ? const Color(0xFFE5B842).withValues(alpha: 0.35)
+                                : Colors.transparent,
+                            border: ref.watch(themeProvider) == AppThemeMode.obsidianTheme
+                                ? Border.all(color: const Color(0xFFE5B842))
+                                : null,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          alignment: Alignment.center,
+                          child: const Text(
+                            "4 👑",
+                            style: TextStyle(
+                              color: Color(0xFFE5B842),
+                              fontSize: 10,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -1219,7 +1250,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
 
                                 // ─── Quick Theme Toggle Button (Windows, Web, Android, iOS) ───
                                 Tooltip(
-                                  message: "تبديل المظهر (كلاسيكي / مودرن / ثيم 3)",
+                                  message: "تبديل المظهر (كلاسيكي / مودرن / ثيم 3 / ثيم 4)",
                                   child: InkWell(
                                     borderRadius: BorderRadius.circular(10),
                                     onTap: () {
@@ -1239,7 +1270,16 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                                           const SnackBar(
                                             content: Text("تم تفعيل: 3. ثيم النموذج الكامل (ثيم 3) 💎", textAlign: TextAlign.right),
                                             duration: Duration(seconds: 2),
-                                            backgroundColor: Color(0xFFD4AF37),
+                                            backgroundColor: Color(0xFF10B981),
+                                          ),
+                                        );
+                                      } else if (currentTheme == AppThemeMode.prototypeTheme) {
+                                        notifier.setTheme(AppThemeMode.obsidianTheme);
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(
+                                            content: Text("تم تفعيل: 4. ثيم أوبسيديان جولد (ثيم 4) 👑", textAlign: TextAlign.right),
+                                            duration: Duration(seconds: 2),
+                                            backgroundColor: Color(0xFFE5B842),
                                           ),
                                         );
                                       } else {
@@ -1256,38 +1296,50 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                                       decoration: BoxDecoration(
-                                        color: isModern
-                                            ? const Color(0xFFD4AF37).withValues(alpha: 0.15)
-                                            : Colors.white.withValues(alpha: 0.08),
+                                        color: currentTheme.isTheme4
+                                            ? const Color(0xFFE5B842).withValues(alpha: 0.20)
+                                            : (isModern
+                                                ? const Color(0xFFD4AF37).withValues(alpha: 0.15)
+                                                : Colors.white.withValues(alpha: 0.08)),
                                         borderRadius: BorderRadius.circular(10),
                                         border: Border.all(
-                                          color: isModern
-                                              ? const Color(0xFFD4AF37).withValues(alpha: 0.4)
-                                              : Colors.white12,
+                                          color: currentTheme.isTheme4
+                                              ? const Color(0xFFE5B842).withValues(alpha: 0.5)
+                                              : (isModern
+                                                  ? const Color(0xFFD4AF37).withValues(alpha: 0.4)
+                                                  : Colors.white12),
                                         ),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Icon(
-                                            currentTheme.isTheme3
-                                                ? Icons.diamond_rounded
-                                                : (isModern ? Icons.auto_awesome_rounded : Icons.layers_outlined),
-                                            color: currentTheme.isTheme3
-                                                ? const Color(0xFF10B981)
-                                                : (isModern ? const Color(0xFFD4AF37) : const Color(0xFF00CEC9)),
+                                            currentTheme.isTheme4
+                                                ? Icons.workspace_premium_rounded
+                                                : (currentTheme.isTheme3
+                                                    ? Icons.diamond_rounded
+                                                    : (isModern ? Icons.auto_awesome_rounded : Icons.layers_outlined)),
+                                            color: currentTheme.isTheme4
+                                                ? const Color(0xFFE5B842)
+                                                : (currentTheme.isTheme3
+                                                    ? const Color(0xFF10B981)
+                                                    : (isModern ? const Color(0xFFD4AF37) : const Color(0xFF00CEC9))),
                                             size: 15,
                                           ),
                                           if (!isMobile) ...[
                                             const SizedBox(width: 5),
                                             Text(
-                                              currentTheme.isTheme3
-                                                  ? "ثيم 3 💎"
-                                                  : (isModern ? "مودرن ✨" : "كلاسيك 🏛️"),
+                                              currentTheme.isTheme4
+                                                  ? "ثيم 4 👑"
+                                                  : (currentTheme.isTheme3
+                                                      ? "ثيم 3 💎"
+                                                      : (isModern ? "مودرن ✨" : "كلاسيك 🏛️")),
                                               style: TextStyle(
-                                                color: currentTheme.isTheme3
-                                                    ? const Color(0xFF10B981)
-                                                    : (isModern ? const Color(0xFFD4AF37) : Colors.white70),
+                                                color: currentTheme.isTheme4
+                                                    ? const Color(0xFFE5B842)
+                                                    : (currentTheme.isTheme3
+                                                        ? const Color(0xFF10B981)
+                                                        : (isModern ? const Color(0xFFD4AF37) : Colors.white70)),
                                                 fontSize: 11,
                                                 fontWeight: FontWeight.bold,
                                               ),

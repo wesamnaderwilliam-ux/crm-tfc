@@ -129,13 +129,17 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            themeMode.isTheme3
-                                ? "لوحة التحكم المالية (ثيم 3 - النموذج الكامل) 💎"
-                                : (isModern ? "لوحة التحكم المالية (مودرن) ✨" : "لوحة التحكم المالية"),
+                            themeMode.isTheme4
+                                ? "لوحة التحكم المالية (ثيم 4 - Obsidian Gold) 👑"
+                                : (themeMode.isTheme3
+                                    ? "لوحة التحكم المالية (ثيم 3 - النموذج الكامل) 💎"
+                                    : (isModern ? "لوحة التحكم المالية (مودرن) ✨" : "لوحة التحكم المالية")),
                             style: TextStyle(
                               fontSize: isMobile ? 16 : 20,
                               fontWeight: FontWeight.bold,
-                              color: isModern ? const Color(0xFFD4AF37) : TfcColors.primary,
+                              color: themeMode.isTheme4
+                                  ? const Color(0xFFE5B842)
+                                  : (isModern ? const Color(0xFFD4AF37) : TfcColors.primary),
                             ),
                           ),
 
@@ -164,6 +168,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ],
                 ),
                 SizedBox(height: isMobile ? 10 : 14),
+
+            // 👑 THEME 4: OBSIDIAN LUXURY PROFILE HERO (من وحي التصميم التنفيذي)
+            if (themeMode.isTheme4) ...[
+              _buildObsidianExecutiveHero(context, authState, totalRequestedAmount, approvedAmount, isMobile),
+              const SizedBox(height: 16),
+            ],
 
             // 1. KPI Financial cards (visible conditionally if user can view analytics)
             if (permissions.canViewAnalytics) ...[
@@ -1256,6 +1266,191 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     }
     return value.toStringAsFixed(0);
   }
+
+  Widget _buildObsidianExecutiveHero(
+    BuildContext context,
+    dynamic authState,
+    double totalRequested,
+    double approved,
+    bool isMobile,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF181A22), Color(0xFF111318)],
+        ),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFE5B842).withValues(alpha: 0.35), width: 1.2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.55),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+          BoxShadow(
+            color: const Color(0xFFE5B842).withValues(alpha: 0.08),
+            blurRadius: 15,
+            spreadRadius: -2,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Top Row: Avatar + Name + Online badge
+          Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFE5B842), width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFE5B842).withValues(alpha: 0.35),
+                      blurRadius: 10,
+                    ),
+                  ],
+                  gradient: const RadialGradient(
+                    colors: [Color(0xFFE5B842), Color(0xFF15130D)],
+                  ),
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  authState.fullName.isNotEmpty ? authState.fullName[0] : "T",
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      authState.fullName,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    const Text(
+                      "استشاري تمويل أول • إدارة التوزيعات البنكية",
+                      style: TextStyle(color: Color(0xFFE5B842), fontWeight: FontWeight.w600, fontSize: 11),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFF10B981), width: 1),
+                ),
+                child: const Text(
+                  "متصل الآن 🟢",
+                  style: TextStyle(color: Color(0xFF10B981), fontSize: 11, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+
+          // Duo metric boxes
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1C1F28),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        "${_formatMoney(totalRequested)} ج.م",
+                        style: const TextStyle(color: Color(0xFFE5B842), fontWeight: FontWeight.w900, fontSize: 15),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        "إجمالي المحفظة النشطة",
+                        style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF1C1F28),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.07)),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        "${_formatMoney(approved)} ج.م",
+                        style: const TextStyle(color: Color(0xFF10B981), fontWeight: FontWeight.w900, fontSize: 15),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      const Text(
+                        "المعتمد النهائي المنفذ",
+                        style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // Chips Wrap
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              _buildObsidianChip("⚡ تمويل عقاري وشخصي", const Color(0xFFE5B842)),
+              _buildObsidianChip("💼 شراء مديونيات وبنوك", const Color(0xFFE5B842)),
+              _buildObsidianChip("🏦 شبكة البنوك المعتمدة", const Color(0xFF00E5FF)),
+              _buildObsidianChip("📈 نسبة إنجاز 94%", const Color(0xFF10B981)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildObsidianChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.35), width: 0.8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+
 }
 
 // ============================================================
@@ -2659,7 +2854,5 @@ class __DashboardStatusBreakdownWidgetState
         ),
       ),
     );
-  }
 }
-
-
+}

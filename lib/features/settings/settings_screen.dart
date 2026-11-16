@@ -1487,11 +1487,25 @@ class _AppThemeSelectorCard extends ConsumerWidget {
                 title: "3. ثيم النموذج الكامل (ثيم 3)",
                 subtitle: "كامل تجربة البروتوتايب (Hero Card، الدوك العائم، 8 فلاتر، الأيقونات الدائرية)",
                 badgeText: "ثيم 3 💎",
-                primaryAccent: const Color(0xFFD4AF37),
-                secondaryAccent: const Color(0xFF10B981),
+                primaryAccent: const Color(0xFF10B981),
+                secondaryAccent: const Color(0xFF00E5FF),
                 icon: Icons.phone_android_rounded,
                 onTap: () {
                   ref.read(themeProvider.notifier).setTheme(AppThemeMode.prototypeTheme);
+                },
+              );
+
+              final obsidianCard = _buildThemeOptionCard(
+                context: context,
+                isSelected: currentTheme == AppThemeMode.obsidianTheme,
+                title: "4. ثيم أوبسيديان جولد (ثيم 4)",
+                subtitle: "المظهر الفاخر المستوحى من لوحة التحكم التنفيذية (Dark Obsidian & Gold)",
+                badgeText: "ثيم 4 👑",
+                primaryAccent: const Color(0xFFE5B842),
+                secondaryAccent: const Color(0xFF10B981),
+                icon: Icons.workspace_premium_rounded,
+                onTap: () {
+                  ref.read(themeProvider.notifier).setTheme(AppThemeMode.obsidianTheme);
                 },
               );
 
@@ -1503,17 +1517,29 @@ class _AppThemeSelectorCard extends ConsumerWidget {
                     modernCard,
                     const SizedBox(height: 12),
                     prototypeCard,
+                    const SizedBox(height: 12),
+                    obsidianCard,
                   ],
                 );
               }
 
-              return Row(
+              return Column(
                 children: [
-                  Expanded(child: defaultCard),
-                  const SizedBox(width: 12),
-                  Expanded(child: modernCard),
-                  const SizedBox(width: 12),
-                  Expanded(child: prototypeCard),
+                  Row(
+                    children: [
+                      Expanded(child: defaultCard),
+                      const SizedBox(width: 12),
+                      Expanded(child: modernCard),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(child: prototypeCard),
+                      const SizedBox(width: 12),
+                      Expanded(child: obsidianCard),
+                    ],
+                  ),
                 ],
               );
             },
