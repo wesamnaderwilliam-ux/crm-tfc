@@ -24,8 +24,9 @@ class BanksScreen extends ConsumerWidget {
     final effectivePerms = (role == 'admin' || role == 'manager')
         ? EmployeePermissionKeys.defaultsForRole('admin')
         : EmployeePermissionKeys.resolve(role, customPermsState[userId] ?? {});
+    // Strict Admin check: Only true Admin can Add, Edit, or Delete banks, programs, and bank employees
     final isUserStrictAdmin = (role == 'admin' || authState.user?.email?.toLowerCase() == 'wezonader@gmail.com');
-    final isAdmin = isUserStrictAdmin || (effectivePerms[EmployeePermissionKeys.manageBanks] ?? false);
+    final isAdmin = isUserStrictAdmin;
     // Strict requirement: Only system Admin can view bank employee phones and contacts
     final canViewBankPhones = isUserStrictAdmin;
     final isBankEmployee = role == 'bank_employee';
@@ -765,7 +766,7 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
                                 ),
                                 Row(
                                   children: [
-                                    if (widget.isAdmin || widget.isBankEmployee) ...[
+                                    if (widget.isAdmin) ...[
                                       IconButton(
                                         icon: const Icon(Icons.edit, size: 16, color: TfcColors.primary),
                                         onPressed: () => _showProgramFormDialog(context, ref, program: program),
@@ -838,7 +839,7 @@ class _BankDetailsPanelState extends ConsumerState<_BankDetailsPanel> with Singl
                   },
                 ),
         ),
-        if (widget.isAdmin || widget.isBankEmployee)
+        if (widget.isAdmin)
           Padding(
             padding: const EdgeInsets.all(20),
             child: ElevatedButton.icon(
