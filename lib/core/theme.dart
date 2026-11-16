@@ -92,10 +92,11 @@ class TfcTheme {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: const Color(0xFF13171E),
-      hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
-      labelStyle: const TextStyle(color: TfcColors.onSurfaceVariant),
-      floatingLabelStyle: const TextStyle(color: TfcColors.primary),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      isDense: true,
+      hintStyle: const TextStyle(color: Colors.white24, fontSize: 11),
+      labelStyle: const TextStyle(color: TfcColors.onSurfaceVariant, fontSize: 11),
+      floatingLabelStyle: const TextStyle(color: TfcColors.primary, fontSize: 11),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: Color(0xFF1C222E), width: 1),
@@ -175,10 +176,11 @@ class TfcTheme {
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
       fillColor: const Color(0xFF131C2E),
-      hintStyle: const TextStyle(color: Colors.white24, fontSize: 13),
-      labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
-      floatingLabelStyle: const TextStyle(color: Color(0xFF00E5FF)),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      isDense: true,
+      hintStyle: const TextStyle(color: Colors.white24, fontSize: 11),
+      labelStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
+      floatingLabelStyle: const TextStyle(color: Color(0xFF00E5FF), fontSize: 11),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Color(0x3300E5FF), width: 1),

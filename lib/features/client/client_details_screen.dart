@@ -6189,39 +6189,66 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // 1. Full Name & Primary Phone
-                        Row(
-                          textDirection: TextDirection.rtl,
-                          children: [
-                            Expanded(
-                              child: _buildFormField(
-                                label: "الاسم الكامل (ثلاثي كما في البطاقة)",
-                                child: TextFormField(
-                                  controller: nameCtrl,
-                                  textAlign: TextAlign.right,
-                                  decoration: const InputDecoration(
-                                      hintText: "أحمد بن عبد الله القحطاني"),
-                                  validator: (v) =>
-                                      v!.trim().isEmpty ? "مطلوب" : null,
+                        // 1. Full Name & Primary Phone (Responsive)
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isCompact = constraints.maxWidth < 500;
+                            if (isCompact) {
+                              return Column(
+                                children: [
+                                  _buildFormField(
+                                    label: "الاسم الكامل (ثلاثي كما في البطاقة)",
+                                    child: TextFormField(
+                                      controller: nameCtrl,
+                                      textAlign: TextAlign.right,
+                                      decoration: const InputDecoration(hintText: "أحمد بن عبد الله القحطاني"),
+                                      validator: (v) => v!.trim().isEmpty ? "مطلوب" : null,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildFormField(
+                                    label: "رقم الهاتف المحمول",
+                                    child: TextFormField(
+                                      controller: phoneCtrl,
+                                      textAlign: TextAlign.right,
+                                      keyboardType: TextInputType.phone,
+                                      decoration: const InputDecoration(hintText: "05XXXXXXXX"),
+                                      validator: (v) => v!.trim().isEmpty ? "مطلوب" : null,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
+                            return Row(
+                              textDirection: TextDirection.rtl,
+                              children: [
+                                Expanded(
+                                  child: _buildFormField(
+                                    label: "الاسم الكامل (ثلاثي كما في البطاقة)",
+                                    child: TextFormField(
+                                      controller: nameCtrl,
+                                      textAlign: TextAlign.right,
+                                      decoration: const InputDecoration(hintText: "أحمد بن عبد الله القحطاني"),
+                                      validator: (v) => v!.trim().isEmpty ? "مطلوب" : null,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildFormField(
-                                label: "رقم الهاتف المحمول",
-                                child: TextFormField(
-                                  controller: phoneCtrl,
-                                  textAlign: TextAlign.right,
-                                  keyboardType: TextInputType.phone,
-                                  decoration: const InputDecoration(
-                                      hintText: "05XXXXXXXX"),
-                                  validator: (v) =>
-                                      v!.trim().isEmpty ? "مطلوب" : null,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildFormField(
+                                    label: "رقم الهاتف المحمول",
+                                    child: TextFormField(
+                                      controller: phoneCtrl,
+                                      textAlign: TextAlign.right,
+                                      keyboardType: TextInputType.phone,
+                                      decoration: const InputDecoration(hintText: "05XXXXXXXX"),
+                                      validator: (v) => v!.trim().isEmpty ? "مطلوب" : null,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ],
+                              ],
+                            );
+                          },
                         ),
                         const SizedBox(height: 12),
 
@@ -6284,46 +6311,74 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                         ),
                         const SizedBox(height: 16),
 
-                        // 2. National ID & Birth Date
-                        Row(
-                          textDirection: TextDirection.rtl,
-                          children: [
-                            Expanded(
-                              child: _buildFormField(
-                                label: "الرقم القومي (14 رقم)",
-                                child: TextFormField(
-                                  controller: nationalIdCtrl,
-                                  textAlign: TextAlign.right,
-                                  keyboardType: TextInputType.number,
-                                  decoration: const InputDecoration(
-                                      hintText: "10029384758694"),
-                                  validator: (v) {
-                                    if (v == null || v.trim().isEmpty) {
-                                      return null;
-                                    }
-                                    if (v.trim().length < 10) {
-                                      return "يرجى كتابة رقم صحيح";
-                                    }
-                                    return null;
-                                  },
+                        // 2. National ID & Birth Date (Responsive)
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isCompact = constraints.maxWidth < 500;
+                            if (isCompact) {
+                              return Column(
+                                children: [
+                                  _buildFormField(
+                                    label: "الرقم القومي (14 رقم)",
+                                    child: TextFormField(
+                                      controller: nationalIdCtrl,
+                                      textAlign: TextAlign.right,
+                                      keyboardType: TextInputType.number,
+                                      decoration: const InputDecoration(hintText: "10029384758694"),
+                                      validator: (v) {
+                                        if (v == null || v.trim().isEmpty) return null;
+                                        if (v.trim().length < 10) return "يرجى كتابة رقم صحيح";
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  _buildFormField(
+                                    label: "تاريخ الميلاد",
+                                    child: TextFormField(
+                                      controller: birthDateCtrl,
+                                      textAlign: TextAlign.right,
+                                      decoration: const InputDecoration(hintText: "YYYY-MM-DD"),
+                                      validator: (v) => v!.trim().isEmpty ? "مطلوب" : null,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
+                            return Row(
+                              textDirection: TextDirection.rtl,
+                              children: [
+                                Expanded(
+                                  child: _buildFormField(
+                                    label: "الرقم القومي (14 رقم)",
+                                    child: TextFormField(
+                                      controller: nationalIdCtrl,
+                                      textAlign: TextAlign.right,
+                                      keyboardType: TextInputType.number,
+                                      decoration: const InputDecoration(hintText: "10029384758694"),
+                                      validator: (v) {
+                                        if (v == null || v.trim().isEmpty) return null;
+                                        if (v.trim().length < 10) return "يرجى كتابة رقم صحيح";
+                                        return null;
+                                      },
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildFormField(
-                                label: "تاريخ الميلاد",
-                                child: TextFormField(
-                                  controller: birthDateCtrl,
-                                  textAlign: TextAlign.right,
-                                  decoration: const InputDecoration(
-                                      hintText: "YYYY-MM-DD"),
-                                  validator: (v) =>
-                                      v!.trim().isEmpty ? "مطلوب" : null,
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildFormField(
+                                    label: "تاريخ الميلاد",
+                                    child: TextFormField(
+                                      controller: birthDateCtrl,
+                                      textAlign: TextAlign.right,
+                                      decoration: const InputDecoration(hintText: "YYYY-MM-DD"),
+                                      validator: (v) => v!.trim().isEmpty ? "مطلوب" : null,
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ],
+                              ],
+                            );
+                          },
                         ),
                         const SizedBox(height: 16),
 
@@ -7128,160 +7183,266 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Row 1: Bank Name, Limit Value, 5% calculation
-                        Row(
-                          textDirection: TextDirection.rtl,
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: _buildFormField(
-                                label: "اسم البنك",
-                                child: TextFormField(
-                                  controller: bankCtrl,
-                                  textAlign: TextAlign.right,
-                                  validator: (v) => v!.trim().isEmpty
-                                      ? "اسم البنك مطلوب"
-                                      : null,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              flex: 2,
-                              child: _buildFormField(
-                                label: "قيمة الليمت",
-                                child: TextFormField(
-                                  controller: valCtrl,
-                                  textAlign: TextAlign.right,
-                                  keyboardType: TextInputType.number,
-                                  validator: (v) =>
-                                      double.tryParse(v ?? '') == null
-                                          ? "الرجاء إدخال رقم صحيح"
-                                          : null,
-                                  onChanged: (v) => setState(recalculate),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              flex: 2,
-                              child: _buildFormField(
-                                label: "قيمة الـ 5%",
-                                child: TextFormField(
-                                  controller: fivePercentCtrl,
-                                  textAlign: TextAlign.right,
-                                  readOnly: true,
-                                  style: const TextStyle(
-                                      color: TfcColors.secondary,
-                                      fontWeight: FontWeight.bold),
-                                  decoration: const InputDecoration(
-                                    hintText: "0.00",
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        // Row 2: Type, Duration, Installment, Highest Limit
-                        Row(
-                          textDirection: TextDirection.rtl,
-                          children: [
-                            Expanded(
-                              flex: 2,
-                              child: _buildFormField(
-                                label: "النوع",
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withAlpha(10),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(color: Colors.white10),
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      value: type,
-                                      dropdownColor: TfcColors.surfaceDim,
-                                      isExpanded: true,
-                                      items: const [
-                                        DropdownMenuItem(
-                                            value: "card",
-                                            child: Text("بطاقة",
-                                                textDirection:
-                                                    TextDirection.rtl)),
-                                        DropdownMenuItem(
-                                            value: "request",
-                                            child: Text("أبلكيشن",
-                                                textDirection:
-                                                    TextDirection.rtl)),
-                                      ],
-                                      onChanged: (val) {
-                                        if (val != null) {
-                                          setState(() {
-                                            type = val;
-                                            recalculate();
-                                          });
-                                        }
-                                      },
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final isCompact = constraints.maxWidth < 550;
+                            if (isCompact) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  // 1. Bank Name full width
+                                  _buildFormField(
+                                    label: "اسم البنك",
+                                    child: TextFormField(
+                                      controller: bankCtrl,
+                                      textAlign: TextAlign.right,
+                                      validator: (v) => v!.trim().isEmpty ? "اسم البنك مطلوب" : null,
                                     ),
                                   ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              flex: 2,
-                              child: _buildFormField(
-                                label: "المدة",
-                                child: TextFormField(
-                                  controller: durationCtrl,
-                                  textAlign: TextAlign.right,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            if (type == 'request') ...[
-                              Expanded(
-                                flex: 2,
-                                child: _buildFormField(
-                                  label: "قيمة القسط",
-                                  child: TextFormField(
-                                    controller: instCtrl,
-                                    textAlign: TextAlign.right,
-                                    keyboardType: TextInputType.number,
-                                    validator: (v) {
-                                      if (v == null || v.trim().isEmpty) {
-                                        return null;
-                                      }
-                                      return double.tryParse(v) == null
-                                          ? "الرجاء إدخال رقم صحيح"
-                                          : null;
-                                    },
-                                    onChanged: (v) => setState(recalculate),
+                                  const SizedBox(height: 10),
+                                  // 2. Limit and 5%
+                                  Row(
+                                    textDirection: TextDirection.rtl,
+                                    children: [
+                                      Expanded(
+                                        child: _buildFormField(
+                                          label: "قيمة الليمت",
+                                          child: TextFormField(
+                                            controller: valCtrl,
+                                            textAlign: TextAlign.right,
+                                            keyboardType: TextInputType.number,
+                                            validator: (v) => double.tryParse(v ?? '') == null ? "الرجاء إدخال رقم صحيح" : null,
+                                            onChanged: (v) => setState(recalculate),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: _buildFormField(
+                                          label: "قيمة الـ 5%",
+                                          child: TextFormField(
+                                            controller: fivePercentCtrl,
+                                            textAlign: TextAlign.right,
+                                            readOnly: true,
+                                            style: const TextStyle(color: TfcColors.secondary, fontWeight: FontWeight.bold),
+                                            decoration: const InputDecoration(hintText: "0.00"),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                            ],
-                            Expanded(
-                              flex: 2,
-                              child: _buildFormField(
-                                label: "الحد الأعلى",
-                                child: TextFormField(
-                                  controller: highestCtrl,
-                                  textAlign: TextAlign.right,
-                                  readOnly: true,
-                                  style: const TextStyle(
-                                      color: Colors.amberAccent,
-                                      fontWeight: FontWeight.bold),
-                                  decoration: const InputDecoration(
-                                    hintText: "0.00",
+                                  const SizedBox(height: 10),
+                                  // 3. Type & Duration
+                                  Row(
+                                    textDirection: TextDirection.rtl,
+                                    children: [
+                                      Expanded(
+                                        child: _buildFormField(
+                                          label: "النوع",
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white.withAlpha(10),
+                                              borderRadius: BorderRadius.circular(10),
+                                              border: Border.all(color: Colors.white10),
+                                            ),
+                                            child: DropdownButtonHideUnderline(
+                                              child: DropdownButton<String>(
+                                                value: type,
+                                                dropdownColor: TfcColors.surfaceDim,
+                                                isExpanded: true,
+                                                items: const [
+                                                  DropdownMenuItem(value: "card", child: Text("بطاقة", textDirection: TextDirection.rtl)),
+                                                  DropdownMenuItem(value: "request", child: Text("أبلكيشن", textDirection: TextDirection.rtl)),
+                                                ],
+                                                onChanged: (val) {
+                                                  if (val != null) {
+                                                    setState(() {
+                                                      type = val;
+                                                      recalculate();
+                                                    });
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: _buildFormField(
+                                          label: "المدة",
+                                          child: TextFormField(
+                                            controller: durationCtrl,
+                                            textAlign: TextAlign.right,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                  if (type == 'request') ...[
+                                    const SizedBox(height: 10),
+                                    _buildFormField(
+                                      label: "قيمة القسط",
+                                      child: TextFormField(
+                                        controller: instCtrl,
+                                        textAlign: TextAlign.right,
+                                        keyboardType: TextInputType.number,
+                                        validator: (v) {
+                                          if (v == null || v.trim().isEmpty) return null;
+                                          return double.tryParse(v) == null ? "الرجاء إدخال رقم صحيح" : null;
+                                        },
+                                        onChanged: (v) => setState(recalculate),
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 10),
+                                  _buildFormField(
+                                    label: "الحد الأعلى",
+                                    child: TextFormField(
+                                      controller: highestCtrl,
+                                      textAlign: TextAlign.right,
+                                      readOnly: true,
+                                      style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold),
+                                      decoration: const InputDecoration(hintText: "0.00"),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
+
+                            return Column(
+                              children: [
+                                Row(
+                                  textDirection: TextDirection.rtl,
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: _buildFormField(
+                                        label: "اسم البنك",
+                                        child: TextFormField(
+                                          controller: bankCtrl,
+                                          textAlign: TextAlign.right,
+                                          validator: (v) => v!.trim().isEmpty ? "اسم البنك مطلوب" : null,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      flex: 2,
+                                      child: _buildFormField(
+                                        label: "قيمة الليمت",
+                                        child: TextFormField(
+                                          controller: valCtrl,
+                                          textAlign: TextAlign.right,
+                                          keyboardType: TextInputType.number,
+                                          validator: (v) => double.tryParse(v ?? '') == null ? "الرجاء إدخال رقم صحيح" : null,
+                                          onChanged: (v) => setState(recalculate),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      flex: 2,
+                                      child: _buildFormField(
+                                        label: "قيمة الـ 5%",
+                                        child: TextFormField(
+                                          controller: fivePercentCtrl,
+                                          textAlign: TextAlign.right,
+                                          readOnly: true,
+                                          style: const TextStyle(color: TfcColors.secondary, fontWeight: FontWeight.bold),
+                                          decoration: const InputDecoration(hintText: "0.00"),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                            ),
-                          ],
+                                const SizedBox(height: 16),
+                                Row(
+                                  textDirection: TextDirection.rtl,
+                                  children: [
+                                    Expanded(
+                                      flex: 2,
+                                      child: _buildFormField(
+                                        label: "النوع",
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withAlpha(10),
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(color: Colors.white10),
+                                          ),
+                                          child: DropdownButtonHideUnderline(
+                                            child: DropdownButton<String>(
+                                              value: type,
+                                              dropdownColor: TfcColors.surfaceDim,
+                                              isExpanded: true,
+                                              items: const [
+                                                DropdownMenuItem(value: "card", child: Text("بطاقة", textDirection: TextDirection.rtl)),
+                                                DropdownMenuItem(value: "request", child: Text("أبلكيشن", textDirection: TextDirection.rtl)),
+                                              ],
+                                              onChanged: (val) {
+                                                if (val != null) {
+                                                  setState(() {
+                                                    type = val;
+                                                    recalculate();
+                                                  });
+                                                }
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      flex: 2,
+                                      child: _buildFormField(
+                                        label: "المدة",
+                                        child: TextFormField(
+                                          controller: durationCtrl,
+                                          textAlign: TextAlign.right,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    if (type == 'request') ...[
+                                      Expanded(
+                                        flex: 2,
+                                        child: _buildFormField(
+                                          label: "قيمة القسط",
+                                          child: TextFormField(
+                                            controller: instCtrl,
+                                            textAlign: TextAlign.right,
+                                            keyboardType: TextInputType.number,
+                                            validator: (v) {
+                                              if (v == null || v.trim().isEmpty) return null;
+                                              return double.tryParse(v) == null ? "الرجاء إدخال رقم صحيح" : null;
+                                            },
+                                            onChanged: (v) => setState(recalculate),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                    ],
+                                    Expanded(
+                                      flex: 2,
+                                      child: _buildFormField(
+                                        label: "الحد الأعلى",
+                                        child: TextFormField(
+                                          controller: highestCtrl,
+                                          textAlign: TextAlign.right,
+                                          readOnly: true,
+                                          style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold),
+                                          decoration: const InputDecoration(hintText: "0.00"),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            );
+                          },
                         ),
                         const SizedBox(height: 16),
                         // Row 3: Notes

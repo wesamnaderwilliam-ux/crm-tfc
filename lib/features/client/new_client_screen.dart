@@ -1801,32 +1801,44 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
           // Salary Transfer
           _buildFormField(
             label: "طريقة تحويل الراتب",
-            child: Row(
+            child: Wrap(
               textDirection: TextDirection.rtl,
+              spacing: 16,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Radio<String>(
-                  value: "bank_transfer",
-                  // ignore: deprecated_member_use
-                  groupValue: _salaryTransfer,
-                  activeColor: TfcColors.primary,
-                  // ignore: deprecated_member_use
-                  onChanged: (val) {
-                    if (val != null) setState(() => _salaryTransfer = val);
-                  },
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Radio<String>(
+                      value: "bank_transfer",
+                      // ignore: deprecated_member_use
+                      groupValue: _salaryTransfer,
+                      activeColor: TfcColors.primary,
+                      // ignore: deprecated_member_use
+                      onChanged: (val) {
+                        if (val != null) setState(() => _salaryTransfer = val);
+                      },
+                    ),
+                    const Text("تحويل راتب للبنك", style: TextStyle(fontSize: 13)),
+                  ],
                 ),
-                const Text("تحويل راتب للبنك"),
-                const SizedBox(width: 32),
-                Radio<String>(
-                  value: "cash",
-                  // ignore: deprecated_member_use
-                  groupValue: _salaryTransfer,
-                  activeColor: TfcColors.primary,
-                  // ignore: deprecated_member_use
-                  onChanged: (val) {
-                    if (val != null) setState(() => _salaryTransfer = val);
-                  },
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Radio<String>(
+                      value: "cash",
+                      // ignore: deprecated_member_use
+                      groupValue: _salaryTransfer,
+                      activeColor: TfcColors.primary,
+                      // ignore: deprecated_member_use
+                      onChanged: (val) {
+                        if (val != null) setState(() => _salaryTransfer = val);
+                      },
+                    ),
+                    const Text("إيداع نقدي / شيك", style: TextStyle(fontSize: 13)),
+                  ],
                 ),
-                const Text("إيداع نقدي / شيك"),
               ],
             ),
           ),
@@ -1838,20 +1850,25 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         textDirection: TextDirection.rtl,
+                        spacing: 8,
+                        runSpacing: 4,
                         children: [
                           const Text(
                             "تفاصيل الحسابات البنكية المحول عليها الراتب",
                             style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: TfcColors.secondary),
                           ),
                           TextButton.icon(
                             style: TextButton.styleFrom(
-                                foregroundColor: TfcColors.primary),
+                                foregroundColor: TfcColors.primary,
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                visualDensity: VisualDensity.compact),
                             onPressed: _addSalaryBankRow,
                             icon: const Icon(Icons.add_circle, size: 16),
                             label: const Text("إضافة حساب بنكي",
@@ -1867,54 +1884,100 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                         itemBuilder: (context, idx) {
                           return Container(
                             margin: const EdgeInsets.only(bottom: 12),
-                            child: Row(
-                              textDirection: TextDirection.rtl,
-                              children: [
-                                Expanded(
-                                  flex: 3,
-                                  child: _buildFormField(
-                                    label: "اسم البنك",
-                                    child: TextFormField(
-                                      controller: _salaryBankEntries[idx]
-                                          ['bank'],
-                                      textAlign: TextAlign.right,
-                                      decoration: const InputDecoration(
-                                          hintText: "اسم البنك"),
-                                      validator: (v) =>
-                                          v!.isEmpty ? "مطلوب" : null,
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withAlpha(5),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.white10),
+                            ),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final isCompact = constraints.maxWidth < 450;
+                                if (isCompact) {
+                                  return Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        textDirection: TextDirection.rtl,
+                                        children: [
+                                          Text("حساب بنكي #${idx + 1}",
+                                              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: TfcColors.primary)),
+                                          if (_salaryBankEntries.length > 1)
+                                            IconButton(
+                                              padding: EdgeInsets.zero,
+                                              constraints: const BoxConstraints(),
+                                              icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 18),
+                                              onPressed: () => _removeSalaryBankRow(idx),
+                                            ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+                                      _buildFormField(
+                                        label: "اسم البنك",
+                                        child: TextFormField(
+                                          controller: _salaryBankEntries[idx]['bank'],
+                                          textAlign: TextAlign.right,
+                                          decoration: const InputDecoration(hintText: "اسم البنك"),
+                                          validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      _buildFormField(
+                                        label: "المبلغ (ج.م)",
+                                        child: TextFormField(
+                                          controller: _salaryBankEntries[idx]['amount'],
+                                          textAlign: TextAlign.right,
+                                          keyboardType: TextInputType.number,
+                                          decoration: const InputDecoration(hintText: "0.00"),
+                                          validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }
+                                return Row(
+                                  textDirection: TextDirection.rtl,
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: _buildFormField(
+                                        label: "اسم البنك",
+                                        child: TextFormField(
+                                          controller: _salaryBankEntries[idx]['bank'],
+                                          textAlign: TextAlign.right,
+                                          decoration: const InputDecoration(hintText: "اسم البنك"),
+                                          validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  flex: 2,
-                                  child: _buildFormField(
-                                    label: "المبلغ (ج.م)",
-                                    child: TextFormField(
-                                      controller: _salaryBankEntries[idx]
-                                          ['amount'],
-                                      textAlign: TextAlign.right,
-                                      keyboardType: TextInputType.number,
-                                      decoration: const InputDecoration(
-                                          hintText: "0.00"),
-                                      validator: (v) =>
-                                          v!.isEmpty ? "مطلوب" : null,
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      flex: 2,
+                                      child: _buildFormField(
+                                        label: "المبلغ (ج.م)",
+                                        child: TextFormField(
+                                          controller: _salaryBankEntries[idx]['amount'],
+                                          textAlign: TextAlign.right,
+                                          keyboardType: TextInputType.number,
+                                          decoration: const InputDecoration(hintText: "0.00"),
+                                          validator: (v) => v!.isEmpty ? "مطلوب" : null,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
-                                if (_salaryBankEntries.length > 1) ...[
-                                  const SizedBox(width: 8),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 24.0),
-                                    child: IconButton(
-                                      icon: const Icon(Icons.delete,
-                                          color: Colors.redAccent, size: 20),
-                                      onPressed: () =>
-                                          _removeSalaryBankRow(idx),
-                                    ),
-                                  ),
-                                ],
-                              ],
+                                    if (_salaryBankEntries.length > 1) ...[
+                                      const SizedBox(width: 8),
+                                      Padding(
+                                        padding: const EdgeInsets.only(top: 24.0),
+                                        child: IconButton(
+                                          icon: const Icon(Icons.delete, color: Colors.redAccent, size: 20),
+                                          onPressed: () => _removeSalaryBankRow(idx),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                );
+                              },
                             ),
                           );
                         },
@@ -2091,182 +2154,288 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                                 ],
                               ),
                               const SizedBox(height: 12),
-                              // Row 1: Bank Name, Limit/Value, 5%
-                              Row(
-                                textDirection: TextDirection.rtl,
-                                children: [
-                                  Expanded(
-                                    flex: 3,
-                                    child: _buildFormField(
-                                      label: "اسم البنك",
-                                      child: TextFormField(
-                                        controller: _cardsList[idx]['bank'],
-                                        textAlign: TextAlign.right,
-                                        decoration: const InputDecoration(
-                                            hintText: "اسم البنك"),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    flex: 2,
-                                    child: _buildFormField(
-                                      label: "قيمة الليمت",
-                                      child: TextFormField(
-                                        controller: _cardsList[idx]['value'],
-                                        textAlign: TextAlign.right,
-                                        keyboardType: TextInputType.number,
-                                        decoration: const InputDecoration(
-                                            hintText: "0.00"),
-                                        onChanged: (val) {
-                                          final parsed =
-                                              double.tryParse(val) ?? 0.0;
-                                          final calc = parsed * 0.05;
-                                          setState(() {
-                                            _cardsList[idx]['fivePercent']
-                                                    .text =
-                                                calc > 0
-                                                    ? calc.toStringAsFixed(2)
-                                                    : '0.00';
-                                          });
-                                        },
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    flex: 2,
-                                    child: _buildFormField(
-                                      label: "قيمة الـ 5%",
-                                      child: TextFormField(
-                                        controller: _cardsList[idx]
-                                            ['fivePercent'],
-                                        textAlign: TextAlign.right,
-                                        readOnly: true,
-                                        style: const TextStyle(
-                                            color: TfcColors.secondary,
-                                            fontWeight: FontWeight.bold),
-                                        decoration: const InputDecoration(
-                                          hintText: "0.00",
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              // Row 2: Type, Duration, Installment (conditional), Highest Value
-                              Row(
-                                textDirection: TextDirection.rtl,
-                                children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child: _buildFormField(
-                                      label: "النوع",
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 12),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white
-                                              .withValues(alpha: 0.04),
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          border: Border.all(
-                                              color: Colors.white
-                                                  .withValues(alpha: 0.08)),
-                                        ),
-                                        child: DropdownButtonHideUnderline(
-                                          child: DropdownButton<String>(
-                                            value: _cardsList[idx]['type'],
-                                            dropdownColor: TfcColors.surfaceDim,
-                                            isExpanded: true,
-                                            items: const [
-                                              DropdownMenuItem(
-                                                  value: 'card',
-                                                  child: Text("بطاقة")),
-                                              DropdownMenuItem(
-                                                  value: 'request',
-                                                  child: Text("أبلكيشن")),
-                                            ],
-                                            onChanged: (val) {
-                                              if (val != null) {
-                                                setState(() {
-                                                  _cardsList[idx]['type'] = val;
-                                                });
-                                              }
-                                            },
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final isCompact = constraints.maxWidth < 600;
+                                  if (isCompact) {
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                                      children: [
+                                        // Row 1 on compact: Bank Name
+                                        _buildFormField(
+                                          label: "اسم البنك",
+                                          child: TextFormField(
+                                            controller: _cardsList[idx]['bank'],
+                                            textAlign: TextAlign.right,
+                                            decoration: const InputDecoration(hintText: "اسم البنك"),
                                           ),
                                         ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    flex: 2,
-                                    child: _buildFormField(
-                                      label: "المدة",
-                                      child: TextFormField(
-                                        controller: _cardsList[idx]['duration'],
-                                        textAlign: TextAlign.right,
-                                        decoration: const InputDecoration(
-                                            hintText: "12 شهر"),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  if (_cardsList[idx]['type'] == 'request') ...[
-                                    Expanded(
-                                      flex: 2,
-                                      child: _buildFormField(
-                                        label: "قيمة القسط",
-                                        child: TextFormField(
-                                          controller: _cardsList[idx]
-                                              ['installment'],
-                                          textAlign: TextAlign.right,
-                                          keyboardType: TextInputType.number,
-                                          decoration: const InputDecoration(
-                                              hintText: "0.00"),
-                                          onChanged: (val) {
-                                            final instVal =
-                                                double.tryParse(val) ?? 0.0;
-                                            final limitVal = double.tryParse(
-                                                    _cardsList[idx]['value']
-                                                        .text) ??
-                                                0.0;
-                                            final fiveP = limitVal * 0.05;
-                                            final highest = instVal > fiveP
-                                                ? instVal
-                                                : fiveP;
-                                            setState(() {
-                                              _cardsList[idx]['highest'].text =
-                                                  highest > 0
-                                                      ? highest
-                                                          .toStringAsFixed(2)
-                                                      : '0.00';
-                                            });
-                                          },
+                                        const SizedBox(height: 10),
+                                        // Row 2 on compact: Limit + 5%
+                                        Row(
+                                          textDirection: TextDirection.rtl,
+                                          children: [
+                                            Expanded(
+                                              child: _buildFormField(
+                                                label: "قيمة الليمت",
+                                                child: TextFormField(
+                                                  controller: _cardsList[idx]['value'],
+                                                  textAlign: TextAlign.right,
+                                                  keyboardType: TextInputType.number,
+                                                  decoration: const InputDecoration(hintText: "0.00"),
+                                                  onChanged: (val) {
+                                                    final parsed = double.tryParse(val) ?? 0.0;
+                                                    final calc = parsed * 0.05;
+                                                    setState(() {
+                                                      _cardsList[idx]['fivePercent'].text = calc > 0 ? calc.toStringAsFixed(2) : '0.00';
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: _buildFormField(
+                                                label: "قيمة الـ 5%",
+                                                child: TextFormField(
+                                                  controller: _cardsList[idx]['fivePercent'],
+                                                  textAlign: TextAlign.right,
+                                                  readOnly: true,
+                                                  style: const TextStyle(color: TfcColors.secondary, fontWeight: FontWeight.bold),
+                                                  decoration: const InputDecoration(hintText: "0.00"),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
                                         ),
+                                        const SizedBox(height: 10),
+                                        // Row 3 on compact: Type + Duration
+                                        Row(
+                                          textDirection: TextDirection.rtl,
+                                          children: [
+                                            Expanded(
+                                              child: _buildFormField(
+                                                label: "النوع",
+                                                child: Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white.withValues(alpha: 0.04),
+                                                    borderRadius: BorderRadius.circular(10),
+                                                    border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                                                  ),
+                                                  child: DropdownButtonHideUnderline(
+                                                    child: DropdownButton<String>(
+                                                      value: _cardsList[idx]['type'],
+                                                      dropdownColor: TfcColors.surfaceDim,
+                                                      isExpanded: true,
+                                                      items: const [
+                                                        DropdownMenuItem(value: 'card', child: Text("بطاقة")),
+                                                        DropdownMenuItem(value: 'request', child: Text("أبلكيشن")),
+                                                      ],
+                                                      onChanged: (val) {
+                                                        if (val != null) {
+                                                          setState(() {
+                                                            _cardsList[idx]['type'] = val;
+                                                          });
+                                                        }
+                                                      },
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              child: _buildFormField(
+                                                label: "المدة",
+                                                child: TextFormField(
+                                                  controller: _cardsList[idx]['duration'],
+                                                  textAlign: TextAlign.right,
+                                                  decoration: const InputDecoration(hintText: "12 شهر"),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        if (_cardsList[idx]['type'] == 'request') ...[
+                                          const SizedBox(height: 10),
+                                          _buildFormField(
+                                            label: "قيمة القسط",
+                                            child: TextFormField(
+                                              controller: _cardsList[idx]['installment'],
+                                              textAlign: TextAlign.right,
+                                              keyboardType: TextInputType.number,
+                                              decoration: const InputDecoration(hintText: "0.00"),
+                                              onChanged: (val) {
+                                                final instVal = double.tryParse(val) ?? 0.0;
+                                                final limitVal = double.tryParse(_cardsList[idx]['value'].text) ?? 0.0;
+                                                final fiveP = limitVal * 0.05;
+                                                final highest = instVal > fiveP ? instVal : fiveP;
+                                                setState(() {
+                                                  _cardsList[idx]['highest'].text = highest > 0 ? highest.toStringAsFixed(2) : '0.00';
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                        ],
+                                        const SizedBox(height: 10),
+                                        _buildFormField(
+                                          label: "الحد الأعلى",
+                                          child: TextFormField(
+                                            controller: _cardsList[idx]['highest'],
+                                            textAlign: TextAlign.right,
+                                            readOnly: true,
+                                            style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold),
+                                            decoration: const InputDecoration(hintText: "0.00"),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }
+
+                                  return Column(
+                                    children: [
+                                      Row(
+                                        textDirection: TextDirection.rtl,
+                                        children: [
+                                          Expanded(
+                                            flex: 3,
+                                            child: _buildFormField(
+                                              label: "اسم البنك",
+                                              child: TextFormField(
+                                                controller: _cardsList[idx]['bank'],
+                                                textAlign: TextAlign.right,
+                                                decoration: const InputDecoration(hintText: "اسم البنك"),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            flex: 2,
+                                            child: _buildFormField(
+                                              label: "قيمة الليمت",
+                                              child: TextFormField(
+                                                controller: _cardsList[idx]['value'],
+                                                textAlign: TextAlign.right,
+                                                keyboardType: TextInputType.number,
+                                                decoration: const InputDecoration(hintText: "0.00"),
+                                                onChanged: (val) {
+                                                  final parsed = double.tryParse(val) ?? 0.0;
+                                                  final calc = parsed * 0.05;
+                                                  setState(() {
+                                                    _cardsList[idx]['fivePercent'].text = calc > 0 ? calc.toStringAsFixed(2) : '0.00';
+                                                  });
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            flex: 2,
+                                            child: _buildFormField(
+                                              label: "قيمة الـ 5%",
+                                              child: TextFormField(
+                                                controller: _cardsList[idx]['fivePercent'],
+                                                textAlign: TextAlign.right,
+                                                readOnly: true,
+                                                style: const TextStyle(color: TfcColors.secondary, fontWeight: FontWeight.bold),
+                                                decoration: const InputDecoration(hintText: "0.00"),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                  ],
-                                  Expanded(
-                                    flex: 2,
-                                    child: _buildFormField(
-                                      label: "الحد الأعلى",
-                                      child: TextFormField(
-                                        controller: _cardsList[idx]['highest'],
-                                        textAlign: TextAlign.right,
-                                        readOnly: true,
-                                        style: const TextStyle(
-                                            color: Colors.amberAccent,
-                                            fontWeight: FontWeight.bold),
-                                        decoration: const InputDecoration(
-                                            hintText: "0.00"),
+                                      const SizedBox(height: 12),
+                                      Row(
+                                        textDirection: TextDirection.rtl,
+                                        children: [
+                                          Expanded(
+                                            flex: 2,
+                                            child: _buildFormField(
+                                              label: "النوع",
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white.withValues(alpha: 0.04),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+                                                ),
+                                                child: DropdownButtonHideUnderline(
+                                                  child: DropdownButton<String>(
+                                                    value: _cardsList[idx]['type'],
+                                                    dropdownColor: TfcColors.surfaceDim,
+                                                    isExpanded: true,
+                                                    items: const [
+                                                      DropdownMenuItem(value: 'card', child: Text("بطاقة")),
+                                                      DropdownMenuItem(value: 'request', child: Text("أبلكيشن")),
+                                                    ],
+                                                    onChanged: (val) {
+                                                      if (val != null) {
+                                                        setState(() {
+                                                          _cardsList[idx]['type'] = val;
+                                                        });
+                                                      }
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            flex: 2,
+                                            child: _buildFormField(
+                                              label: "المدة",
+                                              child: TextFormField(
+                                                controller: _cardsList[idx]['duration'],
+                                                textAlign: TextAlign.right,
+                                                decoration: const InputDecoration(hintText: "12 شهر"),
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          if (_cardsList[idx]['type'] == 'request') ...[
+                                            Expanded(
+                                              flex: 2,
+                                              child: _buildFormField(
+                                                label: "قيمة القسط",
+                                                child: TextFormField(
+                                                  controller: _cardsList[idx]['installment'],
+                                                  textAlign: TextAlign.right,
+                                                  keyboardType: TextInputType.number,
+                                                  decoration: const InputDecoration(hintText: "0.00"),
+                                                  onChanged: (val) {
+                                                    final instVal = double.tryParse(val) ?? 0.0;
+                                                    final limitVal = double.tryParse(_cardsList[idx]['value'].text) ?? 0.0;
+                                                    final fiveP = limitVal * 0.05;
+                                                    final highest = instVal > fiveP ? instVal : fiveP;
+                                                    setState(() {
+                                                      _cardsList[idx]['highest'].text = highest > 0 ? highest.toStringAsFixed(2) : '0.00';
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                          ],
+                                          Expanded(
+                                            flex: 2,
+                                            child: _buildFormField(
+                                              label: "الحد الأعلى",
+                                              child: TextFormField(
+                                                controller: _cardsList[idx]['highest'],
+                                                textAlign: TextAlign.right,
+                                                readOnly: true,
+                                                style: const TextStyle(color: Colors.amberAccent, fontWeight: FontWeight.bold),
+                                                decoration: const InputDecoration(hintText: "0.00"),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ),
-                                  ),
-                                ],
+                                    ],
+                                  );
+                                },
                               ),
                               const SizedBox(height: 12),
                               // Row 3: Additional Notes
