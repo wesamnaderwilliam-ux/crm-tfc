@@ -30,6 +30,7 @@ class ClientDetailsScreen extends ConsumerStatefulWidget {
   final Function(String)? onClientSelected;
   final Function(String)? onViewAiAnalysis;
   final VoidCallback? onOpenNewClientForm;
+  final Function(ClientModel)? onEditClientFull;
   final bool bankEmployeeMode;
 
   const ClientDetailsScreen({
@@ -39,6 +40,7 @@ class ClientDetailsScreen extends ConsumerStatefulWidget {
     this.onClientSelected,
     this.onViewAiAnalysis,
     this.onOpenNewClientForm,
+    this.onEditClientFull,
     this.bankEmployeeMode = false,
   });
 
@@ -6054,6 +6056,10 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
 
   void _showEditClientDialog(
       BuildContext context, ClientModel client, String staffName) {
+    if (widget.onEditClientFull != null) {
+      widget.onEditClientFull!(client);
+      return;
+    }
     final formKey = GlobalKey<FormState>();
     final nameCtrl = TextEditingController(text: client.fullName);
     final phoneCtrl = TextEditingController(text: client.phoneNumber);

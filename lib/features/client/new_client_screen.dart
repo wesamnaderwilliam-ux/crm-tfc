@@ -11,14 +11,20 @@ import '../../providers/theme_provider.dart';
 
 class NewClientScreen extends ConsumerStatefulWidget {
   final VoidCallback onComplete;
+  final ClientModel? clientToEdit;
 
-  const NewClientScreen({super.key, required this.onComplete});
+  const NewClientScreen({
+    super.key,
+    required this.onComplete,
+    this.clientToEdit,
+  });
 
   @override
   ConsumerState<NewClientScreen> createState() => _NewClientScreenState();
 }
 
 class _NewClientScreenState extends ConsumerState<NewClientScreen> {
+  bool get _isEditMode => widget.clientToEdit != null;
   int _activeStep = 0;
   final _formKey = GlobalKey<FormState>();
 
@@ -101,11 +107,263 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
     _cashSalaryController.addListener(_recalculateAll);
     _addBusinessRow();
     _addMedicalRow();
-    // Pre-populate representative name with active user
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final user = ref.read(authProvider);
-      _repNameController.text = user.fullName;
-    });
+    if (_isEditMode) {
+      _initFromExistingClient();
+    } else {
+      // Pre-populate representative name with active user
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final user = ref.read(authProvider);
+        _repNameController.text = user.fullName;
+      });
+    }
+  }
+
+  void _initFromExistingClient() {
+    final client = widget.clientToEdit!;
+
+    _nameController.text = client.fullName;
+    _phoneController.text = client.phoneNumber;
+    if (client.secondaryPhoneNumber != null && client.secondaryPhoneNumber!.trim().isNotEmpty) {
+      _showSecondaryPhone = true;
+      _secondaryPhoneController.text = client.secondaryPhoneNumber!;
+    }
+    _nationalIdController.text = client.nationalId;
+    _birthDateController.text = client.birthDate;
+
+    // Employment type
+    const legacyMap = {
+      'private': 'private_sector',
+      'gov': 'government',
+      'owner': 'business_owner',
+      'pension': 'pensioner',
+    };
+    _employmentType = legacyMap[client.employmentType] ?? client.employmentType;
+    _companyNameController.text = client.companyName ?? '';
+    _jobTitleController.text = client.jobTitle ?? '';
+    _isInsured = client.isInsured;
+
+    // Salary transfer details
+    _salaryTransfer = client.salaryTransferMethod;
+    if (client.salaryTransferMethod == 'cash') {
+      if (client.cashSalaryAmount != null && client.cashSalaryAmount! > 0) {
+        _cashSalaryController.text = client.cashSalaryAmount.toString();
+      }
+    } else {
+      // Clear default initial row
+      for (var entry in _salaryBankEntries) {
+        entry['bank']!.dispose();
+        entry['amount']!.dispose();
+      }
+      _salaryBankEntries.clear();
+
+      if (client.salaryBankDetails.isNotEmpty) {
+        for (var b in client.salaryBankDetails) {
+          final amtCtrl = TextEditingController(text: b['amount'] ?? '');
+          amtCtrl.addListener(_recalculateAll);
+          _salaryBankEntries.add({
+            'bank': TextEditingController(text: b['bank'] ?? ''),
+            'amount': amtCtrl,
+          });
+        }
+      } else {
+        final amtCtrl = TextEditingController();
+        amtCtrl.addListener(_recalculateAll);
+        _salaryBankEntries.add({
+          'bank': TextEditingController(),
+          'amount': amtCtrl,
+        });
+      }
+    }
+
+    // Business details
+    if (client.businessData.isNotEmpty) {
+      for (var entry in _businessEntries) {
+        entry['activity']!.dispose();
+        entry['startDate']!.dispose();
+        entry['place']!.dispose();
+      }
+      _businessEntries.clear();
+
+      for (var b in client.businessData) {
+        final docs = Map<String, bool>.from({
+          'سجل تجارى': false,
+          'بطاقة ضربية': false,
+          'كشف حساب': false,
+          'ميزانيات': false,
+          'فواتير': false,
+          'رخصة مشروع او صناعية': false,
+          'عقد ايجار او تمليك لمقر الشركة': false,
+        });
+        if (b['documents'] != null && b['documents'] is Map) {
+          (b['documents'] as Map).forEach((k, v) {
+            docs[k.toString()] = v == true;
+          });
+        }
+        _businessEntries.add({
+          'activity': TextEditingController(text: b['activity']?.toString() ?? ''),
+          'startDate': TextEditingController(text: b['startDate']?.toString() ?? ''),
+          'place': TextEditingController(text: b['place']?.toString() ?? ''),
+          'documents': docs,
+          'taxCardFiles': <ClientDocumentModel>[],
+          'otherAttachments': <ClientDocumentModel>[],
+        });
+      }
+    }
+
+    // Medical details
+    if (['doctor_clinic', 'doctor_hospital', 'pharmacist_owner'].contains(_employmentType) && client.businessData.isNotEmpty) {
+      for (var entry in _medicalEntries) {
+        entry['specialization']!.dispose();
+        entry['practiceStartDate']!.dispose();
+        entry['licenseDate']!.dispose();
+      }
+      _medicalEntries.clear();
+
+      for (var m in client.businessData) {
+        final docs = Map<String, bool>.from({
+          'صورة كارنيه النقابة': false,
+          'صورة مزاولة المهنة': false,
+          'صورة رخصة العيادة/الصيدلية': false,
+        });
+        if (m['documents'] != null && m['documents'] is Map) {
+          (m['documents'] as Map).forEach((k, v) {
+            docs[k.toString()] = v == true;
+          });
+        }
+        _medicalEntries.add({
+          'specialization': TextEditingController(text: m['specialization']?.toString() ?? ''),
+          'practiceStartDate': TextEditingController(text: m['practiceStartDate']?.toString() ?? ''),
+          'licenseDate': TextEditingController(text: m['licenseDate']?.toString() ?? ''),
+          'documents': docs,
+        });
+      }
+    }
+
+    // Compound units
+    _hasCompoundUnit = client.hasCompoundUnit;
+    if (client.compoundUnitsData.isNotEmpty) {
+      for (var u in client.compoundUnitsData) {
+        final unitValCtrl = TextEditingController(text: u['unitValue'] != null ? u['unitValue'].toString() : '');
+        final downPayCtrl = TextEditingController(text: u['downPayment'] != null ? u['downPayment'].toString() : '');
+        final downPayPercentCtrl = TextEditingController(text: "0.0%");
+
+        void calcPercent() {
+          final unitVal = double.tryParse(unitValCtrl.text) ?? 0.0;
+          final downPay = double.tryParse(downPayCtrl.text) ?? 0.0;
+          if (unitVal > 0) {
+            final pct = (downPay / unitVal) * 100;
+            downPayPercentCtrl.text = "${pct.toStringAsFixed(1)}%";
+          } else {
+            downPayPercentCtrl.text = "0.0%";
+          }
+        }
+        unitValCtrl.addListener(calcPercent);
+        downPayCtrl.addListener(calcPercent);
+        calcPercent();
+
+        List<ClientDocumentModel> contractFiles = [];
+        if (u['unitContractFiles'] != null && u['unitContractFiles'] is List) {
+          contractFiles = (u['unitContractFiles'] as List)
+              .map((f) => ClientDocumentModel.fromJson(f as Map<String, dynamic>))
+              .toList();
+        }
+
+        _compoundUnitsList.add({
+          'compoundName': TextEditingController(text: u['compoundName']?.toString() ?? ''),
+          'developerName': TextEditingController(text: u['developerName']?.toString() ?? ''),
+          'contractDate': TextEditingController(text: u['contractDate']?.toString() ?? ''),
+          'unitValue': unitValCtrl,
+          'downPayment': downPayCtrl,
+          'downPaymentPercent': downPayPercentCtrl,
+          'paidInstallmentsCount': TextEditingController(text: u['paidInstallmentsCount'] != null ? u['paidInstallmentsCount'].toString() : ''),
+          'paidAmount': TextEditingController(text: u['paidAmount'] != null ? u['paidAmount'].toString() : ''),
+          'unitContractFiles': contractFiles,
+        });
+      }
+    }
+
+    // Modern cars
+    _hasModernCar = client.hasModernCar;
+    if (client.modernCarsData.isNotEmpty) {
+      for (var car in client.modernCarsData) {
+        _modernCarsList.add({
+          'carType': TextEditingController(text: car['carType']?.toString() ?? ''),
+          'carModel': TextEditingController(text: car['carModel']?.toString() ?? ''),
+          'carTodayValue': TextEditingController(text: car['carTodayValue'] != null ? car['carTodayValue'].toString() : ''),
+          'licenseStatus': car['licenseStatus']?.toString() ?? 'بدون حظر',
+        });
+      }
+    }
+
+    // Page 2: Existing loans
+    if (client.existingLoans.isNotEmpty) {
+      for (var l in client.existingLoans) {
+        final instCtrl = TextEditingController(text: l.installmentValue > 0 ? l.installmentValue.toString() : '');
+        instCtrl.addListener(_recalculateAll);
+        _loansList.add({
+          'bank': TextEditingController(text: l.bankName),
+          'installment': instCtrl,
+          'notes': TextEditingController(text: l.notes ?? ''),
+        });
+      }
+    }
+
+    // Page 2: Credit cards requests
+    if (client.creditCardsRequests.isNotEmpty) {
+      for (var c in client.creditCardsRequests) {
+        final valueController = TextEditingController(text: c.value > 0 ? c.value.toString() : '');
+        final fivePercentController = TextEditingController(text: c.fivePercentCalc > 0 ? c.fivePercentCalc.toStringAsFixed(2) : '0.00');
+        final installmentController = TextEditingController(text: c.installment > 0 ? c.installment.toString() : '');
+        final highestController = TextEditingController(text: c.highestValue > 0 ? c.highestValue.toStringAsFixed(2) : '0.00');
+
+        void recalculate() {
+          final val = double.tryParse(valueController.text) ?? 0.0;
+          final calc = val * 0.05;
+          final calcStr = calc > 0 ? calc.toStringAsFixed(2) : '0.00';
+          final inst = double.tryParse(installmentController.text) ?? 0.0;
+          final highestVal = calc > inst ? calc : inst;
+          final highestStr = highestVal > 0 ? highestVal.toStringAsFixed(2) : '0.00';
+
+          setState(() {
+            fivePercentController.text = calcStr;
+            highestController.text = highestStr;
+          });
+          _recalculateAll();
+        }
+
+        valueController.addListener(recalculate);
+        installmentController.addListener(recalculate);
+        fivePercentController.addListener(_recalculateAll);
+        highestController.addListener(_recalculateAll);
+
+        _cardsList.add({
+          'bank': TextEditingController(text: c.bankName),
+          'value': valueController,
+          'fivePercent': fivePercentController,
+          'type': c.type,
+          'duration': TextEditingController(text: c.duration ?? ''),
+          'installment': installmentController,
+          'highest': highestController,
+          'notes': TextEditingController(text: c.notes ?? ''),
+        });
+      }
+    }
+
+    // Page 3: Loan Details & Docs
+    if (client.requestedAmount > 0) {
+      _amountController.text = client.requestedAmount.toString();
+    }
+    _governorate = client.governorate.isNotEmpty ? client.governorate : "القاهرة";
+    _addressController.text = client.address ?? '';
+    _repNameController.text = client.representativeName ?? '';
+
+    // Documents
+    if (client.documents.isNotEmpty) {
+      _uploadedDocuments.clear();
+      _uploadedDocuments.addAll(client.documents);
+    }
+
+    _recalculateAll();
   }
 
   @override
@@ -601,9 +859,47 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
           "طريقة تحويل الراتب: إيداع نقدي بمبلغ: ${_cashSalaryController.text.trim()} ج.م";
     }
 
-    final errorMsg = await ref
-        .read(clientProvider.notifier)
-        .addClient(newClient, loans, cards, customNotes: customNotes);
+    final String? errorMsg;
+    if (_isEditMode) {
+      final updatedClient = widget.clientToEdit!.copyWith(
+        fullName: newClient.fullName,
+        phoneNumber: newClient.phoneNumber,
+        secondaryPhoneNumber: newClient.secondaryPhoneNumber,
+        nationalId: newClient.nationalId,
+        birthDate: newClient.birthDate,
+        employmentType: newClient.employmentType,
+        companyName: newClient.companyName,
+        jobTitle: newClient.jobTitle,
+        isInsured: newClient.isInsured,
+        salaryTransferMethod: newClient.salaryTransferMethod,
+        salaryBankDetails: newClient.salaryBankDetails,
+        cashSalaryAmount: newClient.cashSalaryAmount,
+        creditScore: newClient.creditScore,
+        requestedAmount: newClient.requestedAmount,
+        governorate: newClient.governorate,
+        address: newClient.address,
+        representativeName: newClient.representativeName,
+        businessData: newClient.businessData,
+        hasCompoundUnit: newClient.hasCompoundUnit,
+        hasModernCar: newClient.hasModernCar,
+        compoundUnitsData: newClient.compoundUnitsData,
+        modernCarsData: newClient.modernCarsData,
+        documents: newClient.documents,
+      );
+      errorMsg = await ref
+          .read(clientProvider.notifier)
+          .updateFullClient(
+            updatedClient,
+            loans,
+            cards,
+            staffName: _repNameController.text.trim(),
+            customNotes: customNotes,
+          );
+    } else {
+      errorMsg = await ref
+          .read(clientProvider.notifier)
+          .addClient(newClient, loans, cards, customNotes: customNotes);
+    }
 
     if (mounted) {
       setState(() {
@@ -614,9 +910,11 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
     if (errorMsg == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text("تم حفظ ومتابعة العميل بنجاح", textAlign: TextAlign.right),
+          SnackBar(
+            content: Text(
+              _isEditMode ? "تم تعديل ملف تمويل العميل بنجاح" : "تم حفظ ومتابعة العميل بنجاح",
+              textAlign: TextAlign.right,
+            ),
             backgroundColor: TfcColors.primary,
           ),
         );
@@ -630,7 +928,7 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
             title: const Text("خطأ في حفظ العميل",
                 textAlign: TextAlign.right,
                 style: TextStyle(fontWeight: FontWeight.bold)),
-            content: Text(errorMsg, textAlign: TextAlign.right),
+            content: Text(errorMsg ?? '', textAlign: TextAlign.right),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
@@ -659,7 +957,9 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
             children: [
               // Wizard Header Title
               Text(
-                "تقديم ملف تمويل جديد",
+                _isEditMode
+                    ? "تعديل ملف تمويل العميل: ${widget.clientToEdit!.fullName}"
+                    : "تقديم ملف تمويل جديد",
                 style: TextStyle(
                     fontSize: 26,
                     fontWeight: FontWeight.bold,
@@ -742,8 +1042,8 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                                 color: Colors.black,
                               ),
                             )
-                          : const Text("حفظ ومتابعة",
-                              style: TextStyle(fontWeight: FontWeight.bold)),
+                          : Text(_isEditMode ? "حفظ التعديلات" : "حفظ ومتابعة",
+                              style: const TextStyle(fontWeight: FontWeight.bold)),
                     ),
                   if (_activeStep > 0)
                     OutlinedButton(

@@ -14,6 +14,7 @@ import '../../providers/banks_provider.dart';
 import '../dashboard/dashboard_screen.dart';
 import '../client/new_client_screen.dart';
 import '../client/client_details_screen.dart';
+import '../../models/client_model.dart';
 import '../client/all_distributions_screen.dart';
 import '../client/all_operations_screen.dart';
 import '../client/invoices_screen.dart';
@@ -71,6 +72,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
   String? _selectedClientId;
   String? _aiClientId;
   bool _showNewClientForm = false;
+  ClientModel? _clientToEdit;
   bool _headerVisible = true; // Toggle header visibility
 
   // Navigation History Stack for "Back" button across ANY section/details/forms
@@ -229,6 +231,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
     setState(() {
       _selectedClientId = id.isEmpty ? null : id;
       _showNewClientForm = false;
+      _clientToEdit = null;
       _aiClientId = null;
     });
     _syncStateToStorageAndUrl();
@@ -239,6 +242,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       _selectedClientId = null;
       _aiClientId = id.isEmpty ? null : id;
       _showNewClientForm = false;
+      _clientToEdit = null;
     });
     _syncStateToStorageAndUrl();
   }
@@ -246,6 +250,17 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
   void openNewClientForm() {
     setState(() {
       _showNewClientForm = true;
+      _clientToEdit = null;
+      _selectedClientId = null;
+      _aiClientId = null;
+    });
+    _syncStateToStorageAndUrl();
+  }
+
+  void openEditClientForm(ClientModel client) {
+    setState(() {
+      _showNewClientForm = true;
+      _clientToEdit = client;
       _selectedClientId = null;
       _aiClientId = null;
     });
@@ -257,6 +272,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       _selectedClientId = null;
       _aiClientId = null;
       _showNewClientForm = false;
+      _clientToEdit = null;
       _selectedIndex = index;
       if (!isBack) {
         _pushHistory(index);
@@ -296,6 +312,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
       _selectedClientId = null;
       _aiClientId = null;
       _showNewClientForm = false;
+      _clientToEdit = null;
       _historyStack.add(_NavHistoryEntry(index: 0));
     });
     _syncStateToStorageAndUrl();
@@ -741,9 +758,13 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
           label: 'تفاصيل وإدارة العملاء',
           icon: Icons.person_search_rounded,
           screen: _showNewClientForm
-              ? NewClientScreen(onComplete: () {
-                  _goBack();
-                })
+              ? NewClientScreen(
+                  clientToEdit: _clientToEdit,
+                  onComplete: () {
+                    _clientToEdit = null;
+                    _goBack();
+                  },
+                )
               : ClientDetailsScreen(
                   key: ValueKey(_selectedClientId ?? 'none'),
                   clientId: _selectedClientId,
@@ -751,6 +772,7 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                   onClientSelected: selectClient,
                   onViewAiAnalysis: selectAiClient,
                   onOpenNewClientForm: openNewClientForm,
+                  onEditClientFull: openEditClientForm,
                 ),
         ));
       }

@@ -858,6 +858,115 @@ class ClientNotifier extends StateNotifier<ClientState> {
     }
   }
 
+  /// Update the entire client data including loans, cards, and documents.
+  /// Used by NewClientScreen when operating in edit mode.
+  Future<String?> updateFullClient(
+    ClientModel updatedClient,
+    List<ExistingLoanModel> loans,
+    List<CreditCardRequestModel> cards, {
+    String? staffName,
+    String? customNotes,
+  }) async {
+    // 1. Local duplicate check
+    if (updatedClient.nationalId.isNotEmpty) {
+      final exists = state.clients.any((c) => c.nationalId == updatedClient.nationalId && c.id != updatedClient.id);
+      if (exists) {
+        return "الرقم القومي مسجل بالفعل لعميل آخر في النظام.";
+      }
+    }
+
+    final isUuid = _isValidUuid(updatedClient.id);
+    final oldClient = state.clients.firstWhereOrNull((c) => c.id == updatedClient.id);
+    final diffNotes = customNotes ?? (oldClient != null ? _getClientDiff(oldClient, updatedClient) : 'تم تعديل ملف التمويل وبيانات العميل بنجاح.');
+
+    final clientWithSubmodels = updatedClient.copyWith(
+      existingLoans: loans,
+      creditCardsRequests: cards,
+    );
+
+    if (!SupabaseConfig.isInitialized || !isUuid) {
+      _updateClientSimulated(clientWithSubmodels, staffName, customNotes: diffNotes);
+      return null;
+    }
+
+    try {
+      // 1. Update clients table
+      final payload = updatedClient.toJson();
+      payload.remove('id');
+      await SupabaseConfig.client.from('clients').update(payload).eq('id', updatedClient.id);
+
+      // 2. Update loans table
+      await SupabaseConfig.client.from('existing_loans').delete().eq('client_id', updatedClient.id);
+      if (loans.isNotEmpty) {
+        final loansData = loans
+            .map((l) => {
+                  'client_id': updatedClient.id,
+                  'bank_name': l.bankName,
+                  'installment_value': l.installmentValue,
+                  'notes': l.notes,
+                })
+            .toList();
+        await SupabaseConfig.client.from('existing_loans').insert(loansData);
+      }
+
+      // 3. Update cards table
+      await SupabaseConfig.client.from('credit_cards_requests').delete().eq('client_id', updatedClient.id);
+      if (cards.isNotEmpty) {
+        final cardsData = cards
+            .map((c) => {
+                  'client_id': updatedClient.id,
+                  'bank_name': c.bankName,
+                  'value': c.value,
+                  'type': c.type,
+                  'duration': c.duration,
+                  'installment': c.installment,
+                  'highest_value': c.highestValue,
+                  'notes': c.notes,
+                })
+            .toList();
+        await SupabaseConfig.client.from('credit_cards_requests').insert(cardsData);
+      }
+
+      // 4. Update documents table if any valid docs
+      if (updatedClient.documents.isNotEmpty) {
+        await SupabaseConfig.client.from('documents').delete().eq('client_id', updatedClient.id);
+        final docsData = updatedClient.documents
+            .map((d) => {
+                  'client_id': updatedClient.id,
+                  'document_name': d.documentName,
+                  'document_url': d.documentUrl,
+                  'status': d.status,
+                })
+            .toList();
+        await SupabaseConfig.client.from('documents').insert(docsData);
+      }
+
+      // 5. Log interaction
+      final currentUserId = SupabaseConfig.client.auth.currentUser?.id;
+      await SupabaseConfig.client.from('interaction_history').insert({
+        'client_id': updatedClient.id,
+        'action_type': 'تعديل ملف التمويل',
+        'notes': diffNotes,
+        if (_isValidUuid(currentUserId)) 'created_by': currentUserId,
+        'created_by_name': staffName ?? updatedClient.representativeName ?? 'النظام',
+      });
+
+      _refreshClients();
+      return null;
+    } catch (e, stack) {
+      _logger.e("Supabase updateFullClient error: $e", error: e, stackTrace: stack);
+      if (e is PostgrestException) {
+        if (e.code == '23505' || e.message.contains('national_id') || (e.details?.toString().contains('national_id') ?? false)) {
+          return "الرقم القومي مسجل بالفعل لعميل آخر في النظام.";
+        }
+        return "خطأ في تحديث قاعدة البيانات: ${e.message} (${e.code})";
+      } else if (e.toString().contains("23505") || e.toString().contains("national_id")) {
+        return "الرقم القومي مسجل بالفعل لعميل آخر في النظام.";
+      }
+      return "خطأ في تعديل العميل: $e";
+    }
+  }
+
   /// Update client and return success flag for UI usage.
   Future<String?> updateClientAndReturn(ClientModel updatedClient, {String? staffName}) async {
     return await updateClient(updatedClient, staffName: staffName);
