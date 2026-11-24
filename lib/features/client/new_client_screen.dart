@@ -1108,12 +1108,6 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
       ],
     );
   }
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildStepIndicator(int stepIndex, String label, {bool isModern = false}) {
     final isActive = _activeStep == stepIndex;
