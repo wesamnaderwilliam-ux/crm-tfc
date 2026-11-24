@@ -764,6 +764,10 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
                     _clientToEdit = null;
                     _goBack();
                   },
+                  onClientCreated: (newId) {
+                    _clientToEdit = null;
+                    selectClient(newId);
+                  },
                 )
               : ClientDetailsScreen(
                   key: ValueKey(_selectedClientId ?? 'none'),

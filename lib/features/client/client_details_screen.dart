@@ -6913,6 +6913,9 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                           ? secPhoneCtrl.text.trim()
                           : null,
                       nationalId: nationalIdCtrl.text.trim(),
+                      status: nationalIdCtrl.text.trim().isNotEmpty && (client.status == 'pending' || client.status.isEmpty)
+                          ? 'iscore_inquiry'
+                          : client.status,
                       birthDate: birthDateCtrl.text.trim(),
                       companyName: companyCtrl.text.trim().isEmpty
                           ? null

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import '../../core/theme.dart';
@@ -11,11 +12,13 @@ import '../../providers/theme_provider.dart';
 
 class NewClientScreen extends ConsumerStatefulWidget {
   final VoidCallback onComplete;
+  final ValueChanged<String>? onClientCreated;
   final ClientModel? clientToEdit;
 
   const NewClientScreen({
     super.key,
     required this.onComplete,
+    this.onClientCreated,
     this.clientToEdit,
   });
 
@@ -735,7 +738,7 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
       governorate: _governorate,
       address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
       representativeName: _repNameController.text.trim(),
-      status: 'pending',
+      status: _nationalIdController.text.trim().isNotEmpty ? 'iscore_inquiry' : 'pending',
       createdAt: DateTime.now(),
       businessData: _employmentType == 'business_owner'
           ? _businessEntries.map((b) {
@@ -918,7 +921,21 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
             backgroundColor: TfcColors.primary,
           ),
         );
-        widget.onComplete();
+        if (_isEditMode) {
+          widget.onComplete();
+        } else {
+          // Find the newly created client or use nationalId/phone to locate
+          final clients = ref.read(clientProvider).clients;
+          final created = clients.firstWhereOrNull((c) =>
+              (newClient.nationalId.isNotEmpty && c.nationalId == newClient.nationalId) ||
+              (c.phoneNumber == newClient.phoneNumber));
+          final targetId = created?.id ?? '';
+          if (targetId.isNotEmpty && widget.onClientCreated != null) {
+            widget.onClientCreated!(targetId);
+          } else {
+            widget.onComplete();
+          }
+        }
       }
     } else {
       if (mounted) {
@@ -993,93 +1010,104 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
               ),
               const SizedBox(height: 40),
 
-              // Footer Buttons Action Bar
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                textDirection: TextDirection.rtl,
-                children: [
-                  if (_activeStep < 2)
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: TfcColors.primary,
-                        foregroundColor: TfcColors.onPrimary,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 16),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _activeStep++;
-                        });
-                      },
-                      child: const Row(
-                        textDirection: TextDirection.rtl,
-                        children: [
-                          Text("التالي",
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          SizedBox(width: 8),
-                          Icon(Icons.arrow_back, size: 16),
-                        ],
-                      ),
-                    )
-                  else
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: TfcColors.primary,
-                        foregroundColor: TfcColors.onPrimary,
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 32, vertical: 16),
-                        shadowColor:
-                            TfcColors.primary.withAlpha((0.4 * 255).toInt()),
-                        elevation: 6,
-                      ),
-                      onPressed: _isSubmitting ? null : _submitForm,
-                      child: _isSubmitting
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.black,
-                              ),
-                            )
-                          : Text(_isEditMode ? "حفظ التعديلات" : "حفظ ومتابعة",
-                              style: const TextStyle(fontWeight: FontWeight.bold)),
+              // Footer Buttons Action Bar (Hidden in step 1 since buttons are placed directly after cards)
+              if (_activeStep != 1)
+                _buildStepNavRow(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStepNavRow() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      textDirection: TextDirection.rtl,
+      children: [
+        if (_activeStep < 2)
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: TfcColors.primary,
+              foregroundColor: TfcColors.onPrimary,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 24, vertical: 16),
+            ),
+            onPressed: () {
+              setState(() {
+                _activeStep++;
+              });
+            },
+            child: const Row(
+              textDirection: TextDirection.rtl,
+              children: [
+                Text("التالي",
+                    style: TextStyle(fontWeight: FontWeight.bold)),
+                SizedBox(width: 8),
+                Icon(Icons.arrow_back, size: 16),
+              ],
+            ),
+          )
+        else
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: TfcColors.primary,
+              foregroundColor: TfcColors.onPrimary,
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 32, vertical: 16),
+              shadowColor:
+                  TfcColors.primary.withAlpha((0.4 * 255).toInt()),
+              elevation: 6,
+            ),
+            onPressed: _isSubmitting ? null : _submitForm,
+            child: _isSubmitting
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.black,
                     ),
-                  if (_activeStep > 0)
-                    OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: TfcColors.outline),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 16),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _activeStep--;
-                        });
-                      },
-                      child: const Row(
-                        textDirection: TextDirection.rtl,
-                        children: [
-                          Icon(Icons.arrow_forward,
-                              size: 16, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text("السابق", style: TextStyle(color: Colors.white)),
-                        ],
-                      ),
-                    )
-                  else
-                    OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.white24),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 16),
-                      ),
-                      onPressed: widget.onComplete,
-                      child: const Text("إلغاء",
-                          style: TextStyle(color: Colors.white)),
-                    ),
-                ],
-              ),
+                  )
+                : Text(_isEditMode ? "حفظ التعديلات" : "حفظ ومتابعة",
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        if (_activeStep > 0)
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: TfcColors.outline),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 24, vertical: 16),
+            ),
+            onPressed: () {
+              setState(() {
+                _activeStep--;
+              });
+            },
+            child: const Row(
+              textDirection: TextDirection.rtl,
+              children: [
+                Icon(Icons.arrow_forward,
+                    size: 16, color: Colors.white),
+                SizedBox(width: 8),
+                Text("السابق", style: TextStyle(color: Colors.white)),
+              ],
+            ),
+          )
+        else
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Colors.white24),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 24, vertical: 16),
+            ),
+            onPressed: widget.onComplete,
+            child: const Text("إلغاء",
+                style: TextStyle(color: Colors.white)),
+          ),
+      ],
+    );
+  }
             ],
           ),
         ),
@@ -2767,6 +2795,11 @@ class _NewClientScreenState extends ConsumerState<NewClientScreen> {
                   label: const Text("إضافة بطاقة / طلب"),
                 ),
               ),
+              const SizedBox(height: 16),
+              const Divider(color: Colors.white12),
+              const SizedBox(height: 8),
+              // Navigation actions placed directly after the cards
+              _buildStepNavRow(),
             ],
           ),
         )),
