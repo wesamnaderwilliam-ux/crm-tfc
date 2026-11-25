@@ -408,15 +408,7 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
                             ],
                           ),
                         )
-                      : LayoutBuilder(
-                          builder: (context, constraints) {
-                            final isDesktop = constraints.maxWidth >= 1024;
-                            if (isDesktop) {
-                              return _buildDesktopTable(filtered, isStrictAdmin);
-                            }
-                            return _buildMobileCards(filtered, isStrictAdmin);
-                          },
-                        ),
+                      : _buildStatusIconsGrid(filtered, isStrictAdmin),
             ),
           ],
         ),
@@ -525,9 +517,181 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
     );
   }
 
-  Widget _buildMobileCards(List<Map<String, dynamic>> data, bool isAdmin) {
+  Widget _buildStatusIconsGrid(List<Map<String, dynamic>> data, bool isAdmin) {
+    final inProgress = data.where((e) => e['status'] != 'approved' && e['status'] != 'rejected').toList();
+    final approved = data.where((e) => e['status'] == 'approved').toList();
+    final rejected = data.where((e) => e['status'] == 'rejected').toList();
+
+    final groups = [
+      (
+        label: 'يتم العمل',
+        icon: Icons.hourglass_top,
+        color: TfcColors.warning,
+        items: inProgress,
+      ),
+      (
+        label: 'موافقة',
+        icon: Icons.check_circle,
+        color: TfcColors.success,
+        items: approved,
+      ),
+      (
+        label: 'رفض',
+        icon: Icons.cancel,
+        color: TfcColors.error,
+        items: rejected,
+      ),
+    ];
+
+    return GridView.builder(
+      padding: const EdgeInsets.only(bottom: 16),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 260,
+        mainAxisSpacing: 14,
+        crossAxisSpacing: 14,
+        childAspectRatio: 1.15,
+      ),
+      itemCount: groups.length,
+      itemBuilder: (context, index) {
+        final g = groups[index];
+        return Material(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(16),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(16),
+            onTap: () => _openStatusOperationsDialog(
+              title: g.label,
+              icon: g.icon,
+              color: g.color,
+              items: g.items,
+              isAdmin: isAdmin,
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: g.color.withValues(alpha: 0.6),
+                  width: 1.5,
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: g.color.withValues(alpha: 0.14),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(g.icon, color: g.color, size: 30),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    g.label,
+                    style: TextStyle(
+                      color: g.color,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${g.items.length} عملية',
+                    style: const TextStyle(
+                      color: TfcColors.outline,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _openStatusOperationsDialog({
+    required String title,
+    required IconData icon,
+    required Color color,
+    required List<Map<String, dynamic>> items,
+    required bool isAdmin,
+  }) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Theme.of(ctx).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: SizedBox(
+          width: (MediaQuery.of(ctx).size.width - 32).clamp(0.0, 900.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: color.withValues(alpha: 0.3)),
+                    ),
+                  ),
+                  child: Row(
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      Icon(icon, color: color, size: 22),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          '$title (${items.length})',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: color,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        icon: const Icon(Icons.close),
+                        tooltip: 'إغلاق',
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: items.isEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.all(32),
+                          child: Text(
+                            'لا توجد عمليات في هذه الحالة',
+                            style: TextStyle(color: TfcColors.outline),
+                          ),
+                        )
+                      : SingleChildScrollView(
+                          padding: const EdgeInsets.all(16),
+                          child: _buildMobileCards(items, isAdmin, shrinkWrap: true),
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileCards(List<Map<String, dynamic>> data, bool isAdmin, {bool shrinkWrap = false}) {
     final authState = ref.read(authProvider);
     return ListView.builder(
+      shrinkWrap: shrinkWrap,
+      physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
       itemCount: data.length,
       itemBuilder: (context, index) {
         final d = data[index];
