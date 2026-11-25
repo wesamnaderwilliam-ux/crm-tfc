@@ -1822,6 +1822,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             ],
           ),
         ),
+        ),
       ),
     );
   }
@@ -1837,12 +1838,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         backgroundColor: Theme.of(ctx).cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: 820,
-            maxHeight: MediaQuery.of(ctx).size.height * 0.85,
-          ),
-          child: Column(
+        child: SizedBox(
+          width: (MediaQuery.of(ctx).size.width - 32).clamp(0.0, 820.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+            ),
+            child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
@@ -1883,6 +1885,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               ),
             ],
           ),
+        ),
         ),
       ),
     );
