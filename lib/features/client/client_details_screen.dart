@@ -3876,7 +3876,11 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          log.createdBy.isNotEmpty ? log.createdBy : "مراسلة بنكية",
+                          ref.read(authProvider).role == 'admin'
+                              ? (log.createdBy.isNotEmpty ? log.createdBy : "مراسلة بنكية")
+                              : (log.actionType.isNotEmpty && log.actionType != 'مراسلة بنكية'
+                                  ? log.actionType
+                                  : "البنك"),
                           style: const TextStyle(color: Color(0xFF00F5D4), fontWeight: FontWeight.bold, fontSize: 12),
                         ),
                         Text(
@@ -4014,6 +4018,12 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
       if (_selectedHistoryTab == 1) return log.logType == 'file_interaction';
       if (_selectedHistoryTab == 2) return log.logType == 'follow_up';
       if (_selectedHistoryTab == 3) return log.logType == 'bank_follow_up';
+      if (_selectedHistoryTab == 4) {
+        return log.actionType.contains('تحديث يدوى') ||
+            log.actionType.contains('تحديث يدوي') ||
+            log.notes.contains('تحديث يدوى') ||
+            log.notes.contains('تحديث يدوي');
+      }
       return true;
     }).toList();
 
@@ -4050,6 +4060,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                   const SizedBox(width: 8),
                   _buildTabButton(3, "مراسلات البنك", Icons.contact_mail_outlined),
                 ],
+                const SizedBox(width: 8),
+                _buildTabButton(4, "تحديث يدوى", Icons.edit_note_outlined),
               ],
             ),
           ),
