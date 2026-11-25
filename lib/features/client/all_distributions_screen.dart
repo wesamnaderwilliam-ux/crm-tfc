@@ -105,12 +105,14 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
             employee_id,
             status,
             is_closed,
+            created_at,
             client_id,
             core_programs ( program_name ),
             banks ( bank_name ),
             bank_employees ( employee_name, phone_1, job_title ),
             clients ( full_name )
-          ''');
+          ''')
+          .order('created_at', ascending: false);
 
       final userFullName = authState.fullName.trim().toLowerCase();
       final userId = authState.user?.id ?? '';
@@ -145,6 +147,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
               : 'لم يحدد بعد',
           'status': rowStatus,
           'is_closed': isClosed,
+          'created_at': r['created_at'],
         };
       }).where((d) {
         if (!isBankEmployee) return true;
@@ -786,8 +789,21 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
   }
 
   Map<String, List<Map<String, dynamic>>> _groupByClient(List<Map<String, dynamic>> data) {
+    // Sort items latest first based on created_at or insertion
+    final sortedData = List<Map<String, dynamic>>.from(data);
+    sortedData.sort((a, b) {
+      final aDate = a['created_at'] != null ? DateTime.tryParse(a['created_at'].toString()) : null;
+      final bDate = b['created_at'] != null ? DateTime.tryParse(b['created_at'].toString()) : null;
+      if (aDate != null && bDate != null) {
+        return bDate.compareTo(aDate); // Latest first
+      }
+      if (aDate != null) return -1;
+      if (bDate != null) return 1;
+      return 0;
+    });
+
     final Map<String, List<Map<String, dynamic>>> grouped = {};
-    for (var d in data) {
+    for (var d in sortedData) {
       final clientId = d['client_id']?.toString() ?? 'unknown';
       grouped.putIfAbsent(clientId, () => []).add(d);
     }
