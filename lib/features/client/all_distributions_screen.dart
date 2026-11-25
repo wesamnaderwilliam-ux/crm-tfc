@@ -807,8 +807,6 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
     final grouped = _groupByClient(data);
 
     return ListView.builder(
-      shrinkWrap: shrinkWrap,
-      physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
       itemCount: grouped.length,
       itemBuilder: (context, index) {
         final clientId = grouped.keys.elementAt(index);
