@@ -1642,7 +1642,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           (
             title: 'التقييم الائتماني والتحليل المالي',
             icon: Icons.analytics_outlined,
-            builder: () => _buildCreditScoreBento(
+            builder: (_) => _buildCreditScoreBento(
               client,
               permissions,
               authState.fullName,
@@ -1653,7 +1653,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           (
             title: 'القروض والبطاقات المصرفية',
             icon: Icons.credit_card_outlined,
-            builder: () => _buildLoansCardsBento(
+            builder: (_) => _buildLoansCardsBento(
               client,
               permissions,
               authState.fullName,
@@ -1665,16 +1665,22 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           (
             title: 'مراجعة المستندات المرفقة والرفع',
             icon: Icons.file_present_outlined,
-            builder: () => _buildDocumentsBento(
-              client,
-              authState.role == 'admin' || authState.role == 'manager',
-              showDocuments,
-            ),
+            builder: (freshClient) {
+              // Fetch documents from Supabase when opening
+              if (client.id.isNotEmpty) {
+                ref.read(clientProvider.notifier).fetchDocumentsForClient(client.id);
+              }
+              return _buildDocumentsBento(
+                freshClient,
+                authState.role == 'admin' || authState.role == 'manager',
+                showDocuments,
+              );
+            },
           ),
           (
             title: 'توزيع العملاء',
             icon: Icons.pie_chart_outline,
-            builder: () => Column(
+            builder: (_) => Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (widget.onViewAiAnalysis != null) ...[
@@ -1705,13 +1711,13 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           (
             title: 'العمليات',
             icon: Icons.settings_suggest_outlined,
-            builder: () => OperationsWidget(clientId: client.id),
+            builder: (_) => OperationsWidget(clientId: client.id),
           ),
           if (isBankEmp)
             (
               title: 'المراسلات البنكية',
               icon: Icons.contact_mail_outlined,
-              builder: () => Column(
+              builder: (_) => Column(
                 children: [
                   _buildBankEmployeeMessagingBento(authState.fullName),
                   const SizedBox(height: 16),
@@ -1723,9 +1729,9 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             (
               title: 'إجمالى الأتعاب',
               icon: Icons.account_balance_wallet_outlined,
-              builder: () => _TotalFeesWidget(clientId: client.id),
+              builder: (_) => _TotalFeesWidget(clientId: client.id),
             ),
-        ]),
+        ], client.id),
         if (!isBankEmp)
           _buildCollapsibleSection(
             key: 'logs',
@@ -1744,7 +1750,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   }
 
   Widget _buildSectionIconsGrid(
-    List<({String title, IconData icon, Widget Function() builder})> items,
+    List<({String title, IconData icon, Widget Function(ClientModel) builder})> items,
+    String clientId,
   ) {
     final rows = <Widget>[];
     for (int i = 0; i < items.length; i += 3) {
@@ -1759,7 +1766,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 if (j > 0) const SizedBox(width: 10),
                 Expanded(
                   child: j < chunk.length
-                      ? _buildSectionIconTile(chunk[j])
+                      ? _buildSectionIconTile(chunk[j], clientId)
                       : const SizedBox.shrink(),
                 ),
               ],
@@ -1775,7 +1782,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   }
 
   Widget _buildSectionIconTile(
-    ({String title, IconData icon, Widget Function() builder}) item,
+    ({String title, IconData icon, Widget Function(ClientModel) builder}) item,
+    String clientId,
   ) {
     return Material(
       color: Theme.of(context).cardColor,
@@ -1785,7 +1793,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
         onTap: () => _openSectionDialog(
           title: item.title,
           icon: item.icon,
-          builder: item.builder,
+          builderWithClient: item.builder,
+          clientId: clientId,
         ),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
@@ -1829,11 +1838,16 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   void _openSectionDialog({
     required String title,
     required IconData icon,
-    required Widget Function() builder,
+    required Widget Function(ClientModel freshClient) builderWithClient,
+    required String clientId,
   }) {
     showDialog(
       context: context,
-      builder: (ctx) => Dialog(
+      builder: (ctx) => Consumer(
+        builder: (ctx2, dialogRef, _) {
+          final freshClient = dialogRef.watch(clientProvider).clients
+              .firstWhere((c) => c.id == clientId, orElse: () => dialogRef.watch(clientProvider).clients.first);
+          return Dialog(
         backgroundColor: Theme.of(ctx).cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
@@ -1879,13 +1893,15 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               Flexible(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(16),
-                  child: builder(),
+                  child: builderWithClient(freshClient),
                 ),
               ),
             ],
           ),
         ),
         ),
+        );
+        },
       ),
     );
   }
