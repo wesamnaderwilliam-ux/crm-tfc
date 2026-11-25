@@ -1532,6 +1532,10 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   ) {
     final isBankEmp = authState.role == 'bank_employee' || widget.bankEmployeeMode;
     final isModern = ref.watch(themeProvider).isModern;
+    final sectionColors = ref.watch(_sectionStatusColorsProvider(client.id)).valueOrNull ?? {};
+    final creditScoreColor = client.creditScore >= 720
+        ? TfcColors.success
+        : (client.creditScore >= 620 ? Colors.amber : Colors.redAccent);
 
     return Column(
       children: [
@@ -1642,6 +1646,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           (
             title: 'التقييم الائتماني والتحليل المالي',
             icon: Icons.analytics_outlined,
+            borderColors: [creditScoreColor],
             builder: (_) => _buildCreditScoreBento(
               client,
               permissions,
@@ -1653,6 +1658,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           (
             title: 'القروض والبطاقات المصرفية',
             icon: Icons.credit_card_outlined,
+            borderColors: const <Color>[],
             builder: (_) => _buildLoansCardsBento(
               client,
               permissions,
@@ -1665,6 +1671,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           (
             title: 'مراجعة المستندات المرفقة والرفع',
             icon: Icons.file_present_outlined,
+            borderColors: const <Color>[],
             builder: (freshClient) {
               // Fetch documents from Supabase when opening
               if (client.id.isNotEmpty) {
@@ -1680,6 +1687,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           (
             title: 'توزيع العملاء',
             icon: Icons.pie_chart_outline,
+            borderColors: sectionColors['distribution'] ?? const <Color>[],
             builder: (_) => Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -1711,12 +1719,14 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
           (
             title: 'العمليات',
             icon: Icons.settings_suggest_outlined,
+            borderColors: sectionColors['operations'] ?? const <Color>[],
             builder: (_) => OperationsWidget(clientId: client.id),
           ),
           if (isBankEmp)
             (
               title: 'المراسلات البنكية',
               icon: Icons.contact_mail_outlined,
+              borderColors: const <Color>[],
               builder: (_) => Column(
                 children: [
                   _buildBankEmployeeMessagingBento(authState.fullName),
@@ -1729,6 +1739,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             (
               title: 'إجمالى الأتعاب',
               icon: Icons.account_balance_wallet_outlined,
+              borderColors: sectionColors['total_fees'] ?? const <Color>[],
               builder: (_) => _TotalFeesWidget(clientId: client.id),
             ),
         ], client.id),
@@ -1750,7 +1761,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   }
 
   Widget _buildSectionIconsGrid(
-    List<({String title, IconData icon, Widget Function(ClientModel) builder})> items,
+    List<({String title, IconData icon, List<Color> borderColors, Widget Function(ClientModel) builder})> items,
     String clientId,
   ) {
     final rows = <Widget>[];
@@ -1782,53 +1793,71 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
   }
 
   Widget _buildSectionIconTile(
-    ({String title, IconData icon, Widget Function(ClientModel) builder}) item,
+    ({String title, IconData icon, List<Color> borderColors, Widget Function(ClientModel) builder}) item,
     String clientId,
   ) {
-    return Material(
-      color: Theme.of(context).cardColor,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
+    final colors = item.borderColors;
+    final hasColors = colors.isNotEmpty;
+    final primaryTint = hasColors ? colors.first : TfcColors.primary;
+
+    return Container(
+      decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
-        onTap: () => _openSectionDialog(
-          title: item.title,
-          icon: item.icon,
-          builderWithClient: item.builder,
-          clientId: clientId,
-        ),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: TfcColors.primary.withValues(alpha: 0.25),
-              width: 1,
-            ),
+        gradient: colors.length > 1
+            ? LinearGradient(
+                colors: colors,
+                begin: Alignment.topRight,
+                end: Alignment.bottomLeft,
+              )
+            : null,
+        border: colors.length <= 1
+            ? Border.all(
+                color: hasColors
+                    ? colors.first.withValues(alpha: 0.85)
+                    : TfcColors.primary.withValues(alpha: 0.25),
+                width: hasColors ? 2.0 : 1.0,
+              )
+            : null,
+      ),
+      padding: colors.length > 1 ? const EdgeInsets.all(2.0) : EdgeInsets.zero,
+      child: Material(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(colors.length > 1 ? 12 : 13),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(colors.length > 1 ? 12 : 13),
+          onTap: () => _openSectionDialog(
+            title: item.title,
+            icon: item.icon,
+            builderWithClient: item.builder,
+            clientId: clientId,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: TfcColors.primary.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: primaryTint.withValues(alpha: 0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(item.icon, color: primaryTint, size: 24),
                 ),
-                child: Icon(item.icon, color: TfcColors.primary, size: 24),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                item.title,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  height: 1.3,
+                const SizedBox(height: 8),
+                Text(
+                  item.title,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    height: 1.3,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -9257,6 +9286,69 @@ class _VirtualIncomeBentoState extends ConsumerState<VirtualIncomeBento> {
 // ============================================================
 // Total Fees Summary Widget
 // ============================================================
+final _sectionStatusColorsProvider =
+    FutureProvider.family<Map<String, List<Color>>, String>((ref, clientId) async {
+  final result = <String, List<Color>>{
+    'distribution': [],
+    'operations': [],
+    'total_fees': [],
+  };
+  if (clientId.isEmpty || !SupabaseConfig.isInitialized) return result;
+
+  try {
+    final distRows = await SupabaseConfig.client
+        .from('distribution_entries')
+        .select('status')
+        .eq('client_id', clientId);
+    final distColors = <Color>[];
+    for (final r in (distRows as List<dynamic>)) {
+      final s = (r['status'] ?? 'pending').toString();
+      final Color c;
+      switch (s) {
+        case 'accepted':
+          c = TfcColors.success;
+          break;
+        case 'rejected':
+          c = TfcColors.error;
+          break;
+        case 'operations':
+          c = Colors.blueAccent;
+          break;
+        default:
+          c = const Color(0xFF64B5F6);
+      }
+      if (!distColors.contains(c)) distColors.add(c);
+    }
+    result['distribution'] = distColors;
+  } catch (_) {}
+
+  try {
+    final opRows = await SupabaseConfig.client
+        .from('operation_entries')
+        .select('status, has_invoice, invoice_collected')
+        .eq('client_id', clientId);
+    final opColors = <Color>[];
+    final feeColors = <Color>[];
+    for (final r in (opRows as List<dynamic>)) {
+      final s = (r['status'] ?? '').toString();
+      final Color opC = s == 'approved'
+          ? TfcColors.success
+          : (s == 'rejected' ? TfcColors.error : TfcColors.warning);
+      if (!opColors.contains(opC)) opColors.add(opC);
+
+      if (r['has_invoice'] == true) {
+        final collected = r['invoice_collected'] == 'collected';
+        final Color feeC = collected ? TfcColors.success : TfcColors.warning;
+        if (!feeColors.contains(feeC)) feeColors.add(feeC);
+      }
+    }
+    result['operations'] = opColors;
+    result['total_fees'] = feeColors;
+  } catch (_) {}
+
+  return result;
+});
+
 class _TotalFeesWidget extends ConsumerStatefulWidget {
   final String clientId;
   const _TotalFeesWidget({required this.clientId});
