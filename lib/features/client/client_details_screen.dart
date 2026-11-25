@@ -1638,101 +1638,95 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
             showSalary,
           ),
         ),
-        _buildCollapsibleSection(
-          key: 'credit',
-          title: 'التقييم الائتماني والتحليل المالي',
-          icon: Icons.analytics_outlined,
-          child: Column(
-            children: [
-              _buildCreditScoreBento(
-                client,
-                permissions,
-                authState.fullName,
-                authState.role == 'admin',
-                showCreditScore,
-              ),
-            ],
+        _buildSectionIconsGrid([
+          (
+            title: 'التقييم الائتماني والتحليل المالي',
+            icon: Icons.analytics_outlined,
+            builder: () => _buildCreditScoreBento(
+              client,
+              permissions,
+              authState.fullName,
+              authState.role == 'admin',
+              showCreditScore,
+            ),
           ),
-        ),
-        _buildCollapsibleSection(
-          key: 'loans',
-          title: 'القروض والبطاقات المصرفية',
-          icon: Icons.credit_card_outlined,
-          child: _buildLoansCardsBento(
-            client,
-            permissions,
-            authState.fullName,
-            showLoans,
-            showCards,
-            canEditClients,
+          (
+            title: 'القروض والبطاقات المصرفية',
+            icon: Icons.credit_card_outlined,
+            builder: () => _buildLoansCardsBento(
+              client,
+              permissions,
+              authState.fullName,
+              showLoans,
+              showCards,
+              canEditClients,
+            ),
           ),
-        ),
-        _buildCollapsibleSection(
-          key: 'documents',
-          title: 'مراجعة المستندات المرفقة والرفع',
-          icon: Icons.file_present_outlined,
-          child: _buildDocumentsBento(
-            client,
-            authState.role == 'admin' || authState.role == 'manager',
-            showDocuments,
+          (
+            title: 'مراجعة المستندات المرفقة والرفع',
+            icon: Icons.file_present_outlined,
+            builder: () => _buildDocumentsBento(
+              client,
+              authState.role == 'admin' || authState.role == 'manager',
+              showDocuments,
+            ),
           ),
-        ),
-        _buildCollapsibleSection(
-          key: 'distribution',
-          title: 'توزيع العملاء',
-          icon: Icons.pie_chart_outline,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (widget.onViewAiAnalysis != null) ...[
-                ElevatedButton.icon(
-                  onPressed: () => widget.onViewAiAnalysis!(client.id),
-                  icon: const Icon(Icons.psychology, size: 16),
-                  label: const Text("تحليل ذكي ومطابقة بالذكاء الاصطناعي (AI)"),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: TfcColors.primary.withValues(alpha: 0.15),
-                    foregroundColor: TfcColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    side: const BorderSide(color: TfcColors.primary, width: 0.5),
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
-              DistributionWidget(
-                clientId: client.id,
-                requestedAmount: client.requestedAmount,
-              ),
-            ],
-          ),
-        ),
-        _buildCollapsibleSection(
-          key: 'operations',
-          title: 'العمليات',
-          icon: Icons.settings_suggest_outlined,
-          child: OperationsWidget(clientId: client.id),
-        ),
-        if (isBankEmp) ...[
-          _buildCollapsibleSection(
-            key: 'bank_logs',
-            title: 'المراسلات البنكية',
-            icon: Icons.contact_mail_outlined,
-            child: Column(
+          (
+            title: 'توزيع العملاء',
+            icon: Icons.pie_chart_outline,
+            builder: () => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildBankEmployeeMessagingBento(authState.fullName),
-                const SizedBox(height: 16),
-                _buildBankLogsHistoryOnlyBento(client),
+                if (widget.onViewAiAnalysis != null) ...[
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      widget.onViewAiAnalysis!(client.id);
+                    },
+                    icon: const Icon(Icons.psychology, size: 16),
+                    label: const Text("تحليل ذكي ومطابقة بالذكاء الاصطناعي (AI)"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: TfcColors.primary.withValues(alpha: 0.15),
+                      foregroundColor: TfcColors.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      side: const BorderSide(color: TfcColors.primary, width: 0.5),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+                DistributionWidget(
+                  clientId: client.id,
+                  requestedAmount: client.requestedAmount,
+                ),
               ],
             ),
           ),
-        ],
-        if (!isBankEmp) ...[
-          _buildCollapsibleSection(
-            key: 'total_fees',
-            title: 'إجمالى الأتعاب',
-            icon: Icons.account_balance_wallet_outlined,
-            child: _TotalFeesWidget(clientId: client.id),
+          (
+            title: 'العمليات',
+            icon: Icons.settings_suggest_outlined,
+            builder: () => OperationsWidget(clientId: client.id),
           ),
+          if (isBankEmp)
+            (
+              title: 'المراسلات البنكية',
+              icon: Icons.contact_mail_outlined,
+              builder: () => Column(
+                children: [
+                  _buildBankEmployeeMessagingBento(authState.fullName),
+                  const SizedBox(height: 16),
+                  _buildBankLogsHistoryOnlyBento(client),
+                ],
+              ),
+            )
+          else
+            (
+              title: 'إجمالى الأتعاب',
+              icon: Icons.account_balance_wallet_outlined,
+              builder: () => _TotalFeesWidget(clientId: client.id),
+            ),
+        ]),
+        if (!isBankEmp)
           _buildCollapsibleSection(
             key: 'logs',
             title: 'سجل النشاط والتعليقات التفاعلية',
@@ -1745,8 +1739,152 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
               ],
             ),
           ),
-        ],
       ],
+    );
+  }
+
+  Widget _buildSectionIconsGrid(
+    List<({String title, IconData icon, Widget Function() builder})> items,
+  ) {
+    final rows = <Widget>[];
+    for (int i = 0; i < items.length; i += 3) {
+      final chunk = items.sublist(i, (i + 3).clamp(0, items.length));
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              for (int j = 0; j < 3; j++) ...[
+                if (j > 0) const SizedBox(width: 10),
+                Expanded(
+                  child: j < chunk.length
+                      ? _buildSectionIconTile(chunk[j])
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(children: rows),
+    );
+  }
+
+  Widget _buildSectionIconTile(
+    ({String title, IconData icon, Widget Function() builder}) item,
+  ) {
+    return Material(
+      color: Theme.of(context).cardColor,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () => _openSectionDialog(
+          title: item.title,
+          icon: item.icon,
+          builder: item.builder,
+        ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: TfcColors.primary.withValues(alpha: 0.25),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: TfcColors.primary.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(item.icon, color: TfcColors.primary, size: 24),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                item.title,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openSectionDialog({
+    required String title,
+    required IconData icon,
+    required Widget Function() builder,
+  }) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Theme.of(ctx).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: 820,
+            maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: TfcColors.primary.withValues(alpha: 0.2),
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Icon(icon, color: TfcColors.primary, size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      icon: const Icon(Icons.close),
+                      tooltip: 'إغلاق',
+                    ),
+                  ],
+                ),
+              ),
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(16),
+                  child: builder(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
