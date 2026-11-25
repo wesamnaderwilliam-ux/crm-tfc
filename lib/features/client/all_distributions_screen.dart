@@ -739,15 +739,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                             style: const TextStyle(color: TfcColors.outline, fontSize: 14),
                           ),
                         )
-                      : LayoutBuilder(
-                          builder: (context, constraints) {
-                            final isDesktop = constraints.maxWidth >= 1024;
-                            if (isDesktop) {
-                              return _buildDesktopTable(filtered, isAdminOrManager);
-                            }
-                            return _buildMobileCards(filtered, isAdminOrManager);
-                          },
-                        ),
+                      : _buildClientIconsGrid(filtered, isAdminOrManager),
             ),
           ],
         ),
@@ -815,6 +807,8 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
     final grouped = _groupByClient(data);
 
     return ListView.builder(
+      shrinkWrap: shrinkWrap,
+      physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
       itemCount: grouped.length,
       itemBuilder: (context, index) {
         final clientId = grouped.keys.elementAt(index);
@@ -998,11 +992,183 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
     );
   }
 
-  Widget _buildMobileCards(List<Map<String, dynamic>> data, bool isAdmin) {
+  Widget _buildClientIconsGrid(List<Map<String, dynamic>> data, bool isAdmin) {
+    final grouped = _groupByClient(data);
+    final clientIds = grouped.keys.toList();
+
+    return GridView.builder(
+      padding: const EdgeInsets.only(bottom: 16),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 260,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.15,
+      ),
+      itemCount: clientIds.length,
+      itemBuilder: (context, index) {
+        final clientId = clientIds[index];
+        final clientDists = grouped[clientId]!;
+        final clientName = clientDists.first['client_name'] ?? 'عميل غير معروف';
+
+        return Material(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(14),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(14),
+            onTap: () => _openClientDistDialog(clientId, clientDists, isAdmin),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: TfcColors.primary.withValues(alpha: 0.25),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      const Icon(Icons.person, color: TfcColors.primary, size: 18),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          clientName,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textDirection: TextDirection.rtl,
+                          style: const TextStyle(
+                            color: TfcColors.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 14, thickness: 0.5),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Wrap(
+                        spacing: 6,
+                        runSpacing: 6,
+                        textDirection: TextDirection.rtl,
+                        children: clientDists.map((dist) {
+                          final bankName = dist['bank_name'] ?? 'بنك';
+                          final status = (dist['status'] ?? 'pending').toString();
+                          final color = _getStatusColor(status);
+                          return Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.14),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: color.withValues(alpha: 0.5)),
+                            ),
+                            child: Text(
+                              bankName,
+                              style: TextStyle(
+                                color: color,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _openClientDistDialog(
+    String clientId,
+    List<Map<String, dynamic>> clientDists,
+    bool isAdmin,
+  ) {
+    final clientName = clientDists.first['client_name'] ?? 'عميل غير معروف';
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Theme.of(ctx).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: SizedBox(
+          width: (MediaQuery.of(ctx).size.width - 32).clamp(0.0, 820.0),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(ctx).size.height * 0.85,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: TfcColors.primary.withValues(alpha: 0.2)),
+                    ),
+                  ),
+                  child: Row(
+                    textDirection: TextDirection.rtl,
+                    children: [
+                      const Icon(Icons.person, color: TfcColors.primary, size: 22),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.of(ctx).pop();
+                            widget.onViewClient(clientId);
+                          },
+                          child: Text(
+                            clientName,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: TfcColors.primary,
+                              decoration: TextDecoration.underline,
+                            ),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        icon: const Icon(Icons.close),
+                        tooltip: 'إغلاق',
+                      ),
+                    ],
+                  ),
+                ),
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: _buildMobileCards(clientDists, isAdmin, shrinkWrap: true),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMobileCards(List<Map<String, dynamic>> data, bool isAdmin, {bool shrinkWrap = false}) {
     final authState = ref.read(authProvider);
     final grouped = _groupByClient(data);
 
     return ListView.builder(
+      shrinkWrap: shrinkWrap,
+      physics: shrinkWrap ? const NeverScrollableScrollPhysics() : null,
       itemCount: grouped.length,
       itemBuilder: (context, index) {
         final clientId = grouped.keys.elementAt(index);
