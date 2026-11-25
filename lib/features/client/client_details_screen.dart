@@ -3232,11 +3232,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                 style: TextStyle(color: TfcColors.outline, fontSize: 12),
                 textDirection: TextDirection.rtl)
           else
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: client.documents.length,
-              itemBuilder: (context, idx) {
+            Column(
+              children: List.generate(client.documents.length, (idx) {
                 final d = client.documents[idx];
                 Color statusColor = Colors.amber;
                 String statusLabel = "تحت التدقيق";
@@ -3391,7 +3388,7 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                     ],
                   ),
                 );
-              },
+              }),
             ),
           const SizedBox(height: 12),
           Center(
