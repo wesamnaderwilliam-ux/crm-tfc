@@ -4253,7 +4253,11 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                "بواسطة: ${log.createdBy}",
+                                log.logType == 'bank_follow_up'
+                                    ? (ref.read(authProvider).role == 'admin'
+                                        ? "بواسطة: ${log.createdBy}${log.actionType.isNotEmpty && log.actionType != 'مراسلة بنكية' ? ' - ${log.actionType}' : ''}"
+                                        : "بواسطة: ${log.actionType.isNotEmpty && log.actionType != 'مراسلة بنكية' ? log.actionType : 'البنك'}")
+                                    : "بواسطة: ${log.createdBy}",
                                 style: const TextStyle(
                                     color: TfcColors.outline,
                                     fontSize: 10,
