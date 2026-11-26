@@ -3833,6 +3833,8 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
     final sortedLogs = List<InteractionLogModel>.from(client.history)
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     final bankLogs = sortedLogs.where((log) => log.logType == 'bank_follow_up').toList();
+    final bankMap = ref.watch(_bankEmployeeBankMapProvider).valueOrNull ?? {};
+    final isAdmin = ref.read(authProvider).role == 'admin';
 
     return GlassCard(
       padding: const EdgeInsets.all(20),
@@ -3876,11 +3878,15 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          ref.read(authProvider).role == 'admin'
-                              ? (log.createdBy.isNotEmpty ? log.createdBy : "مراسلة بنكية")
-                              : (log.actionType.isNotEmpty && log.actionType != 'مراسلة بنكية'
-                                  ? log.actionType
-                                  : "البنك"),
+                          () {
+                            final bankName = bankMap[log.createdBy.trim()] ??
+                                (log.actionType.isNotEmpty && log.actionType != 'مراسلة بنكية'
+                                    ? log.actionType
+                                    : 'البنك');
+                            return isAdmin
+                                ? "$bankName - ${log.createdBy.isNotEmpty ? log.createdBy : 'موظف البنك'}"
+                                : bankName;
+                          }(),
                           style: const TextStyle(color: Color(0xFF00F5D4), fontWeight: FontWeight.bold, fontSize: 12),
                         ),
                         Text(
@@ -4253,11 +4259,19 @@ class _ClientDetailsScreenState extends ConsumerState<ClientDetailsScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                log.logType == 'bank_follow_up'
-                                    ? (ref.read(authProvider).role == 'admin'
-                                        ? "بواسطة: ${log.createdBy}${log.actionType.isNotEmpty && log.actionType != 'مراسلة بنكية' ? ' - ${log.actionType}' : ''}"
-                                        : "بواسطة: ${log.actionType.isNotEmpty && log.actionType != 'مراسلة بنكية' ? log.actionType : 'البنك'}")
-                                    : "بواسطة: ${log.createdBy}",
+                                () {
+                                  if (log.logType != 'bank_follow_up') {
+                                    return "بواسطة: ${log.createdBy}";
+                                  }
+                                  final bankMap = ref.watch(_bankEmployeeBankMapProvider).valueOrNull ?? {};
+                                  final bankName = bankMap[log.createdBy.trim()] ??
+                                      (log.actionType.isNotEmpty && log.actionType != 'مراسلة بنكية'
+                                          ? log.actionType
+                                          : 'البنك');
+                                  return ref.read(authProvider).role == 'admin'
+                                      ? "بواسطة: $bankName - ${log.createdBy}"
+                                      : "بواسطة: $bankName";
+                                }(),
                                 style: const TextStyle(
                                     color: TfcColors.outline,
                                     fontSize: 10,
@@ -9302,6 +9316,25 @@ class _VirtualIncomeBentoState extends ConsumerState<VirtualIncomeBento> {
 // ============================================================
 // Total Fees Summary Widget
 // ============================================================
+final _bankEmployeeBankMapProvider = FutureProvider<Map<String, String>>((ref) async {
+  final map = <String, String>{};
+  if (!SupabaseConfig.isInitialized) return map;
+  try {
+    final rows = await SupabaseConfig.client
+        .from('profiles')
+        .select('full_name, bank_name')
+        .not('bank_name', 'is', null);
+    for (final r in (rows as List<dynamic>)) {
+      final name = (r['full_name'] ?? '').toString().trim();
+      final bank = (r['bank_name'] ?? '').toString().trim();
+      if (name.isNotEmpty && bank.isNotEmpty) {
+        map[name] = bank;
+      }
+    }
+  } catch (_) {}
+  return map;
+});
+
 final _sectionStatusColorsProvider =
     FutureProvider.family<Map<String, List<Color>>, String>((ref, clientId) async {
   final result = <String, List<Color>>{
