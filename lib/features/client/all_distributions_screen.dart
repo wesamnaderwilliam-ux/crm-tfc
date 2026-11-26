@@ -36,6 +36,7 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
   String _selectedBankFilter = 'all';
   String _selectedProgramFilter = 'all';
   String _selectedStatusFilter = 'all';
+  DateTimeRange? _dateRange;
 
   final Map<String, String> _statusNames = {
     'all': 'كل الحالات',
@@ -139,11 +140,9 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
           'bank_id': r['bank_id'],
           'employee_id': r['employee_id'],
           'employee_name': empData != null
-              ? (isUserAdmin
-                  ? '${empData['employee_name']} ${empData['phone_1'] ?? ""}'.trim()
-                  : ((empData['job_title'] != null && empData['job_title'].toString().trim().isNotEmpty)
-                      ? '${empData['employee_name']} (${empData['job_title']})'.trim()
-                      : '${empData['employee_name']}'.trim()))
+              ? ((empData['job_title'] != null && empData['job_title'].toString().trim().isNotEmpty)
+                  ? '${empData['employee_name']} (${empData['job_title']})'.trim()
+                  : '${empData['employee_name']}'.trim())
               : 'لم يحدد بعد',
           'status': rowStatus,
           'is_closed': isClosed,
@@ -468,6 +467,14 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
       if (_selectedStatusFilter != 'all' && d['status'] != _selectedStatusFilter) {
         return false;
       }
+      if (_dateRange != null) {
+        final dt = DateTime.tryParse(d['created_at']?.toString() ?? '');
+        if (dt == null) return false;
+        final dOnly = DateTime(dt.year, dt.month, dt.day);
+        final start = DateTime(_dateRange!.start.year, _dateRange!.start.month, _dateRange!.start.day);
+        final end = DateTime(_dateRange!.end.year, _dateRange!.end.month, _dateRange!.end.day);
+        if (dOnly.isBefore(start) || dOnly.isAfter(end)) return false;
+      }
       return true;
     }).toList();
 
@@ -603,12 +610,14 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
               title: "تصفية وتصفح التوزيعات 🔍",
               activeFilterCount: (_selectedBankFilter != 'all' ? 1 : 0) +
                   (_selectedProgramFilter != 'all' ? 1 : 0) +
-                  (_selectedStatusFilter != 'all' ? 1 : 0),
+                  (_selectedStatusFilter != 'all' ? 1 : 0) +
+                  (_dateRange != null ? 1 : 0),
               onResetFilter: () {
                 setState(() {
                   _selectedBankFilter = 'all';
                   _selectedProgramFilter = 'all';
                   _selectedStatusFilter = 'all';
+                  _dateRange = null;
                 });
               },
               filterContent: LayoutBuilder(
@@ -718,9 +727,71 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                     ),
                   ];
 
-                  return isWide
-                      ? Row(textDirection: TextDirection.rtl, children: children)
-                      : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      isWide
+                          ? Row(textDirection: TextDirection.rtl, children: children)
+                          : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
+                      const SizedBox(height: 12),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: InkWell(
+                          onTap: () async {
+                            final picked = await showDateRangePicker(
+                              context: context,
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime(2030),
+                              initialDateRange: _dateRange,
+                            );
+                            if (picked != null) setState(() => _dateRange = picked);
+                          },
+                          borderRadius: BorderRadius.circular(10),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: _dateRange != null
+                                  ? TfcColors.primary.withValues(alpha: 0.15)
+                                  : TfcColors.surfaceContainer,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: _dateRange != null
+                                    ? TfcColors.primary
+                                    : Colors.white.withValues(alpha: 0.12),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.date_range_rounded,
+                                    size: 16,
+                                    color: _dateRange != null ? TfcColors.primary : Colors.white60),
+                                const SizedBox(width: 6),
+                                Text(
+                                  _dateRange != null
+                                      ? "فترة التاريخ: ${_dateRange!.start.year}-${_dateRange!.start.month.toString().padLeft(2, '0')}-${_dateRange!.start.day.toString().padLeft(2, '0')} ← ${_dateRange!.end.year}-${_dateRange!.end.month.toString().padLeft(2, '0')}-${_dateRange!.end.day.toString().padLeft(2, '0')}"
+                                      : "فترة التاريخ (من - إلى)",
+                                  style: TextStyle(
+                                    color: _dateRange != null ? Colors.white : Colors.white70,
+                                    fontSize: 12,
+                                    fontWeight: _dateRange != null ? FontWeight.bold : FontWeight.normal,
+                                  ),
+                                  textDirection: TextDirection.rtl,
+                                ),
+                                if (_dateRange != null) ...[
+                                  const SizedBox(width: 6),
+                                  GestureDetector(
+                                    onTap: () => setState(() => _dateRange = null),
+                                    child: const Icon(Icons.close_rounded, size: 15, color: Colors.white70),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
                 },
               ),
             ),
@@ -1284,7 +1355,8 @@ class _AllDistributionsScreenState extends ConsumerState<AllDistributionsScreen>
                             ),
                             const SizedBox(height: 10),
                             _buildInfoRow("البرنامج", d['program_name'] ?? '—', Icons.category),
-                            _buildInfoRow("الموظف", d['employee_name'] ?? '—', Icons.person),
+                            if (isAdmin || authState.role == 'manager')
+                              _buildInfoRow("الموظف", d['employee_name'] ?? '—', Icons.person),
 
                             if (isAdmin || authState.role == 'bank_employee') ...[
                               const SizedBox(height: 8),

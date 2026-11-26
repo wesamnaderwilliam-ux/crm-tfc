@@ -30,6 +30,8 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
   String _selectedBankFilter = 'all';
   String _selectedEmployeeFilter = 'all';
   String _selectedStatusFilter = 'all';
+  DateTimeRange? _transferDateRange;
+  DateTimeRange? _approvalDateRange;
 
   final Map<String, String> _statusNames = {
     'all': 'كل الحالات',
@@ -267,6 +269,22 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
       if (_selectedStatusFilter != 'all' && d['status'] != _selectedStatusFilter) {
         return false;
       }
+      if (_transferDateRange != null) {
+        final td = DateTime.tryParse(d['transfer_date']?.toString() ?? '');
+        if (td == null) return false;
+        final dOnly = DateTime(td.year, td.month, td.day);
+        final start = DateTime(_transferDateRange!.start.year, _transferDateRange!.start.month, _transferDateRange!.start.day);
+        final end = DateTime(_transferDateRange!.end.year, _transferDateRange!.end.month, _transferDateRange!.end.day);
+        if (dOnly.isBefore(start) || dOnly.isAfter(end)) return false;
+      }
+      if (_approvalDateRange != null) {
+        final ad = DateTime.tryParse(d['approval_date']?.toString() ?? '');
+        if (ad == null) return false;
+        final dOnly = DateTime(ad.year, ad.month, ad.day);
+        final start = DateTime(_approvalDateRange!.start.year, _approvalDateRange!.start.month, _approvalDateRange!.start.day);
+        final end = DateTime(_approvalDateRange!.end.year, _approvalDateRange!.end.month, _approvalDateRange!.end.day);
+        if (dOnly.isBefore(start) || dOnly.isAfter(end)) return false;
+      }
       return true;
     }).toList();
 
@@ -306,12 +324,16 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
               title: "تصفية وتصفح العمليات 🔍",
               activeFilterCount: (_selectedBankFilter != 'all' ? 1 : 0) +
                   (_selectedEmployeeFilter != 'all' ? 1 : 0) +
-                  (_selectedStatusFilter != 'all' ? 1 : 0),
+                  (_selectedStatusFilter != 'all' ? 1 : 0) +
+                  (_transferDateRange != null ? 1 : 0) +
+                  (_approvalDateRange != null ? 1 : 0),
               onResetFilter: () {
                 setState(() {
                   _selectedBankFilter = 'all';
                   _selectedEmployeeFilter = 'all';
                   _selectedStatusFilter = 'all';
+                  _transferDateRange = null;
+                  _approvalDateRange = null;
                 });
               },
               filterContent: LayoutBuilder(
@@ -381,9 +403,50 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
                     ),
                   ];
 
-                  return isWide
-                      ? Row(textDirection: TextDirection.rtl, children: children)
-                      : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children);
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      isWide
+                          ? Row(textDirection: TextDirection.rtl, children: children)
+                          : Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: children),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 8,
+                        textDirection: TextDirection.rtl,
+                        children: [
+                          _buildDateRangeButton(
+                            label: "تاريخ التحويل",
+                            range: _transferDateRange,
+                            onPick: () async {
+                              final picked = await showDateRangePicker(
+                                context: context,
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime(2030),
+                                initialDateRange: _transferDateRange,
+                              );
+                              if (picked != null) setState(() => _transferDateRange = picked);
+                            },
+                            onClear: () => setState(() => _transferDateRange = null),
+                          ),
+                          _buildDateRangeButton(
+                            label: "تاريخ الموافقة",
+                            range: _approvalDateRange,
+                            onPick: () async {
+                              final picked = await showDateRangePicker(
+                                context: context,
+                                firstDate: DateTime(2020),
+                                lastDate: DateTime(2030),
+                                initialDateRange: _approvalDateRange,
+                              );
+                              if (picked != null) setState(() => _approvalDateRange = picked);
+                            },
+                            onClear: () => setState(() => _approvalDateRange = null),
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
                 },
               ),
             ),
@@ -840,6 +903,55 @@ class _AllOperationsScreenState extends ConsumerState<AllOperationsScreen> {
             _updateOperationStatus(id, val);
           }
         },
+      ),
+    );
+  }
+
+  Widget _buildDateRangeButton({
+    required String label,
+    required DateTimeRange? range,
+    required VoidCallback onPick,
+    required VoidCallback onClear,
+  }) {
+    final hasRange = range != null;
+    final text = hasRange
+        ? "$label: ${range.start.year}-${range.start.month.toString().padLeft(2, '0')}-${range.start.day.toString().padLeft(2, '0')} ← ${range.end.year}-${range.end.month.toString().padLeft(2, '0')}-${range.end.day.toString().padLeft(2, '0')}"
+        : "$label (من - إلى)";
+    return InkWell(
+      onTap: onPick,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: hasRange ? TfcColors.primary.withValues(alpha: 0.15) : TfcColors.surfaceContainer,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: hasRange ? TfcColors.primary : Colors.white.withValues(alpha: 0.12),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.date_range_rounded, size: 16, color: hasRange ? TfcColors.primary : Colors.white60),
+            const SizedBox(width: 6),
+            Text(
+              text,
+              style: TextStyle(
+                color: hasRange ? Colors.white : Colors.white70,
+                fontSize: 12,
+                fontWeight: hasRange ? FontWeight.bold : FontWeight.normal,
+              ),
+              textDirection: TextDirection.rtl,
+            ),
+            if (hasRange) ...[
+              const SizedBox(width: 6),
+              GestureDetector(
+                onTap: onClear,
+                child: const Icon(Icons.close_rounded, size: 15, color: Colors.white70),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

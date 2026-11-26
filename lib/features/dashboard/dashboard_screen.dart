@@ -2015,6 +2015,7 @@ class _DashboardWalletWidgetState extends ConsumerState<_DashboardWalletWidget> 
       }
 
       // Filter operations relevant to this wallet for managers/employees
+      final now = DateTime.now();
       final myOps = operations.where((op) {
         final client = ref.read(clientProvider).clients.firstWhereOrNull((c) => c.id == op.clientId);
         if (client == null) return false;
@@ -2022,15 +2023,20 @@ class _DashboardWalletWidgetState extends ConsumerState<_DashboardWalletWidget> 
         final cleanRepName = normalizeName(client.representativeName ?? '');
         
         bool isPersonal = cleanRepName == cleanUser || cleanRepName.contains(cleanUser) || cleanUser.contains(cleanRepName);
-        if (isPersonal) return true;
-        
-        if (isManager) {
-          return subordinateNames.any((subName) => cleanRepName == subName || cleanRepName.contains(subName) || subName.contains(cleanRepName));
+        if (!isPersonal && isManager) {
+          final isSub = subordinateNames.any((subName) => cleanRepName == subName || cleanRepName.contains(subName) || subName.contains(cleanRepName));
+          if (!isSub) return false;
+        } else if (!isPersonal) {
+          return false;
         }
-        return false;
+        return true;
       }).toList();
 
-      final collected = myOps.where((op) => op.invoiceCollected == 'collected').toList();
+      final collectedThisMonth = myOps.where((op) =>
+          op.invoiceCollected == 'collected' &&
+          op.approvalDate != null &&
+          op.approvalDate!.year == now.year &&
+          op.approvalDate!.month == now.month).toList();
       final uncollected = myOps.where((op) => op.invoiceCollected != 'collected').toList();
 
       // Calculation of commissions
@@ -2043,6 +2049,9 @@ class _DashboardWalletWidgetState extends ConsumerState<_DashboardWalletWidget> 
         final cleanRepName = normalizeName(client?.representativeName ?? '');
         final fees = op.invoiceFees ?? 0.0;
         final isCollected = op.invoiceCollected == 'collected';
+        final isThisMonth = op.approvalDate != null &&
+            op.approvalDate!.year == now.year &&
+            op.approvalDate!.month == now.month;
         
         double comm = 0.0;
         bool isPersonal = cleanRepName == cleanUser || cleanRepName.contains(cleanUser) || cleanUser.contains(cleanRepName);
@@ -2054,16 +2063,16 @@ class _DashboardWalletWidgetState extends ConsumerState<_DashboardWalletWidget> 
         }
         
         total += comm;
-        if (isCollected) {
+        if (isCollected && isThisMonth) {
           collComm += comm;
-        } else {
+        } else if (!isCollected) {
           uncollComm += comm;
         }
       }
 
       if (mounted) {
         setState(() {
-          _myCollectedOps = collected;
+          _myCollectedOps = collectedThisMonth;
           _myUncollectedOps = uncollected;
           _totalCommission = total;
           _collectedCommission = collComm;
