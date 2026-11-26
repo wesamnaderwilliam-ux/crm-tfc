@@ -611,47 +611,70 @@ class _MainNavigationWrapperState extends ConsumerState<MainNavigationWrapper> {
               ),
 
               Expanded(
-                child: ListView.builder(
+                child: GridView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 0.92,
+                  ),
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
                     final isSelected = _selectedIndex == index && !_showNewClientForm;
 
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: InteractiveHoverCard(
-                        onTap: () {
-                          Navigator.pop(ctx);
-                          navigateToTab(index);
-                        },
-                        glowColor: const Color(0xFF6C5CE7),
-                        backgroundColor: isSelected
-                            ? const Color(0xFF6C5CE7).withValues(alpha: 0.3)
-                            : const Color(0xFF1E1E38).withValues(alpha: 0.6),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        borderRadius: BorderRadius.circular(14),
-                        child: Row(
+                    return InteractiveHoverCard(
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        navigateToTab(index);
+                      },
+                      glowColor: isSelected ? const Color(0xFF00CEC9) : const Color(0xFF6C5CE7),
+                      backgroundColor: isSelected
+                          ? const Color(0xFF6C5CE7).withValues(alpha: 0.35)
+                          : const Color(0xFF1E1E38).withValues(alpha: 0.7),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        decoration: isSelected
+                            ? BoxDecoration(
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(
+                                  color: const Color(0xFF00CEC9).withValues(alpha: 0.7),
+                                  width: 1.2,
+                                ),
+                              )
+                            : null,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              item.icon,
-                              color: isSelected ? const Color(0xFF00CEC9) : Colors.white70,
-                              size: 22,
-                            ),
-                            const SizedBox(width: 16),
-                            Text(
-                              item.label,
-                              style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.white70,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                fontSize: 15,
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isSelected
+                                    ? const Color(0xFF00CEC9).withValues(alpha: 0.2)
+                                    : Colors.white.withValues(alpha: 0.06),
+                              ),
+                              child: Icon(
+                                item.icon,
+                                color: isSelected ? const Color(0xFF00CEC9) : Colors.white70,
+                                size: 26,
                               ),
                             ),
-                            const Spacer(),
-                            if (isSelected)
-                              const Icon(Icons.check_circle_rounded, color: Color(0xFF00CEC9), size: 20)
-                            else
-                              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 14),
+                            const SizedBox(height: 8),
+                            Text(
+                              item.label,
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : Colors.white70,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                fontSize: 11.5,
+                                height: 1.2,
+                              ),
+                            ),
                           ],
                         ),
                       ),
