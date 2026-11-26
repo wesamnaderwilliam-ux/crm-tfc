@@ -199,7 +199,7 @@ class _OperationsWidgetState extends ConsumerState<OperationsWidget> {
 
       final loaded = rows.map((r) {
         final entry = OperationEntry.fromJson(r);
-        if (!isUserAdmin) {
+        {
           final cleanName = entry.employeeName.replaceAll(RegExp(r'[-–—\s]*\b0\d{8,12}\b'), '').trim();
           return OperationEntry(
             id: entry.id,

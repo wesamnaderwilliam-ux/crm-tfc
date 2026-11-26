@@ -179,11 +179,9 @@ class _DistributionWidgetState extends ConsumerState<DistributionWidget>
             bankName: bankData != null ? bankData['bank_name']?.toString() : null,
             employeeId: r['employee_id'] as String?,
             employeeName: empData != null
-                ? (isUserAdmin
-                    ? '${empData['employee_name']} ${empData['phone_1'] ?? ""}'.trim()
-                    : ((empData['job_title'] != null && empData['job_title'].toString().trim().isNotEmpty)
-                        ? '${empData['employee_name']} (${empData['job_title']})'.trim()
-                        : '${empData['employee_name']}'.trim()))
+                ? ((empData['job_title'] != null && empData['job_title'].toString().trim().isNotEmpty)
+                    ? '${empData['employee_name']} (${empData['job_title']})'.trim()
+                    : '${empData['employee_name']}'.trim())
                 : null,
             status: rowStatus,
             isClosed: rowIsClosed,
@@ -1228,13 +1226,10 @@ class _BankSelectionCard extends ConsumerWidget {
               icon: const Icon(Icons.keyboard_arrow_down,
                   color: TfcColors.primary, size: 18),
               items: employees.map((e) {
-                final String phoneSuffix = (ref.read(authProvider).role == 'admin' && e['phone_1'] != null)
-                    ? ' - ${e['phone_1']}'
-                    : '';
                 return DropdownMenuItem<String>(
                   value: e['id'].toString(),
                   child: Text(
-                    '${e['employee_name']}$phoneSuffix',
+                    '${e['employee_name']}',
                     style: const TextStyle(fontSize: 12),
                     textDirection: TextDirection.rtl,
                   ),
